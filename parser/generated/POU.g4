@@ -7,6 +7,7 @@ options {
 
 TYPE : 'UINT' | 'SAFEUINT' ;
 
+
 safe_program_POU: 'PROGRAM' ID variableHeader CODE_SHEET? 'END_PROGRAM' EOF ;
 
 variableHeader : '{' 'VariableWorksheet' ':=' '\'Variables\'' '}' groupDefs vars+ ;
