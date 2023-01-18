@@ -4,32 +4,32 @@ options {
 }
 @header {
 }
-safe_program_POU: 'PROGRAM' ID VariableHeader? CodeSheet? 'END_PROGRAM' EOF ;
 
-VariableHeader : WorkSheet GroupDefs VarBlock ;
+TYPE : 'UINT' | 'SAFEUINT' ;
 
-CodeSheet : '{' SheetType ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' ID '\'' '}' ;
+safe_program_POU: 'PROGRAM' ID variableHeader CODE_SHEET? 'END_PROGRAM' EOF ;
 
-VarBlock : 'VAR_INPUT' | 'VAR_OUTPUT' | 'VAR' ;
+variableHeader : '{' 'VariableWorksheet' ':=' '\'Variables\'' '}' groupDefs vars+ ;
 
-SheetType : 'VariableWorksheet' | 'CodeWorksheet' ;
+CODE_SHEET : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' ID '\'' '}' ;
 
-Vars : VarBlock '{' 'Group' '(' INT  ')' '}' VarLine* 'END_VAR' ;
+VAR_TYPE : 'VAR_INPUT' | 'VAR_OUTPUT' | 'VAR' ;
 
-VarLine : '{' 'LINE' '(' INT ')' '}' ID ':' TYPE (':=' INT)? Description? ;
+vars : VAR_TYPE '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'END_VAR' ;
 
-WorkSheet : '{' SheetType ':=' '\'' ID '\'' '}' ;
+varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' varType=TYPE (':=' INT)? ';' varDesc=DESCRIPTION? ;
 
-GroupDefs : GroupDef+ ;
+groupDefs : groupDef+ ;
 
-GroupDef : '{' 'GroupDefinition' '(' INT ',' '\'' ID '\'' ')' '}' ;
+groupDef : '{' 'GroupDefinition' '(' groupID=INT ',' '\'' groupName=ID '\'' ')' '}' ;
 
 NEWLINE : [\n\r]+ -> skip;
+
+WHITESPACE : [ \t]+ -> skip ;
 
 INT     : [0-9]+ ;
 
 ID      : [a-zA-Z][a-zA-Z0-9]* ;
 
-TYPE : 'UINT' | 'SAFEUINT' ;
 
-Description : '(*' ~[*)]* '*)' ; // TODO: Will currently not allow '*' or ')' alone in description
+DESCRIPTION : '(*' .*? '*)' ; // TODO: Will currently not allow '*' or ')' alone in description
