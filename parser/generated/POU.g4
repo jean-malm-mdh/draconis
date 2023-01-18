@@ -2,10 +2,9 @@ grammar POU;
 options {
     language=Python3;
 }
-@members {
-    s
+@header {
 }
-prog:	'PROGRAM' ID VariableHeader CodeSheet 'END_PROGRAM' EOF ;
+safe_program_POU: 'PROGRAM' ID VariableHeader? CodeSheet? 'END_PROGRAM' EOF ;
 
 VariableHeader : WorkSheet GroupDefs VarBlock ;
 
@@ -17,7 +16,7 @@ SheetType : 'VariableWorksheet' | 'CodeWorksheet' ;
 
 Vars : VarBlock '{' 'Group' '(' INT  ')' '}' VarLine* 'END_VAR' ;
 
-VarLine : '{' 'LINE' '(' INT ')' '}' ID ':' TYPE (':=' INT)? Desc? ; 
+VarLine : '{' 'LINE' '(' INT ')' '}' ID ':' TYPE (':=' INT)? Description? ;
 
 WorkSheet : '{' SheetType ':=' '\'' ID '\'' '}' ;
 
@@ -25,20 +24,12 @@ GroupDefs : GroupDef+ ;
 
 GroupDef : '{' 'GroupDefinition' '(' INT ',' '\'' ID '\'' ')' '}' ;
 
-Desc : '(' '*' STRING ; 
-
-expr:	expr ('*'|'/') expr
-    |	expr ('+'|'-') expr
-    |	INT
-    |	'(' expr ')'
-    ;
-
-NEWLINE : []+ -> skip;
+NEWLINE : [\n\r]+ -> skip;
 
 INT     : [0-9]+ ;
 
 ID      : [a-zA-Z][a-zA-Z0-9]* ;
 
-STRING : STRING_ESCAPE | [ a-zA-Z0-9]* ;
+TYPE : 'UINT' | 'SAFEUINT' ;
 
-STRING_ESCAPE : '*)' ;
+Description : '(*' ~[*)]* '*)' ; // TODO: Will currently not allow '*' or ')' alone in description
