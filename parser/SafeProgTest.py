@@ -47,7 +47,7 @@ def main():
     tokens = CommonTokenStream(lexer)
     parser = POUParser.POUParser(tokens)
     tree = parser.safe_program_POU()  # Begin parsing at this rule
-    result = MyPOUVisitor.MyPOUVisitor().printSafe_program_POU(
+    result = MyPOUVisitor.MyPOUVisitor().visitSafe_program_POU(
         tree
     )  # Pretty-print the result to a string
     print(result)
