@@ -5,36 +5,52 @@ from generated.POUParser import POUParser
 
 class MyPOUVisitor(POUVisitor):
     def visitSafe_program_POU(self, ctx: POUParser.Safe_program_POUContext):
-        variableHeader = ctx.variableHeader().accept()
-        variableGroups = []
-        return Program(ctx.ID(), variableGroups)
+        variableWorkSheet = self.visitVariableWorkSheet(ctx.varWS)
+        codeWorkSheet = self.visitCodeWorkSheet(ctx.codeWorkSheet())
+
+        return Program(str(ctx.ID()), variableWorkSheet)
 
     # Visit a parse tree produced by POUParser#variableHeader.
-    def visitVariableHeader(self, ctx: POUParser.VariableHeaderContext):
-        variableGroups = ctx.groupDefs().accept()
-        return VariableHeader(variableGroups)
+    def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):
+        variableGroups = self.visitVarGroups(ctx.varGroups())
+        return VariableWorkSheet(variableGroups)
 
-    # Visit a parse tree produced by POUParser#groupDefs.
-    def visitGroupDefs(self, ctx: POUParser.GroupDefsContext):
+    # Visit a parse tree produced by POUParser#varGroups.
+    def visitVarGroups(self, ctx: POUParser.VarGroupsContext):
         res = dict()
-        for groupDef in ctx.children:
-            # groupDef : '{' 'GroupDefinition' '(' groupID=INT ',' '\'' groupName=ID '\'' ')' '}' ;
-            _def = groupDef.accept()
-            group = VariableGroup
-            group.groupName = _def.groupName
-            res[_def.groupID] = group
+        for groupDef in ctx.groupDefs().children:
+            _def = self.visitGroupDef(groupDef)
+            res[_def.groupID] = _def
+        for varDefGroup in ctx.varDefGroups().children:
+            pass
         return res
 
+    # Visit a parse tree produced by POUParser#groupDef.
+    def visitGroupDef(self, ctx: POUParser.GroupDefContext):
+        return VariableGroup(str(ctx.groupName.text), int(str(ctx.groupID.text)), [])
+
     # Visit a parse tree produced by POUParser#vars.
-    def visitVars(self, ctx: POUParser.VarsContext):
-        # vars : VAR_TYPE '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'END_VAR' ;
+    def visitVarDefGroup(self, ctx: POUParser.VarDefGroupContext):
         varList = []
-        for lines in ctx.children:
-            varList.append(lines.accept())
-        return int(str(ctx.groupNr())), varList
+        for varLine in ctx.varLine():
+            _var = self.visitVarLine(varLine)
+            _var.varType = ctx.varType
+            varList.append(_var)
+        return ctx.varType.text, int(str(ctx.groupNr())), varList
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
+        dummy = VariableType.InternalVar
+        return Variable(
+            ctx.varName.text,
+            dummy,
+            strToValType(ctx.valueType),
+            int(str(ctx.initVal)),
+            ctx.varDesc.text,
+        )
+
+    # Visit a parse tree produced by POUParser#codeWorkSheet.
+    def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):
         return self.visitChildren(ctx)
 
     def printSafe_program_POU(self, ctx: POUParser.Safe_program_POUContext):
