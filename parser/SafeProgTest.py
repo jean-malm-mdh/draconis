@@ -9,37 +9,23 @@ def main():
         """PROGRAM Main
         { VariableWorksheet := 'Variables' }
         {GroupDefinition(0, 'Inputs')}
-        {GroupDefinition(2, 'Outputs')}
         
         VAR_INPUT
-        {Group(0)}
-        END_VAR
-
-        VAR_OUTPUT
-        {Group(0)}
-        END_VAR
-
-        VAR
         {Group(0)}
         {LINE(1)}
-        Input1: UINT := 0;
-        (*FirstUIntDesc *)
-        END_VAR
-        
-        
-        VAR_INPUT
-        {Group(2)}
+        Input1: UINT := 0; (* FirstInputVar *)
         END_VAR
 
         VAR_OUTPUT
-        {Group(2)}
+        {Group(0)}
+        {LINE(3)}
+        Out1: UINT := 0; (* FirstOutputVar *)
         END_VAR
 
         VAR
-        {Group(2)}
-        {LINE(3)}
-        Input2: UINT := 42;
-        (*Second UINT *)
+        {Group(0)}
+        {LINE(2)}
+        Internal1: UINT := 0;
         END_VAR
         END_PROGRAM"""
     )
