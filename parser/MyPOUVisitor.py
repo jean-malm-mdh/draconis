@@ -22,7 +22,8 @@ class MyPOUVisitor(POUVisitor):
             _def = self.visitGroupDef(groupDef)
             res[_def.groupID] = _def
         for varDefGroup in ctx.varDefGroups().children:
-            pass
+            grpID, listOfVars = self.visitVarDefGroup(varDefGroup)
+            res[grpID].varLines.extend(listOfVars)
         return res
 
     # Visit a parse tree produced by POUParser#groupDef.
@@ -34,20 +35,22 @@ class MyPOUVisitor(POUVisitor):
         varList = []
         for varLine in ctx.varLine():
             _var = self.visitVarLine(varLine)
-            _var.varType = ctx.varType
+            _var.varType = strToVariableType(ctx.varType)
             varList.append(_var)
-        return ctx.varType.text, int(str(ctx.groupNr())), varList
+        return int(str(ctx.groupNr.text)), varList
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
         dummy = VariableType.InternalVar
-        return Variable(
+        result = VariableLine(
             ctx.varName.text,
             dummy,
             strToValType(ctx.valueType),
-            int(str(ctx.initVal)),
-            ctx.varDesc.text,
+            str(ctx.initVal),
+            str(ctx.varDesc),
+            int(str(ctx.lineNr.text)),
         )
+        return result
 
     # Visit a parse tree produced by POUParser#codeWorkSheet.
     def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):
