@@ -35,22 +35,32 @@ class MyPOUVisitor(POUVisitor):
         varList = []
         for varLine in ctx.varLine():
             _var = self.visitVarLine(varLine)
-            _var.varType = strToVariableType(ctx.varType)
+            _var.varType = self.visitVar_type(ctx.varType)
             varList.append(_var)
         return int(str(ctx.groupNr.text)), varList
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
-        dummy = VariableType.InternalVar
+        dummy = VariableType.UNSET  # property is set for the whole group
+        initVal = None if ctx.initVal is None else str(ctx.initVal.text)
+        desc = None if ctx.varDesc is None else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
         result = VariableLine(
             ctx.varName.text,
             dummy,
-            strToValType(ctx.valueType),
-            str(ctx.initVal),
-            str(ctx.varDesc),
+            self.visitVal_Type(ctx.valueType),
+            initVal,
+            desc,
             int(str(ctx.lineNr.text)),
         )
         return result
+
+    # Visit a parse tree produced by POUParser#val_Type.
+    def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
+        return strToValType(str(ctx.children[0]))
+
+    # Visit a parse tree produced by POUParser#var_type.
+    def visitVar_type(self, ctx: POUParser.Var_typeContext):
+        return strToVariableType(str(ctx.children[0]))
 
     # Visit a parse tree produced by POUParser#codeWorkSheet.
     def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):

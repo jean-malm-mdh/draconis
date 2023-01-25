@@ -3,31 +3,12 @@ from antlr4 import InputStream, CommonTokenStream
 import MyPOUVisitor
 from generated import POULexer, POUParser
 
+from pathlib import Path
 
 def main():
+    input = Path('test/smallprog.pou').read_text()
     inputData = InputStream(
-        """PROGRAM Main
-        { VariableWorksheet := 'Variables' }
-        {GroupDefinition(0, 'Inputs')}
-        
-        VAR_INPUT
-        {Group(0)}
-        {LINE(1)}
-        Input1: UINT := 0; (* FirstInputVar *)
-        END_VAR
-
-        VAR_OUTPUT
-        {Group(0)}
-        {LINE(3)}
-        Out1: UINT := 0; (* FirstOutputVar *)
-        END_VAR
-
-        VAR
-        {Group(0)}
-        {LINE(2)}
-        Internal1: UINT := 0;
-        END_VAR
-        END_PROGRAM"""
+        input
     )
     lexer = POULexer.POULexer(inputData)
     tokens = CommonTokenStream(lexer)
