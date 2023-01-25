@@ -1,0 +1,23 @@
+PROGRAM Main
+{ VariableWorksheet := 'Variables' }
+{GroupDefinition(0, 'Inputs')}
+
+VAR_INPUT
+{Group(0)}
+{LINE(1)}
+Input1: SAFEUINT := 0; (* FirstInputVar *)
+END_VAR
+
+VAR_OUTPUT
+{Group(0)}
+END_VAR
+
+VAR
+{Group(0)}
+END_VAR
+
+{ CodeWorksheet := 'Main', Type := '.fbd' }
+<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<FBD>
+</FBD>
+END_PROGRAM
