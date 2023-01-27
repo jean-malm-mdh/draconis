@@ -1,41 +1,3 @@
-PROGRAM Main
-{ VariableWorksheet := 'Variables' }
-{GroupDefinition(0,'Inputs')}
-{GroupDefinition(2,'Outputs')}
-{GroupDefinition(4,'Internals')}
-
-VAR_INPUT {Group(0)}
-END_VAR
-
-VAR_OUTPUT {Group(0)}
-END_VAR
-
-VAR {Group(0)}
-		{LINE(1)}
-		Input1 : UINT := 0; (*FirstUIntDesc*)
-END_VAR
-
-VAR_INPUT {Group(2)}
-END_VAR
-
-VAR_OUTPUT {Group(2)}
-END_VAR
-
-VAR {Group(2)}
-		{LINE(3)}
-		Input3 : UINT := 0; (*Desc*)
-END_VAR
-
-VAR_INPUT {Group(4)}
-END_VAR
-
-VAR_OUTPUT {Group(4)}
-END_VAR
-
-VAR {Group(4)}
-END_VAR
-
-{ CodeWorksheet := 'Main', Type := '.fbd' }
 <?xml version="1.0" encoding="utf-16" standalone="yes"?>
 <FBD>
 	<addData>
@@ -94,7 +56,7 @@ END_VAR
 						</data>
 					</addData>
 				</variable>
-		</outputVariables>		
+		</outputVariables>
 	</block>
 	<inVariable localId="5" height="4" width="18">
 		<position x="86" y="22" />
@@ -104,4 +66,3 @@ END_VAR
 		</connectionPointOut>
 	</inVariable>
 </FBD>
-END_PROGRAM

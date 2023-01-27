@@ -1,13 +1,27 @@
 grammar POU;
 options {
-    tokenVocab=POU_Code_Lexer;
-    language=Python3;
+    tokenVocab=XMLLexer;
 }
-import POU_Code_Parser;
 
-safe_program_POU: 'PROGRAM' ID varWS=variableWorkSheet codeWorkSheet? codeSheet 'END_PROGRAM' EOF ;
+WS      : [ \t\r\n]+ -> skip ;
+
+INT     : [-]?[0-9]+ ;
+
+ID      : [a-zA-Z][a-zA-Z0-9]* ;
+
+FILE_EXT: [.][a-zA-Z0-9_]+ ;
+
+DESCRIPTION : '(*' .*? '*)' ;
+
+safe_program_POU: 'PROGRAM' ID varWS=variableWorkSheet codeWorkSheet EOF ;
+
+codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
 
 variableWorkSheet : '{' 'VariableWorksheet' ':=' '\'Variables\'' '}' varGroups  ;
+
+workSheetDefinition : '{' sheetType=workSheetType ':=' ID '\'' (',' 'Type' ':=' '\'' FILE_EXT '\'')? '}' ;
+
+workSheetType : 'CodeWorksheet' | 'VariableWorksheet' ;
 
 varGroups : groupDefs varDefGroups ;
 
@@ -21,25 +35,10 @@ varDefGroup : varType=var_type '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'EN
 
 varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=INT)? ';' (varDesc=DESCRIPTION)? ;
 
-
-codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
-
-
-NEWLINE : [\n\r]+ -> skip;
-
-WHITESPACE : [ \t]+ -> skip ;
-
-INT     : [-]?[0-9]+ ;
-
-ID      : [a-zA-Z][a-zA-Z0-9]* ;
-
-FILE_EXT: [.][a-zA-Z0-9_]+ ;
-
-DESCRIPTION : '(*' .*? '*)' ; // TODO: Will currently not allow '*' or ')' alone in description
-
 val_Type :  'INT'
             | 'UINT'
-            | 'SAFEUINT' ;
+            | 'SAFEUINT'
+            ;
 
 var_type :  'VAR'
             | 'VAR_INPUT'

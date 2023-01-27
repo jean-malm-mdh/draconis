@@ -64,7 +64,8 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#codeWorkSheet.
     def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):
-        return self.visitChildren(ctx)
+        # For now, we do not care about parsing the header, instead jump over and continue to parse the actual code
+        return None
 
     def printSafe_program_POU(self, ctx: POUParser.Safe_program_POUContext):
         return f"{ctx.ID()}"

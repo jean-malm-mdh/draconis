@@ -59,7 +59,10 @@ class VariableWorkSheet:
     varGroups: dict[int, VariableGroup]
 
     def getAllVariables(self):
-        raise NotImplementedError("Not done yet")
+        result = []
+        for groupID, group in self.varGroups.items():
+            result.extend(group.varLines)
+        return result
 
     def __str__(self):
         return "\n".join([f"Group {groupNr}:\n{groupContent}" for groupNr, groupContent in self.varGroups.items()])
