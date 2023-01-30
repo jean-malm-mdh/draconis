@@ -51,7 +51,7 @@ END_VAR
 		</connectionPointOut>
 	</inVariable>
 	<block localId="4" height="24" width="16" typeName="ADD">
-		<position blabla>
+		<position x="152" y="34" />
 		<addData>
 			<data name="blabla.com" handleUnknown="preserve">
 				<fbData fbFuType="1" />

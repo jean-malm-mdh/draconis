@@ -19,9 +19,57 @@ def test_xml_parsing():
                     <relPosition x="18" y="2" />
                 </connectionPointOut>
             </inVariable>
+            <block localId="4" height="24" width="16" typeName="ADD">
+                <position x="152" y="34" />
+                <addData>
+                    <data name="blabla.com" handleUnknown="preserve">
+                        <fbData fbFuType="1" />
+                    </data>
+                </addData>
+                <inputVariables>
+                    <variable formalParameter="IN1" hidden="true">
+                        <connectionPointIn>
+                            <relPosition x="0" y="8" />
+                            <connection refLocalId="0" />
+                        </connectionPointIn>
+                        <addData>
+                            <data name="blabla.com" handleUnknown="preserve">
+                                <fp localId="1" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
+                            </data>
+                        </addData>
+                    </variable>
+                    <variable formalParameter="IN2" hidden="true">
+                        <connectionPointIn>
+                            <relPosition x="0" y="16" />
+                            <connection refLocalId="5" />
+                        </connectionPointIn>
+                        <addData>
+                            <data name="blabla.com" handleUnknown="preserve">
+                                <fp localId="2" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
+                            </data>
+                        </addData>
+                    </variable>
+                </inputVariables>
+                <inOutVariables />
+                <outputVariables>
+                    <variable formalParameter="ADD" hidden="true">
+                            <connectionPointIn>
+                                <relPosition x="16" y="10" />
+                                <connection refLocalId="5" />
+                            </connectionPointIn>
+                            <addData>
+                                <data name="blabla.com" handleUnknown="preserve">
+                                    <fp localId="3" inState="0" outState="640" width="2" height="2" flagType="" dataType="ANY_NUM" />
+                                </data>
+                            </addData>
+                        </variable>
+                </outputVariables>		
+            </block>
         </FBD>"""
     elements = parse_code_worksheet(inputText)
-    print(elements)
+    for e in elements:
+        print(e)
+        print("---")
 
 
 def main():
@@ -33,9 +81,9 @@ def main():
     input_codeSheet = inputProgram[before_XML_Part:].strip("END_PROGRAM")
 
     SafeProg_VarSheet = parse_variable_worksheet(input_varWorkSheet)
- #   SafeProg_CodeSheet = parse_code_worksheet(input_codeSheet)
+    # SafeProg_CodeSheet = parse_code_worksheet(input_codeSheet)
     print(SafeProg_VarSheet)
-#    print(SafeProg_CodeSheet)
+    # print(SafeProg_CodeSheet)
 
     test_xml_parsing()
 

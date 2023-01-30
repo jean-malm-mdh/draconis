@@ -7,6 +7,7 @@ class VariableType(IntEnum):
     InternalVar = (1,)
     InputVar = (2,)
     OutputVar = 3
+    InOutVar = 4
 
 
 class ValType(IntEnum):
@@ -54,6 +55,11 @@ class BlockData:
     type: str
 
 @dataclass
+class VarList:
+    varType: VariableType
+    list: list[str]
+
+@dataclass
 class VarBlock:
     data: BlockData
     outConnection: ConnectionOut
@@ -62,9 +68,25 @@ class VarBlock:
 @dataclass
 class FBD_Block:
     data: BlockData
-    inVariables: list[str]
-    InOutVariables: list[str]
-    outVariables: list[str]
+    varLists: list[VarList]
+    def getVarForType(self, type):
+        result = []
+        _vars = [v for v in self.varLists if v.varType == type]
+        for vL in _vars:
+            result.extend([] if vL.list is None else vL.list)
+        return result
+
+    def getInputVars(self):
+        return self.getVarForType(VariableType.InputVar)
+
+    def getOutputVars(self):
+        return self.getVarForType(VariableType.OutputVar)
+
+    def getInOutVars(self):
+        return self.getVarForType(VariableType.InOutVar)
+
+    def __str__(self):
+        return f"{self.data}\nInputs:\n{self.getInputVars()}\nOutputs:\n{self.getOutputVars()}\nIn-Outs:\n{self.getInOutVars()}"
 
 
 

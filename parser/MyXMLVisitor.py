@@ -9,12 +9,15 @@ import logging
 class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_block(self, blockParams: dict[str,str], content: XMLParser.ContentContext):
-        blockElements = [self.visitElement(e) for e in content.element()]
-        inVars = []
-        inOutVars = []
-        outVars = []
+        elements = content.element()
+        blockElements = [self.visitElement(e) for e in elements]
+        varBlocks = [e for e in blockElements if isinstance(e, VarList)]
+        inVars = [e for e in varBlocks if e.varType == VariableType.InputVar]
+        inOutVars = [e for e in varBlocks if e.varType == VariableType.InOutVar]
+        outVars = [e for e in varBlocks if e.varType == VariableType.OutputVar]
+
         return FBD_Block(BlockData(int(blockParams["localId"]),
-                         blockParams["typeName"]), inVars, inOutVars, outVars)
+                         blockParams["typeName"]), [inVars[0], inOutVars[0], outVars[0]])
 
     def ppx_parse_inVarBlock(self, inVarArgs, content):
         blockElements = [self.visitElement(e) for e in content.element()]
@@ -41,7 +44,8 @@ class MyXMLVisitor(XMLParserVisitor):
         # Consistency check if we are visiting an entire block
         assert ((ctx.blockCloseTag is None) or
                 (str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)))
-
+        if ctx.blockTag is None:
+            return
         name = ctx.blockTag.text
         attrs = dict()
         for attr in ctx.attribute():
@@ -65,6 +69,16 @@ class MyXMLVisitor(XMLParserVisitor):
             self.visitChildren(ctx)
         elif "position" == name:
             result = Position(int(attrs.get("x", -1)), attrs.get("y", -1))
+        elif "inputVariables" == name:
+            return VarList(VariableType.InputVar, self.ppx_parse_variables(ctx.content()))
+        elif "outputVariables" == name:
+            return VarList(VariableType.OutputVar, self.ppx_parse_variables(ctx.content()))
+        elif "inOutVariables" == name:
+            content = ctx.content()
+            vars = None if content is None else self.ppx_parse_variables(ctx.content())
+            return VarList(VariableType.InOutVar, vars)
+        elif "variable" == name:
+            return self.ppx_parse_variable(attrs, ctx.content())
         else:
             logging.debug(str(ctx) + " is not parsed")
         return result
@@ -89,3 +103,18 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_outConnection(self, attrs, param):
         return ConnectionOut("Dummy")
+
+    def ppx_parse_variables(self, variables_content:XMLParser.ContentContext):
+        """Parse a list of variables"""
+        result = []
+        elements = variables_content.element()
+        parsed_elements = [self.visitElement(e) for e in elements]
+        result.extend(parsed_elements)
+        return result
+
+    def ppx_parse_variable(self, attrs, variable_content:XMLParser.ContentContext):
+        elements = variable_content.element()
+        parsed_elements = [self.visitElement(e) for e in elements]
+        connectionIn = parsed_elements[0]
+        additional_data = parsed_elements[1]
+        return f"{attrs} - {parsed_elements}"
