@@ -10,9 +10,63 @@ class VariableType(IntEnum):
 
 
 class ValType(IntEnum):
-    INT = (1,)
-    UINT = (2,)
-    SAFEUINT = 3
+    BOOL = 1
+    BYTE = 2
+    WORD = 3
+    DWORD = 4
+    LWORD = 5
+    SINT = 6
+    INT = 7
+    DINT = 8
+    LINT = 9
+    USINT = 10
+    UINT = 11
+    UDINT = 12
+    ULINT = 13
+    REAL = 14
+    LREAL = 15
+    TIME = 16
+    DATE = 17
+    DT = 18
+    TOD = 19
+    STRING = 20
+    WSTRING = 21
+    SAFEUINT = 22
+
+
+@dataclass
+class Expr:
+    expr: str
+
+@dataclass
+class ConnectionOut:
+    data: str
+
+@dataclass
+class Position:
+    x: int
+    y: int
+
+
+@dataclass
+class BlockData:
+    localID: int
+    type: str
+
+@dataclass
+class VarBlock:
+    data: BlockData
+    outConnection: ConnectionOut
+    expr: Expr
+
+@dataclass
+class FBD_Block:
+    data: BlockData
+    inVariables: list[str]
+    InOutVariables: list[str]
+    outVariables: list[str]
+
+
 
 
 def strToVariableType(s):
@@ -54,6 +108,7 @@ class VariableGroup:
         variables = "\n".join(map(lambda l: str(l), self.varLines))
         return f"Group Name: '{self.groupName}'\n{variables}"
 
+
 @dataclass
 class VariableWorkSheet:
     varGroups: dict[int, VariableGroup]
@@ -65,7 +120,12 @@ class VariableWorkSheet:
         return result
 
     def __str__(self):
-        return "\n".join([f"Group {groupNr}:\n{groupContent}" for groupNr, groupContent in self.varGroups.items()])
+        return "\n".join(
+            [
+                f"Group {groupNr}:\n{groupContent}"
+                for groupNr, groupContent in self.varGroups.items()
+            ]
+        )
 
 
 @dataclass(frozen=True)
