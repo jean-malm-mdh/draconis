@@ -43,7 +43,11 @@ class MyPOUVisitor(POUVisitor):
     def visitVarLine(self, ctx: POUParser.VarLineContext):
         dummy = VariableType.UNSET  # property is set for the whole group
         initVal = None if ctx.initVal is None else str(ctx.initVal.text)
-        desc = None if ctx.varDesc is None else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
+        desc = (
+            None
+            if ctx.varDesc is None
+            else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
+        )
         result = VariableLine(
             ctx.varName.text,
             dummy,
