@@ -144,12 +144,18 @@ def classify(req_text: str):
 
 
 def complies(data, req):
+    def get_property_value(req_data):
+        res = req_data["property"]
+        if res.startswith("SUM"):
+            sym_values = str(res).lstrip("SUM(").rstrip(")").split(",")
+            actual_values = [data[e] for e in sym_values]
+            return f'({"+".join(actual_values)})'
     classified_req = classify(req)
     if classified_req["target_function"] == "interval":
         l = eval(classified_req["val"])
-        res = eval(f"{data[classified_req['property']]} >= {l[0]}")
-        res2 = eval(f"{data[classified_req['property']]} <= {l[1]}")
+        res = eval(f"{get_property_value(classified_req)} >= {l[0]}")
+        res2 = eval(f"{get_property_value(classified_req)} <= {l[1]}")
         return res and res2
     else:
-        res = eval(f"{data[classified_req['property']]} {classified_req['target_function']} {classified_req['val']}")
+        res = eval(f"{get_property_value(classified_req)} {classified_req['target_function']} {classified_req['val']}")
         return res

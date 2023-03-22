@@ -8,7 +8,7 @@ from reqcheck import complies
 
 
 # Todo:
-class CheckGenerator(unittest.TestCase):
+class ComplianceCheckGenerator(unittest.TestCase):
     def setUp(self) -> None:
         self.maxDiff = None
 
@@ -38,6 +38,11 @@ class CheckGenerator(unittest.TestCase):
         self.assertFalse(complies(metrics, req_text), "negative test")
         metrics = {"variable": 126}
         self.assertFalse(complies(metrics, req_text), "negative test - upper boundary")
+
+    def test_can_handle_compound_metrics(self):
+        req_text = "the total number of in- and output variables shall not exceed 5"
+        metrics = {"inputVariable": 2, "outputVariable": 1}
+        self.assertTrue(complies(metrics, req_text), "Positive test")
 
 if __name__ == '__main__':
     unittest.main()
