@@ -8,7 +8,8 @@ class MyPOUVisitor(POUVisitor):
         variableWorkSheet = self.visitVariableWorkSheet(ctx.varWS)
         codeWorkSheet = self.visitCodeWorkSheet(ctx.codeWorkSheet())
 
-        return Program(str(ctx.ID()), variableWorkSheet)
+        # For now, we set the elements separately
+        return Program(str(ctx.ID()), variableWorkSheet, [])
 
     # Visit a parse tree produced by POUParser#variableHeader.
     def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):
@@ -28,7 +29,8 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
-        return VariableGroup(str(ctx.groupName.text), int(str(ctx.groupID.text)), [])
+        return VariableGroup(str(ctx.groupName.text),
+                             int(str(ctx.groupID.text)), [])
 
     # Visit a parse tree produced by POUParser#vars.
     def visitVarDefGroup(self, ctx: POUParser.VarDefGroupContext):

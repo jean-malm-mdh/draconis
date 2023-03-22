@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from enum import IntEnum
+from typing import List
 
 
 class VariableType(IntEnum):
-    UNSET = (-1,)
-    InternalVar = (1,)
-    InputVar = (2,)
+    UNSET = (0,)
+    InternalVar = 1
+    InputVar = 2
     OutputVar = 3
     InOutVar = 4
 
@@ -39,9 +40,17 @@ class ValType(IntEnum):
 class Expr:
     expr: str
 
+
+class ConnectionType(IntEnum):
+    Input = 1
+    Output = 2
+
+
 @dataclass
-class ConnectionOut:
+class Connection:
+    connectionType: ConnectionType
     data: str
+
 
 @dataclass
 class Position:
@@ -54,21 +63,25 @@ class BlockData:
     localID: int
     type: str
 
+
 @dataclass
 class VarList:
     varType: VariableType
     list: list[str]
 
+
 @dataclass
 class VarBlock:
     data: BlockData
-    outConnection: ConnectionOut
+    outConnection: Connection
     expr: Expr
+
 
 @dataclass
 class FBD_Block:
     data: BlockData
     varLists: list[VarList]
+
     def getVarForType(self, type):
         result = []
         _vars = [v for v in self.varLists if v.varType == type]
@@ -86,9 +99,12 @@ class FBD_Block:
         return self.getVarForType(VariableType.InOutVar)
 
     def __str__(self):
-        return f"{self.data}\nInputs:\n{self.getInputVars()}\nOutputs:\n{self.getOutputVars()}\nIn-Outs:\n{self.getInOutVars()}"
-
-
+        return (
+            f"{self.data}\n"
+            f"Inputs:\n{self.getInputVars()}\n"
+            f"Outputs:\n{self.getOutputVars()}\n"
+            f"In-Outs:\n{self.getInOutVars()}"
+        )
 
 
 def strToVariableType(s):
@@ -150,14 +166,24 @@ class VariableWorkSheet:
         )
 
 
-@dataclass(frozen=True)
+@dataclass()
 class Program:
     progName: str
     varHeader: VariableWorkSheet
+    behaviourElements: List[FBD_Block]
 
     def getMetrics(self):
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
+        res["NrOfFuncBlocks"] = len(
+            [
+                e
+                for e in self.behaviourElements
+                if isinstance(e, FBD_Block) and "Variable" not in e.data.type
+            ]
+        )
+
+
 
         return res
 

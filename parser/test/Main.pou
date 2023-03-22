@@ -94,7 +94,7 @@ END_VAR
 						</data>
 					</addData>
 				</variable>
-		</outputVariables>		
+		</outputVariables>
 	</block>
 	<inVariable localId="5" height="4" width="18">
 		<position x="86" y="22" />
