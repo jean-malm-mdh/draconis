@@ -99,7 +99,7 @@ class CheckClassifier(unittest.TestCase):
     def test_non_atomic_property(self):
         req_text = "the total number of in- and output variables shall not exceed 5"
         self.assertDictEqual({"check_type": "metric",
-                              "property": "SUM([input_variable,output_variable])",
+                              "property": "SUM([inputVariable,outputVariable])",
                               "issue_level": "error",
                               "target_function": "<=",
                               "val": "5"},

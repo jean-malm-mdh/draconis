@@ -98,8 +98,8 @@ def classify_as_metric_check(tagged_words:List[Tuple[str,str]], numbers):
             unstubbed = [e.replace("-", root_part) for e in enumeration]
             unstubbed.append(last_enum_word)
             properties.remove(last_enum_word)
-            suffix = "_".join(properties)
-            unstubbed = [e + "_" + suffix for e in unstubbed]
+            suffix = "".join([e.capitalize() for e in properties])
+            unstubbed = [e + suffix for e in unstubbed]
             res["property"] = f"{res['property']}([{','.join(unstubbed)}])"
     else:
         res["property"] = "variable"
