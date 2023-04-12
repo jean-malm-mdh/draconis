@@ -9,7 +9,7 @@ class MyPOUVisitor(POUVisitor):
         codeWorkSheet = self.visitCodeWorkSheet(ctx.codeWorkSheet())
 
         # For now, we set the elements separately
-        return Program(str(ctx.ID()), variableWorkSheet, [])
+        return Program(str(ctx.ID()), variableWorkSheet, [], {})
 
     # Visit a parse tree produced by POUParser#variableHeader.
     def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):

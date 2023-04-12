@@ -30,7 +30,11 @@ def parse_variable_worksheet(input_varWorkSheet):
     return result
 
 
-def parse_code_worksheet(input_codeWorkSheet):
+def parse_code_worksheet(input_codeWorkSheet:str):
+    """
+    Parses the code worksheet defined by the input string
+    Returns the elements and an ID map
+    """
     inputDataVarHeader = InputStream(input_codeWorkSheet)
     lexer = XMLLexer.XMLLexer(inputDataVarHeader)
     tokens = CommonTokenStream(lexer)
@@ -38,51 +42,11 @@ def parse_code_worksheet(input_codeWorkSheet):
     tree = parser.document()  # Begin parsing at this rule
     visitor = MyXMLVisitor.MyXMLVisitor()
     visitor.visitDocument(tree)
-    return visitor.elements
+    return visitor.elements, visitor.local_id_map
 
 
-def test_OpenPLC_Vars_parsing():
-    inputText = """
-    PROGRAM Main
-    { VariableWorksheet := 'Variables' }
-    {GroupDefinition(0,'Inputs')}
-    {GroupDefinition(2,'Outputs')}
-    {GroupDefinition(4,'Internals')}
-    
-    VAR_INPUT {Group(0)}
-    END_VAR
-    
-    VAR_OUTPUT {Group(0)}
-    END_VAR
-    
-    VAR {Group(0)}
-            {LINE(1)}
-            Input1 : UINT := 0; (*FirstUIntDesc*)
-    END_VAR
-    
-    VAR_INPUT {Group(2)}
-    END_VAR
-    
-    VAR_OUTPUT {Group(2)}
-    END_VAR
-    
-    VAR {Group(2)}
-            {LINE(3)}
-            Input3 : UINT := 0; (*Desc*)
-    END_VAR
-    
-    VAR_INPUT {Group(4)}
-    END_VAR
-    
-    VAR_OUTPUT {Group(4)}
-    END_VAR
-    
-    VAR {Group(4)}
-    END_VAR
-    """
 
-
-def test_xml_parsing():
+def print_xml_parsing():
     inputText = """<?xml version="1.0" encoding="utf-16" standalone="yes"?>
         <FBD>
             <inVariable localId="1" height="4" width="18">
@@ -263,21 +227,18 @@ def test_metrics_pipeline():
     input_varWorkSheet, input_codeSheet = \
         get_worksheets_from_input(inputProgram)
     program = parse_variable_worksheet(input_varWorkSheet)
-    program.behaviourElements = parse_code_worksheet(input_codeSheet)
+    program.behaviourElements, program.behaviour_id_map = parse_code_worksheet(input_codeSheet)
     assert program.getMetrics()["NrOfVariables"] == 2
     assert program.getMetrics()["NrOfFuncBlocks"] == 1
 
 
 def main():
-    inputProgram = Path("test/smallprog.pou").read_text()
-    input_varWorkSheet, _ = get_worksheets_from_input(inputProgram)
-    SafeProg_VarSheet = parse_variable_worksheet(input_varWorkSheet)
-    print(SafeProg_VarSheet)
+    #inputProgram = Path("test/smallprog.pou").read_text()
+    #input_varWorkSheet, _ = get_worksheets_from_input(inputProgram)
+    # print(parse_variable_worksheet(input_varWorkSheet))
 
-    test_xml_parsing()
-    test_OpenPLC_Vars_parsing()
+    print_xml_parsing()
     test_metrics_pipeline()
-
 
 if __name__ == "__main__":
     main()

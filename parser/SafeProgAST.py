@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import List
+from typing import List, Tuple, Optional, Dict
 
 
 class VariableType(IntEnum):
@@ -40,22 +40,46 @@ class ValType(IntEnum):
 class Expr:
     expr: str
 
+@dataclass
+class GUIPosition:
+    isRelativePosition: bool
+    x: int
+    y: int
 
+    def __str__(self):
+        return f"{'relativePos' if self.isRelativePosition else 'absolutePos'}({self.x}, {self.y})"
+
+def make_absolute_position(x,y):
+    return GUIPosition(False, x, y)
+def make_relative_position(x,y):
+    return GUIPosition(True, x, y)
 class ConnectionType(IntEnum):
     Input = 1
     Output = 2
 
+    def __str__(self):
+        return self.name
+
+@dataclass
+class ConnectionData:
+    position = GUIPosition
+    connectionIndex = Optional[int]
+
+    def __init__(self, pos=None, connIndex=None):
+        self.position = make_absolute_position(-1,-1) if not pos else pos
+        self.connectionIndex = connIndex
+
+    def __str__(self):
+        return f"Conn - {self.position} - {self.connectionIndex}"
 
 @dataclass
 class Connection:
     connectionType: ConnectionType
-    data: str
+    data: ConnectionData
+    def __str__(self):
+        return f"{self.connectionType} -> {self.data}"
 
 
-@dataclass
-class Position:
-    x: int
-    y: int
 
 
 @dataclass
@@ -82,7 +106,7 @@ class FBD_Block:
     data: BlockData
     varLists: list[VarList]
 
-    def getVarForType(self, type):
+    def getVarsGivenType(self, type):
         result = []
         _vars = [v for v in self.varLists if v.varType == type]
         for vL in _vars:
@@ -90,20 +114,22 @@ class FBD_Block:
         return result
 
     def getInputVars(self):
-        return self.getVarForType(VariableType.InputVar)
+        return self.getVarsGivenType(VariableType.InputVar)
 
     def getOutputVars(self):
-        return self.getVarForType(VariableType.OutputVar)
+        return self.getVarsGivenType(VariableType.OutputVar)
 
     def getInOutVars(self):
-        return self.getVarForType(VariableType.InOutVar)
+        return self.getVarsGivenType(VariableType.InOutVar)
 
     def __str__(self):
+        def stringify(lst):
+            return ",".join(map(lambda e: str(e), lst))
         return (
             f"{self.data}\n"
-            f"Inputs:\n{self.getInputVars()}\n"
-            f"Outputs:\n{self.getOutputVars()}\n"
-            f"In-Outs:\n{self.getInOutVars()}"
+            f"Inputs:\n{stringify(self.getInputVars())}\n"
+            f"Outputs:\n{stringify(self.getOutputVars())}\n"
+            f"In-Outs:\n{stringify(self.getInOutVars())}"
         )
 
 
@@ -171,6 +197,7 @@ class Program:
     progName: str
     varHeader: VariableWorkSheet
     behaviourElements: List[FBD_Block]
+    behaviour_id_map: Dict[int, FBD_Block]
 
     def getMetrics(self):
         res = dict()
