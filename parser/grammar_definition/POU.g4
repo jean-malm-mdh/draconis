@@ -13,7 +13,9 @@ FILE_EXT: [.][a-zA-Z0-9_]+ ;
 
 DESCRIPTION : '(*' .*? '*)' ;
 
-safe_program_POU: 'PROGRAM' ID varWS=variableWorkSheet codeWorkSheet EOF ;
+safe_program_POU: pou_type ID varWS=variableWorkSheet codeWorkSheet EOF ;
+
+pou_type: 'PROGRAM' | 'FUNCTION' ;
 
 codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
 
