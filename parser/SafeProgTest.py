@@ -14,9 +14,10 @@ def get_worksheets_from_input(input_program: str):
     index_start_of_XML = input_program.index(
         '<?xml version="1.0" encoding="utf-16" standalone="yes"?>'
     )
-    index_end_of_XML = input_program.index("END_PROGRAM")
+    end_of_xml_tag = "</FBD>"
+    index_end_of_XML = input_program.index(end_of_xml_tag)
     input_varWorkSheet = input_program[0:index_start_of_XML]
-    input_codeSheet = input_program[index_start_of_XML:index_end_of_XML]
+    input_codeSheet = input_program[index_start_of_XML:(index_end_of_XML + len(end_of_xml_tag))]
 
     return input_varWorkSheet, input_codeSheet
 
@@ -47,11 +48,11 @@ def parse_code_worksheet(input_codeWorkSheet:str):
     return visitor.elements, visitor.local_id_map
 
 
+def clean_pou_string(input_pou_prog:str):
+    """Removes useless parts of the program before parsing"""
+    return input_pou_prog.replace("﻿", "")
 
 def parse_pou_file(pou_file_path:str):
-    def clean_pou_string(input_pou_prog:str):
-        """Removes useless parts of the program before parsing"""
-        return input_pou_prog.replace("﻿", "")
 
     program_string = clean_pou_string(Path(pou_file_path).read_text())
     varSheet, codeSheet = get_worksheets_from_input(program_string)
@@ -59,6 +60,15 @@ def parse_pou_file(pou_file_path:str):
     resultProgram = parse_variable_worksheet(varSheet)
     resultProgram.behaviourElements, resultProgram.behaviour_id_map = parse_code_worksheet(codeSheet)
     return resultProgram
+
+def test_given_a_file_can_parse_into_program():
+    input_path = "test/Collatz_Calculator_Odd.pou"
+    program = parse_pou_file(input_path)
+
+    assert program.getMetrics()["NrOfVariables"] == 2
+    assert program.getMetrics()["NrOfInputs"] == 1
+    assert program.getMetrics()["NrOfFuncBlocks"] == 2
+
 def print_xml_parsing():
     inputText = """<?xml version="1.0" encoding="utf-16" standalone="yes"?>
         <FBD>
@@ -252,6 +262,7 @@ def main():
 
     print_xml_parsing()
     test_metrics_pipeline()
+    test_given_a_file_can_parse_into_program()
 
 if __name__ == "__main__":
     main()
