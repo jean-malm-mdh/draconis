@@ -15,7 +15,7 @@ DESCRIPTION : '(*' .*? '*)' ;
 
 safe_program_POU: pou_type ID varWS=variableWorkSheet codeWorkSheet EOF ;
 
-pou_type: 'PROGRAM' | 'FUNCTION' ;
+pou_type: 'PROGRAM' | 'FUNCTION_BLOCK' ;
 
 codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
 
