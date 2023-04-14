@@ -1,6 +1,6 @@
 ﻿FUNCTION_BLOCK Collatz_Calculator_Even
 { VariableWorksheet := 'Variables' }
-﻿{GroupDefinition(0,'Input')}
+{GroupDefinition(0,'Input')}
 {GroupDefinition(2,'Output')}
 
 VAR_INPUT {Group(0)}
@@ -26,7 +26,7 @@ VAR {Group(2)}
 END_VAR
 
 { CodeWorksheet := 'Collatz_Calculator_Even', Type := '.fbd' }
-﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?><FBD>
+<?xml version="1.0" encoding="utf-16" standalone="yes"?><FBD>
   <addData>
     <data name="http://www.phoenixcontact-software.com" handleUnknown="preserve">
       <line localId="0" beginX="31" beginY="25" endX="57" endY="25" />
