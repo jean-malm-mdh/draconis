@@ -2,8 +2,8 @@ from antlr4 import InputStream, CommonTokenStream
 
 import MyPOUVisitor
 import MyXMLVisitor
-from generated import POULexer, POUParser
-from generated import XMLLexer, XMLParser
+from antlr_generated.python import POULexer, POUParser
+from antlr_generated.python import XMLLexer, XMLParser
 
 from pathlib import Path
 

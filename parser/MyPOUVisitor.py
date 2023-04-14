@@ -1,6 +1,6 @@
 from SafeProgAST import *
-from generated.POUVisitor import POUVisitor
-from generated.POUParser import POUParser
+from antlr_generated.python.POUVisitor import POUVisitor
+from antlr_generated.python.POUParser import POUParser
 
 
 class MyPOUVisitor(POUVisitor):

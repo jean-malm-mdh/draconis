@@ -1,8 +1,8 @@
 import antlr4.tree.Tree
 
 from SafeProgAST import *
-from generated.XMLParserVisitor import XMLParserVisitor
-from generated.XMLParser import XMLParser
+from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
+from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 

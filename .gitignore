@@ -165,4 +165,4 @@ cython_debug/
 venv/
 
 !generated/POU.g4
-generated/
+*generated/
