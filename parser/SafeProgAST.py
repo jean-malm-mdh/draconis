@@ -40,6 +40,7 @@ class ValType(IntEnum):
 class Expr:
     expr: str
 
+
 @dataclass
 class GUIPosition:
     isRelativePosition: bool
@@ -49,10 +50,15 @@ class GUIPosition:
     def __str__(self):
         return f"{'relativePos' if self.isRelativePosition else 'absolutePos'}({self.x}, {self.y})"
 
-def make_absolute_position(x,y):
+
+def make_absolute_position(x, y):
     return GUIPosition(False, x, y)
-def make_relative_position(x,y):
+
+
+def make_relative_position(x, y):
     return GUIPosition(True, x, y)
+
+
 class ConnectionType(IntEnum):
     Input = 1
     Output = 2
@@ -60,26 +66,27 @@ class ConnectionType(IntEnum):
     def __str__(self):
         return self.name
 
+
 @dataclass
 class ConnectionData:
     position = GUIPosition
     connectionIndex = Optional[int]
 
     def __init__(self, pos=None, connIndex=None):
-        self.position = make_absolute_position(-1,-1) if not pos else pos
+        self.position = make_absolute_position(-1, -1) if not pos else pos
         self.connectionIndex = connIndex
 
     def __str__(self):
         return f"Conn - {self.position} - {self.connectionIndex}"
 
+
 @dataclass
 class Connection:
     connectionType: ConnectionType
     data: ConnectionData
+
     def __str__(self):
         return f"{self.connectionType} -> {self.data}"
-
-
 
 
 @dataclass
@@ -125,6 +132,7 @@ class FBD_Block:
     def __str__(self):
         def stringify(lst):
             return ",".join(map(lambda e: str(e), lst))
+
         return (
             f"{self.data}\n"
             f"Inputs:\n{stringify(self.getInputVars())}\n"
@@ -183,6 +191,12 @@ class VariableWorkSheet:
             result.extend(group.varLines)
         return result
 
+    def getVarsByType(self, vType: VariableType):
+        result = []
+        for _, group in self.varGroups.items():
+            result.extend(filter(lambda e: e.varType == vType, group.varLines))
+        return result
+
     def __str__(self):
         return "\n".join(
             [
@@ -209,8 +223,12 @@ class Program:
                 if isinstance(e, FBD_Block) and "Variable" not in e.data.type
             ]
         )
-
-
+        res["NrInputVariables"] = len(
+            self.varHeader.getVarsByType(VariableType.InputVar)
+        )
+        res["NrOutputVariables"] = len(
+            self.varHeader.getVarsByType(VariableType.OutputVar)
+        )
 
         return res
 

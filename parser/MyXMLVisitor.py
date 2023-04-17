@@ -24,7 +24,8 @@ class MyXMLVisitor(XMLParserVisitor):
         outVars = [e for e in varBlocks if e.varType == VariableType.OutputVar]
         result = FBD_Block(
             BlockData(int(blockParams["localId"]), blockParams["typeName"]),
-            [inVars[0], inOutVars[0], outVars[0]])
+            [inVars[0], inOutVars[0], outVars[0]],
+        )
         self.local_id_map[int(blockParams["localId"])] = result
         return result
 
@@ -34,7 +35,9 @@ class MyXMLVisitor(XMLParserVisitor):
         connectionOut = [e for e in blockElements if isinstance(e, Connection)][0]
 
         blockData = BlockData(int(inVarArgs["localId"]), "inVariable")
-        self.local_id_map[int(inVarArgs["localId"])] = VarBlock(blockData, connectionOut, expr)
+        self.local_id_map[int(inVarArgs["localId"])] = VarBlock(
+            blockData, connectionOut, expr
+        )
         return self.local_id_map[int(inVarArgs["localId"])]
 
     def ppx_parse_expression(self, content):
@@ -61,19 +64,25 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "connectionPointIn" == name:
                 return self.ppx_parse_Connection(ctx.content(), ConnectionType.Input)
             elif "connectionPointOut" == name:
-                return self.ppx_parse_Connection(
-                    ctx.content(), ConnectionType.Output
-                )
+                return self.ppx_parse_Connection(ctx.content(), ConnectionType.Output)
             elif "expression" == name:
                 return self.ppx_parse_expression(ctx.content())
             elif "FBD" == name:
                 self.visitChildren(ctx)
             elif "relPosition" == name:
-                return make_relative_position(int(attrs.get("x", -1)), int(attrs.get("y", -1)))
+                return make_relative_position(
+                    int(attrs.get("x", -1)), int(attrs.get("y", -1))
+                )
             elif "position" == name:
-                return make_absolute_position(int(attrs.get("x", -1)), int(attrs.get("y", -1)))
+                return make_absolute_position(
+                    int(attrs.get("x", -1)), int(attrs.get("y", -1))
+                )
             elif "connection" == name:
-                return int(attrs.get("refLocalId")) if attrs.get("refLocalId", None) else None
+                return (
+                    int(attrs.get("refLocalId"))
+                    if attrs.get("refLocalId", None)
+                    else None
+                )
             elif "inputVariables" == name:
                 return VarList(
                     VariableType.InputVar, self.ppx_parse_variables(ctx.content())
@@ -84,13 +93,16 @@ class MyXMLVisitor(XMLParserVisitor):
                 )
             elif "inOutVariables" == name:
                 content = ctx.content()
-                vars = None if content is None else self.ppx_parse_variables(ctx.content())
+                vars = (
+                    None if content is None else self.ppx_parse_variables(ctx.content())
+                )
                 return VarList(VariableType.InOutVar, vars)
             elif "variable" == name:
                 return self.ppx_parse_variable(attrs, ctx.content())
             else:
                 logging.debug(str(ctx) + " is not parsed")
             return result
+
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
             str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
@@ -105,7 +117,6 @@ class MyXMLVisitor(XMLParserVisitor):
         result = handle_ppx_element(attrs, ctx, name)
 
         return result, name, attrs
-
 
     # Visit a parse tree produced by XMLParser#reference.
     def visitReference(self, ctx: XMLParser.ReferenceContext):
