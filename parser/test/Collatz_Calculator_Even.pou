@@ -28,7 +28,7 @@ END_VAR
 { CodeWorksheet := 'Collatz_Calculator_Even', Type := '.fbd' }
 ﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?><FBD>
   <addData>
-    <data name="<redacted>" handleUnknown="preserve">
+    <data name="redacted" handleUnknown="preserve">
       <line localId="0" beginX="31" beginY="25" endX="57" endY="25" />
       <line localId="1" beginX="31" beginY="21" endX="57" endY="21" />
       <line localId="2" beginX="69" beginY="23" endX="76" endY="23" />
@@ -55,7 +55,7 @@ END_VAR
       <relPosition x="0" y="2" />
       <connection refLocalId="9" formalParameter="DIV">
         <addData>
-          <data name="<redacted>" handleUnknown="preserve">
+          <data name="redacted" handleUnknown="preserve">
             <connectedFormalparameter refLocalId="8" />
           </data>
         </addData>
@@ -67,7 +67,7 @@ END_VAR
   <block localId="9" height="24" width="16" typeName="DIV">
     <position x="118" y="34" />
     <addData>
-      <data name="<redacted>" handleUnknown="preserve">
+      <data name="redacted" handleUnknown="preserve">
         <fbData fbFuType="1" />
       </data>
     </addData>
@@ -81,7 +81,7 @@ END_VAR
           </connection>
         </connectionPointIn>
         <addData>
-          <data name="<redacted>" handleUnknown="preserve">
+          <data name="redacted" handleUnknown="preserve">
             <fp localId="6" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
           </data>
         </addData>
@@ -95,7 +95,7 @@ END_VAR
           </connection>
         </connectionPointIn>
         <addData>
-          <data name="<redacted>" handleUnknown="preserve">
+          <data name="redacted" handleUnknown="preserve">
             <fp localId="7" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
           </data>
         </addData>
@@ -108,7 +108,7 @@ END_VAR
           <relPosition x="16" y="12" />
         </connectionPointOut>
         <addData>
-          <data name="<redacted>" handleUnknown="preserve">
+          <data name="redacted" handleUnknown="preserve">
             <fp localId="8" inState="0" outState="640" width="1" height="2" flagType="" dataType="ANY_NUM" />
           </data>
         </addData>
