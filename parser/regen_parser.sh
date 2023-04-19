@@ -14,7 +14,7 @@ echo "" > "./$ANTLR_GEN_DIR/python/__init__.py"
 
 # Move all the generated files to their actual location
 mv "$ANTLR_GEN_DIR" "../"
-popd || exit
+popd > /dev/null || exit
 #antlr_j XMLLexer.g4
 #antlr_j XMLParser.g4
 #antlr_j POU.g4
