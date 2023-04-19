@@ -1,4 +1,7 @@
 grammar POU;
+options {
+    tokenVocab=XMLLexer;
+}
 
 WS      : [ \t\r\n]+ -> skip ;
 
@@ -17,6 +20,10 @@ pou_type: 'PROGRAM' | 'FUNCTION_BLOCK' ;
 codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
 
 variableWorkSheet : '{' 'VariableWorksheet' ':=' '\'Variables\'' '}' varGroups  ;
+
+workSheetDefinition : '{' sheetType=workSheetType ':=' ID '\'' (',' 'Type' ':=' '\'' FILE_EXT '\'')? '}' ;
+
+workSheetType : 'CodeWorksheet' | 'VariableWorksheet' ;
 
 varGroups : groupDefs varDefGroups ;
 
