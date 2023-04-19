@@ -169,6 +169,30 @@ class VariableLine:
         _desc = "" if self.description is None else f"Description: '{self.description}'"
         return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
 
+    def __init__(self, name, var_type, value_type, init_val=None, description=None, line_nr=None):
+        self.name = name
+        self.varType = var_type
+        self.valueType = value_type
+        self.initVal = 0 if init_val is None else init_val
+        self.description = description
+        self.lineNr = line_nr
+
+def test_can_create_variable_line_and_get_properties():
+    v = VariableLine("aVar", VariableType.InputVar, ValType.INT, 5, "This is a variable", 3)
+    assert v.name == "aVar"
+    assert v.varType == VariableType.InputVar
+    assert v.valueType == ValType.INT
+    assert v.initVal == 5
+    assert v.description == "This is a variable"
+    assert v.lineNr == 3
+def test_some_variable_line_properties_are_optional():
+    v = VariableLine("optVar", VariableType.InputVar, ValType.UINT)
+    assert v.name == "optVar"
+    assert v.varType == VariableType.InputVar
+    assert v.valueType == ValType.UINT
+    assert v.initVal == 0
+    assert v.description is None
+    assert v.lineNr is None
 
 @dataclass
 class VariableGroup:
@@ -187,15 +211,22 @@ class VariableWorkSheet:
 
     def getAllVariables(self):
         result = []
-        for groupID, group in self.varGroups.items():
+        for _, group in self.varGroups.items():
             result.extend(group.varLines)
         return result
 
+    def getVarByName(self, name):
+        allVars = self.getAllVariables()
+        for v in allVars:
+            if name == v.name:
+                return v
+        return None
+
+    def makeVarDict(self):
+        allVars = self.getAllVariables()
+
     def getVarsByType(self, vType: VariableType):
-        result = []
-        for _, group in self.varGroups.items():
-            result.extend(filter(lambda e: e.varType == vType, group.varLines))
-        return result
+        return list((filter(lambda e: e.varType == vType, self.getAllVariables())))
 
     def __str__(self):
         return "\n".join(
@@ -212,6 +243,20 @@ class Program:
     varHeader: VariableWorkSheet
     behaviourElements: List[FBD_Block]
     behaviour_id_map: Dict[int, FBD_Block]
+
+
+    def getInfo(self):
+        def list_to_name_dict(allVars: list[VariableLine]):
+            res_dict = dict()
+            for v in allVars:
+                res_dict[v.name] = v
+            return res_dict
+
+        res = dict()
+        res["OutputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.OutputVar))
+        res["InputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.InputVar))
+
+        return res
 
     def getMetrics(self):
         res = dict()
@@ -231,6 +276,7 @@ class Program:
         )
 
         return res
+
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"

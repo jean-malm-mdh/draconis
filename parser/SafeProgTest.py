@@ -4,6 +4,7 @@ import sys
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
 
+# TODO(TDD): It shall be possible to check if functions depend on internal variables/state
 
 def test_given_a_file_can_extract_numeric_metrics():
     input_path = "test/Collatz_Calculator_Odd.pou"
@@ -13,6 +14,16 @@ def test_given_a_file_can_extract_numeric_metrics():
     assert metrics["NrOfFuncBlocks"] == 2
     assert metrics["NrInputVariables"] == 1
     assert metrics["NrOutputVariables"] == 1
+
+def test_given_a_name_can_get_variable_info_by_name():
+    input_path = "test/Collatz_Calculator_Even.pou"
+    program = helper_functions.parse_pou_file(input_path)
+    info = program.getInfo()
+    assert str(info["OutputVariables"].get("Result_Even", None)).replace("'", "").replace('"', "") == \
+           "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
+    assert str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "") == \
+           "Var(UINT N: InputVar = 1; Description: Collatz input)"
+
 
 
 def print_xml_parsing():
@@ -201,7 +212,6 @@ def test_metrics_pipeline():
     )
     assert program.getMetrics()["NrOfVariables"] == 2
     assert program.getMetrics()["NrOfFuncBlocks"] == 1
-
 
 def main():
     pass
