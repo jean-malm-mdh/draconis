@@ -22,7 +22,28 @@ def test_given_a_name_can_get_variable_info_by_name():
     assert str(info["OutputVariables"].get("Result_Even", None)).replace("'", "").replace('"', "") == \
            "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
     assert str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "") == \
-           "Var(UINT N: InputVar = 1; Description: Collatz input)"
+           "Var(UINT N: InputVar = 1; Description: Collatz Input)"
+    assert len(info["InternalVariables"]) == 0
+
+def test_given_program_can_extract_names_and_descriptions():
+    input_path = "test/Collatz_Calculator_Even.pou"
+    program = helper_functions.parse_pou_file(input_path)
+
+    """Basic functionality"""
+    varInfo_justNames = program.getVarInfo("name")
+    assert varInfo_justNames == [["N"], ["Result_Even"]]
+    varInfo = program.getVarInfo("name", "description")
+    assert varInfo == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
+    varInfo = program.getVarInfo("description", "name")
+    assert varInfo == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
+
+    """Boundary Values"""
+    varInfo_noSpecifiedFields = program.getVarInfo()
+    assert varInfo_noSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"], ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
+
+    varInfo_AllSpecifiedFields = program.getVarInfo("name", "varType", "valueType", "initVal", "description", "lineNr")
+    assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
+                                          ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
 
 
 

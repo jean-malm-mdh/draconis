@@ -10,6 +10,9 @@ class VariableType(IntEnum):
     OutputVar = 3
     InOutVar = 4
 
+    def __str__(self):
+        return self.name
+
 
 class ValType(IntEnum):
     BOOL = 1
@@ -35,6 +38,8 @@ class ValType(IntEnum):
     WSTRING = 21
     SAFEUINT = 22
 
+    def __str__(self):
+        return self.name
 
 @dataclass
 class Expr:
@@ -255,8 +260,17 @@ class Program:
         res = dict()
         res["OutputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.OutputVar))
         res["InputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.InputVar))
+        res["InternalVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.InternalVar))
 
         return res
+
+    def getVarInfo(self, *args):
+        def getFieldDatas(fieldList, element):
+            theVars = vars(element)
+            return [str(theVars.get(k, None)) for k in fieldList]
+
+        _fields = VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
+        return [getFieldDatas(_fields, e) for e in self.varHeader.getAllVariables()]
 
     def getMetrics(self):
         res = dict()
