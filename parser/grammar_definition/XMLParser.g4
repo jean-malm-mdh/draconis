@@ -35,10 +35,9 @@ document    :   prolog? misc* element misc* EOF ;
 
 prolog      :   XMLDeclOpen attribute* SPECIAL_CLOSE ;
 
-content     :   chardata?
-                ((element | reference | CDATA | PI | COMMENT) chardata?)* ;
+content     :   chardata? ((element | reference | CDATA | PI | COMMENT) chardata?)* ;
 
-element     :   '<' blockTag=Name attribute* '>' content '<' '/' blockCloseTag=Name '>'
+element     :   '<' blockTag=Name attribute* '>' elementContent=content '<' '/' blockCloseTag=Name '>'
             |   '<' blockTag=Name attribute* '/>'
             ;
 
