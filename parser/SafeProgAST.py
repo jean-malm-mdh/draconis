@@ -41,6 +41,7 @@ class ValType(IntEnum):
     def __str__(self):
         return self.name
 
+
 @dataclass
 class Expr:
     expr: str
@@ -64,7 +65,7 @@ def make_relative_position(x, y):
     return GUIPosition(True, x, y)
 
 
-class ConnectionType(IntEnum):
+class ConnectionDirection(IntEnum):
     Input = 1
     Output = 2
 
@@ -84,14 +85,20 @@ class ConnectionData:
     def __str__(self):
         return f"Conn - {self.position} - {self.connectionIndex}"
 
-
 @dataclass
 class Connection:
-    connectionType: ConnectionType
+    startPoint: ConnectionData
+    endPoint: ConnectionData
+    formalName: str
+
+@dataclass
+class ConnectionPoint:
+    connectionDir: ConnectionDirection
+    connections: list[Connection]
     data: ConnectionData
 
     def __str__(self):
-        return f"{self.connectionType} -> {self.data}"
+        return f"{self.connectionDir} -> {self.data}"
 
 
 @dataclass
@@ -109,7 +116,7 @@ class VarList:
 @dataclass
 class VarBlock:
     data: BlockData
-    outConnection: Connection
+    outConnection: ConnectionPoint
     expr: Expr
 
 
@@ -182,6 +189,7 @@ class VariableLine:
         self.description = description
         self.lineNr = line_nr
 
+
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine("aVar", VariableType.InputVar, ValType.INT, 5, "This is a variable", 3)
     assert v.name == "aVar"
@@ -190,6 +198,8 @@ def test_can_create_variable_line_and_get_properties():
     assert v.initVal == 5
     assert v.description == "This is a variable"
     assert v.lineNr == 3
+
+
 def test_some_variable_line_properties_are_optional():
     v = VariableLine("optVar", VariableType.InputVar, ValType.UINT)
     assert v.name == "optVar"
@@ -198,6 +208,7 @@ def test_some_variable_line_properties_are_optional():
     assert v.initVal == 0
     assert v.description is None
     assert v.lineNr is None
+
 
 @dataclass
 class VariableGroup:
@@ -243,12 +254,29 @@ class VariableWorkSheet:
 
 
 @dataclass()
+class PathDivide:
+    def __init__(self, *paths):
+        self.paths = list(paths)
+
+    def __eq__(self, other):
+        signature__ = str(type(other))
+        if "PathDivide" in str(signature__):
+            return self.paths == other.paths
+        return False
+
+    def __ne__(self, other):
+        return not (self.__eq__(other))
+
+    def __str__(self):
+        f'D({";".join([str(e) for e in self.paths])})'
+
+
+@dataclass()
 class Program:
     progName: str
     varHeader: VariableWorkSheet
     behaviourElements: List[FBD_Block]
     behaviour_id_map: Dict[int, FBD_Block]
-
 
     def getInfo(self):
         def list_to_name_dict(allVars: list[VariableLine]):
@@ -272,6 +300,23 @@ class Program:
         _fields = VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
         return [getFieldDatas(_fields, e) for e in self.varHeader.getAllVariables()]
 
+    def getTrace(self, direction="backward"):
+        interface_blocks = [e for e in self.behaviourElements if isinstance(e, VarBlock)]
+        start_blocks_selector = (lambda e: e.data.type == "inVariable") if direction == "forward" else (lambda e: e.data.type == "outVariable")
+        start_blocks = [b for b in interface_blocks if start_blocks_selector(b)]
+        result = dict()
+        for b in start_blocks:
+            b_Result = [b.data.localID]
+            worklist = [b.outConnection.data.connectionIndex]
+            while worklist:
+                current_entity_index = worklist[0]
+                b_Result.append(current_entity_index)
+                current_entity = self.behaviour_id_map[current_entity_index]
+                worklist = worklist[1:]
+            result[b.expr] = b_Result
+        return result
+        return {"Result_Even": [5, 9, 8, PathDivide([6, 3], [7, 4])]}
+
     def getMetrics(self):
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
@@ -290,7 +335,6 @@ class Program:
         )
 
         return res
-
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"

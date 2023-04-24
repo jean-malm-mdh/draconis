@@ -1,41 +1,44 @@
 import os.path
 import sys
 
+import pytest
+
+from parser import SafeProgAST
+
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
 
-# TODO(TDD): It shall be possible to check if functions depend on internal variables/state
+# TODO(TDD):
+#  It shall be possible to check if functions depend on internal variables/state
+#  It shall be possible to trace the path of a output backwards
+#  * It shall be possible to trace any value in any direction
 
-def test_given_a_file_can_extract_numeric_metrics():
-    input_path = "test/Collatz_Calculator_Odd.pou"
-    program = helper_functions.parse_pou_file(input_path)
-    metrics = program.getMetrics()
+@pytest.fixture(scope="session", autouse=True)
+def programs():
+    programs = dict([(n, helper_functions.parse_pou_file(p)) for n, p in
+                [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"), ("Calc_Even", "test/Collatz_Calculator_Even.pou")]])
+    return programs
+def test_given_a_file_can_extract_numeric_metrics(programs):
+    metrics = programs["Calc_Odd"].getMetrics()
     assert metrics["NrOfVariables"] == 2
     assert metrics["NrOfFuncBlocks"] == 2
     assert metrics["NrInputVariables"] == 1
     assert metrics["NrOutputVariables"] == 1
 
-def test_given_a_name_can_get_variable_info_by_name():
-    input_path = "test/Collatz_Calculator_Even.pou"
-    program = helper_functions.parse_pou_file(input_path)
-    info = program.getInfo()
+def test_given_a_name_can_get_variable_info_by_name(programs):
+    info = programs["Calc_Even"].getInfo()
     assert str(info["OutputVariables"].get("Result_Even", None)).replace("'", "").replace('"', "") == \
            "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
     assert str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "") == \
            "Var(UINT N: InputVar = 1; Description: Collatz Input)"
     assert len(info["InternalVariables"]) == 0
 
-def test_given_program_can_extract_names_and_descriptions():
-    input_path = "test/Collatz_Calculator_Even.pou"
-    program = helper_functions.parse_pou_file(input_path)
-
+def test_given_program_can_extract_names_and_descriptions(programs):
+    program = programs["Calc_Even"]
     """Basic functionality"""
-    varInfo_justNames = program.getVarInfo("name")
-    assert varInfo_justNames == [["N"], ["Result_Even"]]
-    varInfo = program.getVarInfo("name", "description")
-    assert varInfo == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
-    varInfo = program.getVarInfo("description", "name")
-    assert varInfo == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
+    assert program.getVarInfo("name") == [["N"], ["Result_Even"]]
+    assert program.getVarInfo("name", "description") == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
+    assert program.getVarInfo("description", "name") == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
 
     """Boundary Values"""
     varInfo_noSpecifiedFields = program.getVarInfo()
@@ -45,8 +48,22 @@ def test_given_program_can_extract_names_and_descriptions():
     assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
                                           ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
 
+def path_assert_helper(expected, actual):
+    for i in range(len(expected)):
+        a = actual[i]
+        e = expected[i]
+        if "PathDivide" in str(type(e)) and "PathDivide" in str(type(a)):
+            path_assert_helper(e.paths, a.paths)
+        else:
+            assert (e == a)
+    return True
 
-
+def test_from_output_can_perform_traces(programs):
+    assert [5, 9, 8, SafeProgAST.PathDivide([6, 3], [7, 4])] == programs["Calc_Even"].getTrace("backward")["Result_Even"]
+#    assert programs["Calc_Odd"].getTrace("backward")["Result_Odd"] == [9, 16, 12,
+#                                                                   SafeProgAST.PathDivide(
+#                                                                       [10, 17, 15, SafeProgAST.PathDivide([13], [14])]
+#                                                                       [11, 6])]
 def print_xml_parsing():
     inputText = """
   <?xml version="1.0" encoding="utf-16" standalone="yes"?>
