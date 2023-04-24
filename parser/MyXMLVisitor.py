@@ -14,7 +14,7 @@ class MyXMLVisitor(XMLParserVisitor):
         self.local_id_map = {}
 
     def ppx_parse_block(
-        self, blockParams: dict[str, str], content: XMLParser.ContentContext
+            self, blockParams: dict[str, str], content: XMLParser.ContentContext
     ):
         elements = content.element()
         blockElements = [self.visitElement(e)[0] for e in elements]
@@ -29,16 +29,16 @@ class MyXMLVisitor(XMLParserVisitor):
         self.local_id_map[int(blockParams["localId"])] = result
         return result
 
-    def ppx_parse_inVarBlock(self, inVarArgs, content):
+    def ppx_parse_VarBlock(self, outVarArgs, content, direction="in"):
         blockElements = [self.visitElement(e)[0] for e in content.element()]
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
-        connectionOut = [e for e in blockElements if isinstance(e, Connection)][0]
-
-        blockData = BlockData(int(inVarArgs["localId"]), "inVariable")
-        self.local_id_map[int(inVarArgs["localId"])] = VarBlock(
-            blockData, connectionOut, expr
+        connection_points = [e for e in blockElements if isinstance(e, ConnectionPoint)][0]
+        localId = int(outVarArgs["localId"])
+        blockData = BlockData(localId, direction + "Variable")
+        self.local_id_map[localId] = VarBlock(
+            blockData, connection_points, expr
         )
-        return self.local_id_map[int(inVarArgs["localId"])]
+        return self.local_id_map[localId]
 
     def ppx_parse_expression(self, content):
         exprStr = self.visitChardata(content.chardata(0))
@@ -54,21 +54,47 @@ class MyXMLVisitor(XMLParserVisitor):
 
     # Visit a parse tree produced by XMLParser#element.
     def visitElement(self, ctx: XMLParser.ElementContext):
+        def get_value_or_none(d: dict, v, f):
+            return (f(d.get(v)) if d.get(v, None) else None)
+
         def handle_ppx_element(attrs, ctx, name):
             """Parse ppx: elements based on their tag names"""
             result = None
             if "block" == name:
                 self.elements.append(self.ppx_parse_block(attrs, ctx.content()))
             elif "inVariable" == name:
-                self.elements.append(self.ppx_parse_inVarBlock(attrs, ctx.content()))
+                self.elements.append(self.ppx_parse_VarBlock(attrs, ctx.content(), "in"))
+            elif "outVariable" == name:
+                self.elements.append(self.ppx_parse_VarBlock(attrs, ctx.content(), "out"))
             elif "connectionPointIn" == name:
-                return self.ppx_parse_Connection(ctx.content(), ConnectionType.Input)
+                return self.ppx_parse_ConnectionPoint(ctx.content(), ConnectionDirection.Input)
             elif "connectionPointOut" == name:
-                return self.ppx_parse_Connection(ctx.content(), ConnectionType.Output)
+                return self.ppx_parse_ConnectionPoint(ctx.content(), ConnectionDirection.Output)
             elif "expression" == name:
                 return self.ppx_parse_expression(ctx.content())
             elif "FBD" == name:
-                self.visitChildren(ctx)
+                # We ignore signal lines locations for now
+                content = ctx.content()
+                elements = [e for e in content.element()]
+                for i in range(1, len(elements)):
+                    self.visitElement(elements[i])
+            elif "line" == name:
+                return attrs
+            elif "addData" == name:
+                self.parse_addData_node(ctx)
+            elif "data" == name:
+                def parse_node_content(e):
+                    if isinstance(e, XMLParser.ElementContext):
+                        return self.visitElement(e)
+                    elif isinstance(e, XMLParser.ContentContext):
+                        return [c for c in e.getChildren()]
+                    else:
+                        return None
+
+                pre_filter = [parse_node_content(c) for c in ctx.getChildren()]
+                result = list(filter(lambda e: e is not None, pre_filter))
+            elif "connectedFormalparameter" == name:
+                return get_value_or_none(attrs, "refLocalId", int)
             elif "relPosition" == name:
                 return make_relative_position(
                     int(attrs.get("x", -1)), int(attrs.get("y", -1))
@@ -78,11 +104,11 @@ class MyXMLVisitor(XMLParserVisitor):
                     int(attrs.get("x", -1)), int(attrs.get("y", -1))
                 )
             elif "connection" == name:
-                return (
-                    int(attrs.get("refLocalId"))
-                    if attrs.get("refLocalId", None)
-                    else None
-                )
+                _data = [c for c in ctx.getChildren(lambda e: isinstance(e, XMLParser.ContentContext))]
+                if _data:
+                    return self.ppx_parse_Connection(_data[0], attrs)
+                else:
+                    return self.ppx_parse_Connection(None, attrs)
             elif "inputVariables" == name:
                 return VarList(
                     VariableType.InputVar, self.ppx_parse_variables(ctx.content())
@@ -101,11 +127,12 @@ class MyXMLVisitor(XMLParserVisitor):
                 return self.ppx_parse_variable(attrs, ctx.content())
             else:
                 logging.debug(str(ctx) + " is not parsed")
+                print(str(ctx) + " is not parsed - tag name:" + name)
             return result
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
-            str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
+                str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
         )
         if ctx.blockTag is None:
             return
@@ -136,15 +163,77 @@ class MyXMLVisitor(XMLParserVisitor):
     def visitMisc(self, ctx: XMLParser.MiscContext):
         return self.visitChildren(ctx)
 
-    def ppx_parse_Connection(self, param: XMLParser.ContentContext, conn_type):
+    def parse_addData_node(self, addDataNode: XMLParser.ElementContext):
+        dataNodes = addDataNode.content().element()
+        assert len(dataNodes) == 1
+        dataElements = dataNodes[0].content().element()
+        return [self.visitElement(e) for e in dataElements]
+
+    def ppx_parse_Connection(self, connData: XMLParser.ContentContext, attrs):
+        """
+        <connection refLocalId="16" formalParameter="ADD">
+            <addData>
+              <data name="redacted" handleUnknown="preserve">
+                <connectedFormalparameter refLocalId="12" />
+              </data>
+            </addData>
+            <position x="154" y="44" />
+            <position x="144" y="44" />
+      </connection>
+        """
+        """
+          <connection refLocalId="6">
+            <position x="120" y="48" />
+            <position x="112" y="48" />
+          </connection>
+        """
+        """        
+        <connectionPointIn>
+          <relPosition x="0" y="16" />
+          <connection refLocalId="8" /> <--
+        </connectionPointIn>
+        """
+        def hasNoExtraData():
+            return connData is None or len(connData.element()) == 0
+
+        if hasNoExtraData():
+            return Connection(ConnectionData(),
+                              ConnectionData(pos=None, connIndex=int(attrs["refLocalId"])),
+                              formalName=attrs.get("formalParameter", None))
+
+        elements = list(connData.element())
+
+        def hasOnlyPositionData(elements: List[XMLParser.ElementContext]):
+            for e in elements:
+                if "position" not in e.blockTag.text:
+                    return False
+            return True
+
+        startID = None
+        if hasOnlyPositionData(elements):
+            toPosition = self.visitElement(elements[0])
+            fromPosition = self.visitElement(elements[1])
+        else:
+            addDataNode = elements[0]
+            toPosition = self.visitElement(elements[1])
+            fromPosition = self.visitElement(elements[2])
+            parsedDataElements = self.parse_addData_node(addDataNode)
+            startID, _, _ = parsedDataElements[0]
+        startConnPoint = ConnectionData(fromPosition, startID)
+        endConnPoint = ConnectionData(toPosition, int(attrs["refLocalId"]))
+        return Connection(startPoint=startConnPoint, endPoint=endConnPoint, formalName=attrs.get("formalParameter", None))
+
+    def ppx_parse_ConnectionPoint(self, param: XMLParser.ContentContext, conn_type):
         connectionData = ConnectionData()
+        connections = []
         for c in param.getChildren(lambda e: isinstance(e, XMLParser.ElementContext)):
             res, name, _ = self.visitElement(c)
             if "position" in name.lower():
                 connectionData.position = res
-            elif "connection" == name:
-                connectionData.connectionIndex = res
-        return Connection(conn_type, connectionData)
+            if "connection" in name.lower():
+                connections.append(res)
+
+        return ConnectionPoint(conn_type, connections, connectionData)
 
     def ppx_parse_variables(self, variables_content: XMLParser.ContentContext):
         """Parse a list of variables"""
