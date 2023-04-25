@@ -64,7 +64,7 @@ def test_from_output_can_perform_simple_backward_traces(programs):
     actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
     assert actual == expected
 def test_from_input_can_perform_simple_forward_traces(programs):
-    expected = [3, 6, 8, 9, 5]
+    expected = [[3, 6, 8, 9, 5]]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Forward)["N"]
     assert actual == expected
 

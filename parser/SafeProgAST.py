@@ -326,7 +326,7 @@ def test_flatten_shall_handle_empty_paths_through_removal():
     assert PathDivide([[], [1, 2]]).flatten() == [[1, 2]]
 
 
-def test_can_flatten_multiple_levels_of_splits():
+def test_can_flatten_multiple_levels_of_pathdivides():
     div_prime = PathDivide([[3, 4], [5, 6]])
     actual_input = PathDivide([[1, 2, div_prime], [7, 8]])
     assert actual_input.flatten() == [[1, 2, 3, 4], [1, 2, 5, 6], [7, 8]]
@@ -409,42 +409,49 @@ class Program:
 
     def getTrace(self, direction=DataflowDir.Backward):
 
+        def indexOrNone(l, e):
+            """Returns index of element e in list l. If e cannot be found, returns None"""
+            for i in range(len(l)):
+                if l[i] == e:
+                    return i
+            return None
+
+        def ComputeForwardFlowFromBack(back_flow):
+            # To trace from front to back, we need to find IDs of all variables' inports
+            flattened_flow = [e for e in [PathDivide([f,[]]).flatten() for f in back_flow.values()]]
+            interface_blocks = [e for e in self.behaviourElements if isinstance(e, VarBlock)]
+            start_blocks = [b for b in interface_blocks if b.data.type == "inVariable"]
+            result = dict()
+            for block in start_blocks:
+                expr = block.expr.expr  # Variable name or constant. if constant, has form <TYPE>#<VALUE> (e.g., UINT#3)
+                ID = block.data.localID
+                # Check if The result already exists - no need to create a list
+                if result.get(expr, None) is None:
+                    result[expr] = []  # Initialize a new list to fill up with paths
+
+                # Extract related paths from backward flows, slice so that ID is at end, then reverse
+                for outPortVar, pathWithDivides in backwards.items():  # output ports and flattened path lists
+                    _paths = PathDivide([pathWithDivides, []]).flatten()
+                    for path in _paths:
+                        i = indexOrNone(path, ID)
+                        if i is not None:
+                            # slice so that ID is at end, then reverse
+                            _res = path[:(i + 1)]
+                            _res.reverse()
+                            result[expr].append(_res)
+            return result
+
         if direction == DataflowDir.Backward:
             return self.getBackwardTrace()
         else:
-            interface_blocks = [e for e in self.behaviourElements if isinstance(e, VarBlock)]
-            start_blocks_selector = (lambda e: e.data.type == "inVariable")
-            start_blocks = [b for b in interface_blocks if start_blocks_selector(b)]
-            result = dict()
+            backwards = self.getBackwardTrace()
+            return ComputeForwardFlowFromBack(backwards)
+            # Assumption: We trace from back to front. Paths should thus end with inports
 
-            def split_paths(paths: list[Tuple[int, List[Tuple[int, int]]]]):
-                result = []
-                for p in paths:
-                    flat_path = [p[0]]
-                    start, end = p[1][0]
-                    flat_path.append(start)
-                    if end is not None:
-                        flat_path.append(end)
-                    result.append(flat_path)
-                return PathDivide(result)
 
-            for b in start_blocks:
-                b_Result = [b.data.localID]
-                worklist = [flow_selector(c, direction) for c in b.outConnection.connections]
-                while worklist:
-                    start, end = worklist[0]
-                    if end is None:
-                        break
-                    b_Result.append(start)
-                    b_Result.append(end)
-                    current_entity = self.behaviour_id_map.get(end, self.behaviour_id_map[start])
-                    if isinstance(current_entity, FBD_Block) and len(current_entity.getOutputVars()) > 1:
-                        interface_vars_startIDs = [fp.get_connections(direction) for fp in
-                                                   current_entity.getInputVars()]
-                        b_Result.append(split_paths(interface_vars_startIDs))
-                        break
-                result[b.expr.expr] = b_Result
-            return result
+
+                # Add all results to entry with key 'expr
+
 
     def getMetrics(self):
         res = dict()
