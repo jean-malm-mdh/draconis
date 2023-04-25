@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from parser import SafeProgAST
-from parser.SafeProgAST import DataflowDir, SafeClass
+from parser.SafeProgAST import DataflowDir, SafeClass, Report, IssueLevel
 
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
@@ -75,7 +75,12 @@ def test_can_classify_expression_safeness_by_name(programs):
     assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
     assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["N"]
 
-    assert SafeClass.Safe == programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]["N"]
+def test_can_detect_unsafe_usage_of_data_at_output(programs):
+    safeness_info = programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]
+    assert \
+        (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Safe == safeness_info["Result_Even"]), \
+        "Prerequisite for remainder of test to be reasonable does not hold"
+    assert [Report(IssueLevel.Error, "Unsafe data ('N') flowing to safe output ('Result_Even')")] == programs["Calc_Even_SafeVer"].check()
 
 
 

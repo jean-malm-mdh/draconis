@@ -5,7 +5,7 @@
 
 VAR_INPUT {Group(0)}
     {LINE(1)}
-    N : SAFEUINT := 1; (*Collatz Input*)
+    N : UINT := 1; (*Collatz Input*)
 END_VAR
 
 VAR_OUTPUT {Group(0)}
@@ -19,7 +19,7 @@ END_VAR
 
 VAR_OUTPUT {Group(2)}
     {LINE(3)}
-    Result_Even : UINT := 0; (*Result if the input is an even number*)
+    Result_Even : SAFEUINT := 0; (*Result if the input is an even number*)
 END_VAR
 
 VAR {Group(2)}

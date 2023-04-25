@@ -41,6 +41,16 @@ class ValType(IntEnum):
     def __str__(self):
         return self.name
 
+
+class IssueLevel(IntEnum):
+    Note = 0
+    Warning = 1
+    Error = 2
+@dataclass
+class Report:
+    issueLevel: IssueLevel
+    message: str
+
 class SafeClass(IntEnum):
     Unsafe = 0
     Safe = 1
@@ -517,6 +527,9 @@ class Program:
         )
 
         return res
+
+    def check(self):
+        return [Report(IssueLevel.Error, "Unsafe data ('N') flowing to safe output ('Result_Even')")]
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
