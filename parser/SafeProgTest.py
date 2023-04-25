@@ -4,6 +4,7 @@ import sys
 import pytest
 
 from parser import SafeProgAST
+from parser.SafeProgAST import DataflowDir
 
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
@@ -58,12 +59,15 @@ def path_assert_helper(expected, actual):
             assert (e == a)
     return True
 
-def test_from_output_can_perform_traces(programs):
-    assert [5, 9, 8, SafeProgAST.PathDivide([6, 3], [7, 4])] == programs["Calc_Even"].getTrace("backward")["Result_Even"]
-#    assert programs["Calc_Odd"].getTrace("backward")["Result_Odd"] == [9, 16, 12,
-#                                                                   SafeProgAST.PathDivide(
-#                                                                       [10, 17, 15, SafeProgAST.PathDivide([13], [14])]
-#                                                                       [11, 6])]
+def test_from_output_can_perform_simple_backward_traces(programs):
+    expected = [5, 9, 8, SafeProgAST.PathDivide([[6, 3], [7, 4]])]
+    actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
+    assert actual == expected
+def test_from_input_can_perform_simple_forward_traces(programs):
+    expected = [3, 6, 8, 9, 5]
+    actual = programs["Calc_Even"].getTrace(DataflowDir.Forward)["N"]
+    assert actual == expected
+
 def print_xml_parsing():
     inputText = """
   <?xml version="1.0" encoding="utf-16" standalone="yes"?>

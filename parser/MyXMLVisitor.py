@@ -81,7 +81,7 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "line" == name:
                 return attrs
             elif "addData" == name:
-                self.parse_addData_node(ctx)
+                return self.parse_addData_node(ctx)
             elif "data" == name:
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
@@ -95,6 +95,8 @@ class MyXMLVisitor(XMLParserVisitor):
                 result = list(filter(lambda e: e is not None, pre_filter))
             elif "connectedFormalparameter" == name:
                 return get_value_or_none(attrs, "refLocalId", int)
+            elif "fp" == name:
+                return int(attrs["localId"])
             elif "relPosition" == name:
                 return make_relative_position(
                     int(attrs.get("x", -1)), int(attrs.get("y", -1))
@@ -124,7 +126,7 @@ class MyXMLVisitor(XMLParserVisitor):
                 )
                 return VarList(VariableType.InOutVar, vars)
             elif "variable" == name:
-                return self.ppx_parse_variable(attrs, ctx.content())
+                return self.ppx_parse_formal_variable(attrs, ctx.content())
             else:
                 logging.debug(str(ctx) + " is not parsed")
                 print(str(ctx) + " is not parsed - tag name:" + name)
@@ -167,7 +169,8 @@ class MyXMLVisitor(XMLParserVisitor):
         dataNodes = addDataNode.content().element()
         assert len(dataNodes) == 1
         dataElements = dataNodes[0].content().element()
-        return [self.visitElement(e) for e in dataElements]
+        result = [self.visitElement(e) for e in dataElements]
+        return result
 
     def ppx_parse_Connection(self, connData: XMLParser.ContentContext, attrs):
         """
@@ -237,15 +240,20 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_variables(self, variables_content: XMLParser.ContentContext):
         """Parse a list of variables"""
+
+        ## TODO: After debugging is done, refactor to one-liner is possible
         result = []
         elements = variables_content.element()
         parsed_elements = [self.visitElement(e)[0] for e in elements]
         result.extend(parsed_elements)
         return result
 
-    def ppx_parse_variable(self, attrs, variable_content: XMLParser.ContentContext):
+    def ppx_parse_formal_variable(self, attrs, variable_content: XMLParser.ContentContext):
         elements = variable_content.element()
-        parsed_elements = [self.visitElement(e)[0] for e in elements]
-        connectionIn = parsed_elements[0]
-        additional_data = parsed_elements[1]
-        return f"{attrs} - {parsed_elements}"
+        assert len(elements) == 2
+        parsed_element_results = [self.visitElement(e)[0] for e in elements]
+        connPoint = parsed_element_results[0]
+        fpData = parsed_element_results[1][0]
+        assert "fp" == fpData[1]
+
+        return FormalParam(name=attrs["formalParameter"], connectionPoint=connPoint, ID=fpData[0], data=fpData[2])
