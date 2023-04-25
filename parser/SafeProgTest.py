@@ -17,7 +17,10 @@ import helper_functions
 @pytest.fixture(scope="session", autouse=True)
 def programs():
     programs = dict([(n, helper_functions.parse_pou_file(p)) for n, p in
-                [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"), ("Calc_Even", "test/Collatz_Calculator_Even.pou")]])
+                [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
+                 ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
+                 ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_Safe.pou")
+                 ]])
     return programs
 def test_given_a_file_can_extract_numeric_metrics(programs):
     metrics = programs["Calc_Odd"].getMetrics()
@@ -71,6 +74,8 @@ def test_from_input_can_perform_simple_forward_traces(programs):
 def test_can_classify_expression_safeness_by_name(programs):
     assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
     assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["N"]
+
+    assert SafeClass.Safe == programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]["N"]
 
 
 

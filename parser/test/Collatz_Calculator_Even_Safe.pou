@@ -1,0 +1,119 @@
+﻿FUNCTION_BLOCK Collatz_Calculator_Even
+{ VariableWorksheet := 'Variables' }
+﻿{GroupDefinition(0,'Input')}
+{GroupDefinition(2,'Output')}
+
+VAR_INPUT {Group(0)}
+    {LINE(1)}
+    N : SAFEUINT := 1; (*Collatz Input*)
+END_VAR
+
+VAR_OUTPUT {Group(0)}
+END_VAR
+
+VAR {Group(0)}
+END_VAR
+
+VAR_INPUT {Group(2)}
+END_VAR
+
+VAR_OUTPUT {Group(2)}
+    {LINE(3)}
+    Result_Even : UINT := 0; (*Result if the input is an even number*)
+END_VAR
+
+VAR {Group(2)}
+END_VAR
+
+{ CodeWorksheet := 'Collatz_Calculator_Even', Type := '.fbd' }
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?><FBD>
+  <addData>
+    <data name="redacted" handleUnknown="preserve">
+      <line localId="0" beginX="31" beginY="25" endX="57" endY="25" />
+      <line localId="1" beginX="31" beginY="21" endX="57" endY="21" />
+      <line localId="2" beginX="69" beginY="23" endX="76" endY="23" />
+    </data>
+  </addData>
+  <inVariable localId="3" height="4" width="8">
+    <position x="54" y="40" />
+    <expression>N</expression>
+    <connectionPointOut>
+      <relPosition x="8" y="2" />
+    </connectionPointOut>
+  </inVariable>
+  <inVariable localId="4" height="4" width="20">
+    <position x="42" y="48" />
+    <expression>UINT#2</expression>
+    <connectionPointOut>
+      <relPosition x="20" y="2" />
+    </connectionPointOut>
+  </inVariable>
+  <outVariable localId="5" height="4" width="28">
+    <position x="152" y="44" />
+    <expression>Result_Even</expression>
+    <connectionPointIn>
+      <relPosition x="0" y="2" />
+      <connection refLocalId="9" formalParameter="DIV">
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <connectedFormalparameter refLocalId="8" />
+          </data>
+        </addData>
+        <position x="152" y="46" />
+        <position x="138" y="46" />
+      </connection>
+    </connectionPointIn>
+  </outVariable>
+  <block localId="9" height="24" width="16" typeName="DIV">
+    <position x="118" y="34" />
+    <addData>
+      <data name="redacted" handleUnknown="preserve">
+        <fbData fbFuType="1" />
+      </data>
+    </addData>
+    <inputVariables>
+      <variable formalParameter="IN1" hidden="true">
+        <connectionPointIn>
+          <relPosition x="0" y="8" />
+          <connection refLocalId="3">
+            <position x="114" y="42" />
+            <position x="62" y="42" />
+          </connection>
+        </connectionPointIn>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="6" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
+          </data>
+        </addData>
+      </variable>
+      <variable formalParameter="IN2" hidden="true">
+        <connectionPointIn>
+          <relPosition x="0" y="16" />
+          <connection refLocalId="4">
+            <position x="114" y="50" />
+            <position x="62" y="50" />
+          </connection>
+        </connectionPointIn>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="7" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
+          </data>
+        </addData>
+      </variable>
+    </inputVariables>
+    <inOutVariables />
+    <outputVariables>
+      <variable formalParameter="DIV" hidden="true">
+        <connectionPointOut>
+          <relPosition x="16" y="12" />
+        </connectionPointOut>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="8" inState="0" outState="640" width="1" height="2" flagType="" dataType="ANY_NUM" />
+          </data>
+        </addData>
+      </variable>
+    </outputVariables>
+  </block>
+</FBD>
+END_FUNCTION_BLOCK
