@@ -41,6 +41,9 @@ class ValType(IntEnum):
     def __str__(self):
         return self.name
 
+class SafeClass(IntEnum):
+    Unsafe = 0
+    Safe = 1
 
 @dataclass
 class Expr:
@@ -99,8 +102,11 @@ class Connection:
 
 
 def flow_selector(conn: Connection, direction: DataflowDir):
-    return (conn.endPoint.connectionIndex, conn.startPoint.connectionIndex) if direction == DataflowDir.Backward \
+    return (
+        (conn.endPoint.connectionIndex, conn.startPoint.connectionIndex)
+        if direction == DataflowDir.Backward
         else (conn.startPoint.connectionIndex, conn.endPoint.connectionIndex)
+    )
 
 
 @dataclass
@@ -207,7 +213,9 @@ class VariableLine:
         _desc = "" if self.description is None else f"Description: '{self.description}'"
         return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
 
-    def __init__(self, name, var_type, value_type, init_val=None, description=None, line_nr=None):
+    def __init__(
+        self, name, var_type, value_type, init_val=None, description=None, line_nr=None
+    ):
         self.name = name
         self.varType = var_type
         self.valueType = value_type
@@ -217,7 +225,9 @@ class VariableLine:
 
 
 def test_can_create_variable_line_and_get_properties():
-    v = VariableLine("aVar", VariableType.InputVar, ValType.INT, 5, "This is a variable", 3)
+    v = VariableLine(
+        "aVar", VariableType.InputVar, ValType.INT, 5, "This is a variable", 3
+    )
     assert v.name == "aVar"
     assert v.varType == VariableType.InputVar
     assert v.valueType == ValType.INT
@@ -299,15 +309,17 @@ class PathDivide:
     def __len__(self):
         return max(map(self.__len__, self.paths))
 
-    def flatten(self):
+    @classmethod
+    def unpack_pathlist(cls, pathList):
+        """Take a list of paths and unpack all PathDivide objects into separate lists"""
         result = []
-        for p in self.paths:
+        for p in pathList:
             accList = []
             NoDividingPath = True
             for p_e in p:
                 if isinstance(p_e, PathDivide):
                     NoDividingPath = False
-                    _divPaths = p_e.flatten()
+                    _divPaths = PathDivide.unpack_pathlist(p_e.paths)
                     for _p in _divPaths:
                         _fin = [e for e in accList]  # Copy accumulated path until here
                         _fin.extend(_p)  # Extend with the flattened path
@@ -318,12 +330,16 @@ class PathDivide:
                 result.append(accList)
         return result
 
+    def flatten(self):
+        return PathDivide.unpack_pathlist(self.paths)
 
 def test_can_flatten_pathdivide_to_path_sequences():
-    assert PathDivide([[1, 2], [3, 4]]).flatten() == [[1, 2], [3, 4]]
+    assert PathDivide.unpack_pathlist([[1, 2], [3, 4]]) == [[1, 2], [3, 4]]
+
+
 def test_flatten_shall_handle_empty_paths_through_removal():
-    assert PathDivide([[1, 2], []]).flatten() == [[1, 2]]
-    assert PathDivide([[], [1, 2]]).flatten() == [[1, 2]]
+    assert PathDivide.unpack_pathlist([[1, 2], []]) == [[1, 2]]
+    assert PathDivide.unpack_pathlist([[], [1, 2]]) == [[1, 2]]
 
 
 def test_can_flatten_multiple_levels_of_pathdivides():
@@ -334,10 +350,14 @@ def test_can_flatten_multiple_levels_of_pathdivides():
     div_prime_prime = PathDivide([[10, 11, 12], [13, 14, 15]])
     div_prime_2 = PathDivide([[3, 4, div_prime], [5, div_prime_prime]])
     actual_input = PathDivide([[1, 2, div_prime_2], [7, 8], [99, 100]])
-    assert actual_input.flatten() == [[1, 2, 3, 4, 3, 4],
-                                      [1, 2, 3, 4, 5, 6],
-                                      [1, 2, 5, 10, 11, 12],
-                                      [1, 2, 5, 13, 14, 15], [7, 8], [99, 100]]
+    assert actual_input.flatten() == [
+        [1, 2, 3, 4, 3, 4],
+        [1, 2, 3, 4, 5, 6],
+        [1, 2, 5, 10, 11, 12],
+        [1, 2, 5, 13, 14, 15],
+        [7, 8],
+        [99, 100],
+    ]
 
 
 @dataclass()
@@ -347,7 +367,7 @@ class Program:
     behaviourElements: List[FBD_Block]
     behaviour_id_map: Dict[int, FBD_Block]
 
-    def getInfo(self):
+    def getVarInfo(self):
         def list_to_name_dict(allVars: list[VariableLine]):
             res_dict = dict()
             for v in allVars:
@@ -355,22 +375,34 @@ class Program:
             return res_dict
 
         res = dict()
-        res["OutputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.OutputVar))
-        res["InputVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.InputVar))
-        res["InternalVariables"] = list_to_name_dict(self.varHeader.getVarsByType(VariableType.InternalVar))
+        res["OutputVariables"] = list_to_name_dict(
+            self.varHeader.getVarsByType(VariableType.OutputVar)
+        )
+        res["InputVariables"] = list_to_name_dict(
+            self.varHeader.getVarsByType(VariableType.InputVar)
+        )
+        res["InternalVariables"] = list_to_name_dict(
+            self.varHeader.getVarsByType(VariableType.InternalVar)
+        )
+        res["Safeness"] = dict([(name_type[0], SafeClass.Safe if "SAFE" in name_type[1] else SafeClass.Unsafe)
+                                for name_type in self.getVarDataColumns("name", "valueType")])
 
         return res
 
-    def getVarInfo(self, *args):
-        def getFieldDatas(fieldList, element):
+    def getVarDataColumns(self, *args):
+        def getFieldContent(fieldList, element):
             theVars = vars(element)
             return [str(theVars.get(k, None)) for k in fieldList]
 
-        _fields = VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
-        return [getFieldDatas(_fields, e) for e in self.varHeader.getAllVariables()]
+        _fields = (
+            VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
+        )
+        return [getFieldContent(_fields, e) for e in self.varHeader.getAllVariables()]
 
     def getBackwardTrace(self):
-        interface_blocks = [e for e in self.behaviourElements if isinstance(e, VarBlock)]
+        interface_blocks = [
+            e for e in self.behaviourElements if isinstance(e, VarBlock)
+        ]
         start_blocks = [b for b in interface_blocks if b.data.type == "outVariable"]
         result = dict()
 
@@ -387,28 +419,36 @@ class Program:
 
         for b in start_blocks:
             b_Result = [b.data.localID]
-            worklist = [flow_selector(c, DataflowDir.Backward) for c in b.outConnection.connections]
+            worklist = [
+                flow_selector(c, DataflowDir.Backward)
+                for c in b.outConnection.connections
+            ]
             while worklist:
                 start, end = worklist[0]
                 if end is None:
                     break
                 b_Result.append(start)
                 b_Result.append(end)
-                current_entity = self.behaviour_id_map.get(end, self.behaviour_id_map[start])
+                current_entity = self.behaviour_id_map.get(
+                    end, self.behaviour_id_map[start]
+                )
 
                 def IsBlockWithMultipleInputs(entity):
-                    return isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+                    return (
+                        isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+                    )
 
                 if IsBlockWithMultipleInputs(current_entity):
-                    interface_vars_startIDs = [fp.get_connections(DataflowDir.Backward) for fp in
-                                               current_entity.getInputVars()]
+                    interface_vars_startIDs = [
+                        fp.get_connections(DataflowDir.Backward)
+                        for fp in current_entity.getInputVars()
+                    ]
                     b_Result.append(split_paths(interface_vars_startIDs))
                     break
             result[b.expr.expr] = b_Result
         return result
 
     def getTrace(self, direction=DataflowDir.Backward):
-
         def indexOrNone(l, e):
             """Returns index of element e in list l. If e cannot be found, returns None"""
             for i in range(len(l)):
@@ -417,26 +457,38 @@ class Program:
             return None
 
         def ComputeForwardFlowFromBack(back_flow):
-            # To trace from front to back, we need to find IDs of all variables' inports
-            flattened_flow = [e for e in [PathDivide([f,[]]).flatten() for f in back_flow.values()]]
-            interface_blocks = [e for e in self.behaviourElements if isinstance(e, VarBlock)]
+            flattened_flow = [
+                e for e in [PathDivide.unpack_pathlist([f]) for f in back_flow.values()]
+            ]
+            interface_blocks = [
+                e for e in self.behaviourElements if isinstance(e, VarBlock)
+            ]
+            # Assumption: We care only about inports
             start_blocks = [b for b in interface_blocks if b.data.type == "inVariable"]
             result = dict()
+
+            # Add all results to entry with key 'expr
             for block in start_blocks:
-                expr = block.expr.expr  # Variable name or constant. if constant, has form <TYPE>#<VALUE> (e.g., UINT#3)
+                expr = (
+                    # Variable name or constant. if constant, has form <TYPE>#<VALUE> (e.g., UINT#3)
+                    block.expr.expr
+                )
+                # To trace from front to back, we need to find IDs of all inports
                 ID = block.data.localID
-                # Check if The result already exists - no need to create a list
+                # Check if the result list already exists - otherwise will clear previous computations
                 if result.get(expr, None) is None:
                     result[expr] = []  # Initialize a new list to fill up with paths
 
-                # Extract related paths from backward flows, slice so that ID is at end, then reverse
-                for outPortVar, pathWithDivides in backwards.items():  # output ports and flattened path lists
-                    _paths = PathDivide([pathWithDivides, []]).flatten()
-                    for path in _paths:
+                # Extract related paths from backward flow
+                for (
+                    outport_pathlist
+                ) in flattened_flow:
+                    for path in outport_pathlist:
+                        # Find if path contains the ID of interest, and where
                         i = indexOrNone(path, ID)
                         if i is not None:
                             # slice so that ID is at end, then reverse
-                            _res = path[:(i + 1)]
+                            _res = path[: (i + 1)]
                             _res.reverse()
                             result[expr].append(_res)
             return result
@@ -446,12 +498,6 @@ class Program:
         else:
             backwards = self.getBackwardTrace()
             return ComputeForwardFlowFromBack(backwards)
-            # Assumption: We trace from back to front. Paths should thus end with inports
-
-
-
-                # Add all results to entry with key 'expr
-
 
     def getMetrics(self):
         res = dict()

@@ -4,7 +4,7 @@ import sys
 import pytest
 
 from parser import SafeProgAST
-from parser.SafeProgAST import DataflowDir
+from parser.SafeProgAST import DataflowDir, SafeClass
 
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
@@ -27,7 +27,7 @@ def test_given_a_file_can_extract_numeric_metrics(programs):
     assert metrics["NrOutputVariables"] == 1
 
 def test_given_a_name_can_get_variable_info_by_name(programs):
-    info = programs["Calc_Even"].getInfo()
+    info = programs["Calc_Even"].getVarInfo()
     assert str(info["OutputVariables"].get("Result_Even", None)).replace("'", "").replace('"', "") == \
            "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
     assert str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "") == \
@@ -37,15 +37,15 @@ def test_given_a_name_can_get_variable_info_by_name(programs):
 def test_given_program_can_extract_names_and_descriptions(programs):
     program = programs["Calc_Even"]
     """Basic functionality"""
-    assert program.getVarInfo("name") == [["N"], ["Result_Even"]]
-    assert program.getVarInfo("name", "description") == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
-    assert program.getVarInfo("description", "name") == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
+    assert program.getVarDataColumns("name") == [["N"], ["Result_Even"]]
+    assert program.getVarDataColumns("name", "description") == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
+    assert program.getVarDataColumns("description", "name") == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
 
     """Boundary Values"""
-    varInfo_noSpecifiedFields = program.getVarInfo()
+    varInfo_noSpecifiedFields = program.getVarDataColumns()
     assert varInfo_noSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"], ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
 
-    varInfo_AllSpecifiedFields = program.getVarInfo("name", "varType", "valueType", "initVal", "description", "lineNr")
+    varInfo_AllSpecifiedFields = program.getVarDataColumns("name", "varType", "valueType", "initVal", "description", "lineNr")
     assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
                                           ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
 
@@ -67,6 +67,12 @@ def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Forward)["N"]
     assert actual == expected
+
+def test_can_classify_expression_safeness_by_name(programs):
+    assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
+    assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["N"]
+
+
 
 def print_xml_parsing():
     inputText = """
