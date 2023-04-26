@@ -18,10 +18,18 @@ class Program:
 
     def getVarInfo(self):
         """
-        Computes and returns a number of metrics in a dictionary form, accessible by variable names.
+        Computes and returns a number of metrics related to variables in a lookup table.
         Returns:
-
+            A python dictionary with the following lookups:
+            'OutputVariables': The output variables of the program
+            'InputVariables': The input variables of the program
+            'InternalVariables': The 'other' variables of the program
+            'Safeness': A classification if the variable is of a _safe_ type.
+        Usage:
+            Given a program p, the following would provide information about the input variable 'input1':
+            p.getVarInfo()["InputVariables"]["input1"]
         """
+
         def list_to_name_dict(allVars: list[VariableLine]):
             res_dict = dict()
             for v in allVars:
@@ -40,10 +48,22 @@ class Program:
         )
         res["Safeness"] = dict([(name_type[0], SafeClass.Safe if "SAFE" in name_type[1] else SafeClass.Unsafe)
                                 for name_type in self.getVarDataColumns("name", "valueType")])
-
         return res
 
     def getVarDataColumns(self, *args):
+        """
+
+        Args:
+            *args: The columns to extract, as strings
+
+        Returns:
+            a list l of list v where v are the properties extracted from the variable sheet
+
+        Example:
+            Given a program p, the following function calls would extract the name and description of all variables:
+            p.getVarDataColumns("name", "description")
+        """
+
         def getFieldContent(fieldList, element):
             theVars = vars(element)
             return [str(theVars.get(k, None)) for k in fieldList]
@@ -54,12 +74,11 @@ class Program:
         return [getFieldContent(_fields, e) for e in self.varHeader.getAllVariables()]
 
     def getBackwardTrace(self):
-        interface_blocks = [
-            e for e in self.behaviourElements if isinstance(e, VarBlock)
-        ]
-        start_blocks = [b for b in interface_blocks if b.data.type == "outVariable"]
-        result = dict()
+        """
 
+        Returns: A backwards trace starting from all outputs.
+
+        """
         def split_paths(paths: list[Tuple[int, List[Tuple[int, int]]]]):
             result = []
             for p in paths:
@@ -71,46 +90,67 @@ class Program:
                 result.append(flat_path)
             return PathDivide(result)
 
-        for b in start_blocks:
-            b_Result = [b.data.localID]
-            worklist = [
-                flow_selector(c, DataflowDir.Backward)
-                for c in b.outConnection.connections
-            ]
-            while worklist:
-                start, end = worklist[0]
-                if end is None:
-                    break
-                b_Result.append(start)
-                b_Result.append(end)
-                current_entity = self.behaviour_id_map.get(
-                    end, self.behaviour_id_map[start]
-                )
-
-                def IsBlockWithMultipleInputs(entity):
-                    return (
-                            isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+        def performTrace(start_blocks):
+            result = dict()
+            for b in start_blocks:
+                b_Result = [b.data.localID]
+                worklist = [
+                    flow_selector(c, DataflowDir.Backward)
+                    for c in b.outConnection.connections
+                ]
+                while worklist:
+                    start, end = worklist[0]
+                    if end is None:
+                        break
+                    b_Result.append(start)
+                    b_Result.append(end)
+                    current_entity = self.behaviour_id_map.get(
+                        end, self.behaviour_id_map[start]
                     )
 
-                if IsBlockWithMultipleInputs(current_entity):
-                    interface_vars_startIDs = [
-                        fp.get_connections(DataflowDir.Backward)
-                        for fp in current_entity.getInputVars()
-                    ]
-                    b_Result.append(split_paths(interface_vars_startIDs))
-                    break
-            result[b.getVarExpr()] = b_Result
-        return result
+                    def IsBlockWithMultipleInputs(entity):
+                        return isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+
+                    if IsBlockWithMultipleInputs(current_entity):
+                        interface_vars_startIDs = [
+                            fp.get_connections(DataflowDir.Backward)
+                            for fp in current_entity.getInputVars()
+                        ]
+                        b_Result.append(split_paths(interface_vars_startIDs))
+                        break
+                result[b.getVarExpr()] = b_Result
+            return result
+
+        outport_blocks = [
+            e for e in self.behaviourElements if isinstance(e, VarBlock) and e.data.type == "outVariable"
+        ]
+        return performTrace(outport_blocks)
 
     def getTrace(self, direction=DataflowDir.Backward):
-        def indexOrNone(l, e):
-            """Returns index of element e in list l. If e cannot be found, returns None"""
-            for i in range(len(l)):
-                if l[i] == e:
+        def indexOrNone(aList, elem):
+            """
+
+            Args:
+                aList: enumerable to search through
+                elem: element to search for
+
+            Returns: Index of element elem in list aList. If elem cannot be found, returns None
+
+            """
+            for i in range(len(aList)):
+                if aList[i] == elem:
                     return i
             return None
 
         def ComputeForwardFlowFromBack(back_flow):
+            """
+
+            Args:
+                back_flow: The computed backwards flow
+
+            Returns: From each inport, provides the dataflow paths to the outports
+
+            """
             flattened_flow = [
                 e for e in [PathDivide.unpack_pathlist([f]) for f in back_flow.values()]
             ]
@@ -135,7 +175,7 @@ class Program:
 
                 # Extract related paths from backward flow
                 for (
-                    outport_pathlist
+                        outport_pathlist
                 ) in flattened_flow:
                     for path in outport_pathlist:
                         # Find if path contains the ID of interest, and where
@@ -179,13 +219,14 @@ class Program:
                 return "SAFE" in expr
             else:
                 res = safenessProperties.get(expr, None)
-                if res is None: 
+                if res is None:
                     # log issue
                     logging.log(level=logging.WARNING,
                                 msg=f"No safety information for {expr} found. Assuming it is unsafe.")
                     # We have no info, err on the side of caution, it is considered unsafe
                     return False
                 return res
+
         safeness_properties = self.getVarInfo()["Safeness"]
         outDependencies = self.getBackwardTrace()
         result = []
