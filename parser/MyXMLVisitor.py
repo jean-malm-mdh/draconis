@@ -1,10 +1,11 @@
-import antlr4.tree.Tree
-
 from SafeProgAST import *
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
+
+from parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
+from parser.AST.position import make_absolute_position, make_relative_position
 
 
 class MyXMLVisitor(XMLParserVisitor):

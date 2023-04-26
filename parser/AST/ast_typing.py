@@ -38,3 +38,12 @@ class ValType(IntEnum):
 
     def __str__(self):
         return self.name
+
+class DataflowDir(IntEnum):
+    Forward = 1
+    Backward = 2
+
+
+class SafeClass(IntEnum):
+    Unsafe = 0
+    Safe = 1

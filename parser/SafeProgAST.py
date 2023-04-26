@@ -1,86 +1,14 @@
 import logging
 from dataclasses import dataclass
-from enum import IntEnum
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Dict
 
-from parser.AST.ast_typing import VariableType, ValType
+from parser.AST.ast_typing import VariableType, ValType, DataflowDir, SafeClass
+from parser.AST.connections import flow_selector, ConnectionPoint
+
+
 @dataclass
 class Expr:
     expr: str
-
-
-class SafeClass(IntEnum):
-    Unsafe = 0
-    Safe = 1
-
-
-@dataclass
-class GUIPosition:
-    isRelativePosition: bool
-    x: int
-    y: int
-
-    def __str__(self):
-        return f"{'relativePos' if self.isRelativePosition else 'absolutePos'}({self.x}, {self.y})"
-
-
-def make_absolute_position(x, y):
-    return GUIPosition(False, x, y)
-
-
-def make_relative_position(x, y):
-    return GUIPosition(True, x, y)
-
-
-class ConnectionDirection(IntEnum):
-    Input = 1
-    Output = 2
-
-    def __str__(self):
-        return self.name
-
-
-class DataflowDir(IntEnum):
-    Forward = 1
-    Backward = 2
-
-
-@dataclass
-class ConnectionData:
-    position = GUIPosition
-    connectionIndex = Optional[int]
-
-    def __init__(self, pos=None, connIndex=None):
-        self.position = make_absolute_position(-1, -1) if not pos else pos
-        self.connectionIndex = connIndex
-
-    def __str__(self):
-        return f"Conn - {self.position} - {self.connectionIndex}"
-
-
-@dataclass
-class Connection:
-    startPoint: ConnectionData
-    endPoint: ConnectionData
-    formalName: str
-
-
-def flow_selector(conn: Connection, direction: DataflowDir):
-    return (
-        (conn.endPoint.connectionIndex, conn.startPoint.connectionIndex)
-        if direction == DataflowDir.Backward
-        else (conn.startPoint.connectionIndex, conn.endPoint.connectionIndex)
-    )
-
-
-@dataclass
-class ConnectionPoint:
-    connectionDir: ConnectionDirection
-    connections: list[Connection]
-    data: ConnectionData
-
-    def __str__(self):
-        return f"{self.connectionDir} -> {self.data}"
 
 
 @dataclass

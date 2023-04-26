@@ -4,7 +4,8 @@ import sys
 import pytest
 
 from parser import SafeProgAST
-from parser.SafeProgAST import DataflowDir, SafeClass
+from parser.SafeProgAST import DataflowDir
+from parser.AST.ast_typing import SafeClass
 
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
