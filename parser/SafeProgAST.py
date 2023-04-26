@@ -8,14 +8,6 @@ from parser.AST.ast_typing import VariableType, ValType
 class Expr:
     expr: str
 
-class IssueLevel(IntEnum):
-    Note = 0
-    Warning = 1
-    Error = 2
-@dataclass
-class Report:
-    issueLevel: IssueLevel
-    message: str
 
 class SafeClass(IntEnum):
     Unsafe = 0
