@@ -4,12 +4,11 @@ import sys
 import pytest
 
 import parser.AST.path
-from parser import SafeProgAST
-from parser.SafeProgAST import DataflowDir
-from parser.AST.ast_typing import SafeClass
+from parser.AST.ast_typing import SafeClass, DataflowDir
 
 sys.path.append(os.path.dirname(__file__))
-import helper_functions
+from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheets_from_input, parse_variable_worksheet
+
 
 # TODO(TDD):
 #  It shall be possible to check if functions depend on internal variables/state
@@ -17,18 +16,21 @@ import helper_functions
 
 @pytest.fixture(scope="session", autouse=True)
 def programs():
-    programs = dict([(n, helper_functions.parse_pou_file(p)) for n, p in
-                [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
-                 ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
-                 ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou")
-                 ]])
+    programs = dict([(n, parse_pou_file(p)) for n, p in
+                     [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
+                      ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
+                      ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou")
+                      ]])
     return programs
+
+
 def test_given_a_file_can_extract_numeric_metrics(programs):
     metrics = programs["Calc_Odd"].getMetrics()
     assert metrics["NrOfVariables"] == 2
     assert metrics["NrOfFuncBlocks"] == 2
     assert metrics["NrInputVariables"] == 1
     assert metrics["NrOutputVariables"] == 1
+
 
 def test_given_a_name_can_get_variable_info_by_name(programs):
     info = programs["Calc_Even"].getVarInfo()
@@ -38,33 +40,46 @@ def test_given_a_name_can_get_variable_info_by_name(programs):
            "Var(UINT N: InputVar = 1; Description: Collatz Input)"
     assert len(info["InternalVariables"]) == 0
 
+
 def test_given_program_can_extract_names_and_descriptions(programs):
     program = programs["Calc_Even"]
     """Basic functionality"""
     assert program.getVarDataColumns("name") == [["N"], ["Result_Even"]]
-    assert program.getVarDataColumns("name", "description") == [["N", "Collatz Input"], ["Result_Even", "Result if the input is an even number"]]
-    assert program.getVarDataColumns("description", "name") == [["Collatz Input", "N"], ["Result if the input is an even number", "Result_Even"]]
+    assert program.getVarDataColumns("name", "description") == [["N", "Collatz Input"], ["Result_Even",
+                                                                                         "Result if the input is an even number"]]
+    assert program.getVarDataColumns("description", "name") == [["Collatz Input", "N"],
+                                                                ["Result if the input is an even number",
+                                                                 "Result_Even"]]
 
     """Boundary Values"""
     varInfo_noSpecifiedFields = program.getVarDataColumns()
-    assert varInfo_noSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"], ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
+    assert varInfo_noSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
+                                         ["Result_Even", "OutputVar", "UINT", '0',
+                                          'Result if the input is an even number', "3"]]
 
-    varInfo_AllSpecifiedFields = program.getVarDataColumns("name", "varType", "valueType", "initVal", "description", "lineNr")
+    varInfo_AllSpecifiedFields = program.getVarDataColumns("name", "varType", "valueType", "initVal", "description",
+                                                           "lineNr")
     assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
-                                          ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
+                                          ["Result_Even", "OutputVar", "UINT", '0',
+                                           'Result if the input is an even number', "3"]]
+
 
 def test_from_output_can_perform_simple_backward_traces(programs):
     expected = [5, 9, 8, parser.AST.path.PathDivide([[6, 3], [7, 4]])]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
     assert actual == expected
+
+
 def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Forward)["N"]
     assert actual == expected
 
+
 def test_can_classify_expression_safeness_by_name(programs):
     assert programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"] == SafeClass.Unsafe
     assert programs["Calc_Even"].getVarInfo()["Safeness"]["N"] == SafeClass.Unsafe
+
 
 def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
     safeness_info = programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]
@@ -73,6 +88,7 @@ def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
         "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even_SafeVer"].check() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
 
+
 def test_given_unsafe_output_safeness_is_irrelevant(programs):
     # For sanity checking of test data
     safeness_info = programs["Calc_Even"].getVarInfo()["Safeness"]
@@ -80,7 +96,6 @@ def test_given_unsafe_output_safeness_is_irrelevant(programs):
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even"].check() == []
-
 
 
 def print_xml_parsing():
@@ -148,7 +163,7 @@ def print_xml_parsing():
         </connectionPointOut>
       </inVariable>
     </FBD>"""
-    elements = helper_functions.parse_code_worksheet(inputText)
+    elements = parse_code_worksheet(inputText)
     for e in elements:
         print(e)
 
@@ -262,13 +277,14 @@ def test_metrics_pipeline():
   </FBD>
     END_PROGRAM
     """
-    input_varWorkSheet, input_codeSheet = helper_functions.get_worksheets_from_input(inputProgram)
-    program = helper_functions.parse_variable_worksheet(input_varWorkSheet)
-    program.behaviourElements, program.behaviour_id_map = helper_functions.parse_code_worksheet(
+    input_varWorkSheet, input_codeSheet = get_worksheets_from_input(inputProgram)
+    program = parse_variable_worksheet(input_varWorkSheet)
+    program.behaviourElements, program.behaviour_id_map = parse_code_worksheet(
         input_codeSheet
     )
     assert program.getMetrics()["NrOfVariables"] == 2
     assert program.getMetrics()["NrOfFuncBlocks"] == 1
+
 
 def main():
     pass

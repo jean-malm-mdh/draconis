@@ -6,47 +6,7 @@ from parser.AST.ast_typing import VariableParamType, DataflowDir, SafeClass
 from parser.AST.blocks import VarBlock, FBD_Block
 from parser.AST.connections import flow_selector
 from parser.AST.path import PathDivide
-from parser.AST.variables import VariableLine
-
-
-@dataclass
-class VariableGroup:
-    groupName: str
-    groupID: int
-    varLines: list[VariableLine]
-
-    def __str__(self):
-        variables = "\n".join(map(lambda l: str(l), self.varLines))
-        return f"Group Name: '{self.groupName}'\n{variables}"
-
-
-@dataclass
-class VariableWorkSheet:
-    varGroups: dict[int, VariableGroup]
-
-    def getAllVariables(self):
-        result = []
-        for _, group in self.varGroups.items():
-            result.extend(group.varLines)
-        return result
-
-    def getVarByName(self, name):
-        allVars = self.getAllVariables()
-        for v in allVars:
-            if name == v.name:
-                return v
-        return None
-
-    def getVarsByType(self, vType: VariableParamType):
-        return list((filter(lambda e: e.varType == vType, self.getAllVariables())))
-
-    def __str__(self):
-        return "\n".join(
-            [
-                f"Group {groupNr}:\n{groupContent}"
-                for groupNr, groupContent in self.varGroups.items()
-            ]
-        )
+from parser.AST.variables import VariableLine, VariableWorkSheet
 
 
 @dataclass()
@@ -57,6 +17,11 @@ class Program:
     behaviour_id_map: Dict[int, FBD_Block]
 
     def getVarInfo(self):
+        """
+        Computes and returns a number of metrics in a dictionary form, accessible by variable names.
+        Returns:
+
+        """
         def list_to_name_dict(allVars: list[VariableLine]):
             res_dict = dict()
             for v in allVars:

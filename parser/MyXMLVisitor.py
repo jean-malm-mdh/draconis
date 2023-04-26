@@ -1,9 +1,11 @@
-from SafeProgAST import *
+from typing import List
+
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
+from parser.AST.ast_typing import VariableParamType
 from parser.AST.fbdobject_base import FBDObjData
 from parser.AST.blocks import Expr, VarBlock, FBD_Block
 from parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
@@ -246,11 +248,7 @@ class MyXMLVisitor(XMLParserVisitor):
         """Parse a list of variables"""
 
         ## TODO: After debugging is done, refactor to one-liner is possible
-        result = []
-        elements = variables_content.element()
-        parsed_elements = [self.visitElement(e)[0] for e in elements]
-        result.extend(parsed_elements)
-        return result
+        return [self.visitElement(e)[0] for e in variables_content.element()]
 
     def ppx_parse_formal_variable(self, attrs, variable_content: XMLParser.ContentContext):
         elements = variable_content.element()

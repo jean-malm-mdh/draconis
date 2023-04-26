@@ -1,5 +1,5 @@
-import SafeProgAST
-import parser.AST.ast_typing
+from parser.AST.pou import Program
+from parser.AST.ast_typing import *
 import parser.AST.variables
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
@@ -10,12 +10,12 @@ class MyPOUVisitor(POUVisitor):
         variableWorkSheet = self.visitVariableWorkSheet(ctx.varWS)
 
         # For now, we set the elements separately
-        return SafeProgAST.Program(str(ctx.ID()), variableWorkSheet, [], {})
+        return Program(str(ctx.ID()), variableWorkSheet, [], {})
 
     # Visit a parse tree produced by POUParser#variableHeader.
     def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):
         variableGroups = self.visitVarGroups(ctx.varGroups())
-        return SafeProgAST.VariableWorkSheet(variableGroups)
+        return parser.AST.variables.VariableWorkSheet(variableGroups)
 
     # Visit a parse tree produced by POUParser#varGroups.
     def visitVarGroups(self, ctx: POUParser.VarGroupsContext):
@@ -30,7 +30,7 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
-        return SafeProgAST.VariableGroup(str(ctx.groupName.text), int(str(ctx.groupID.text)), [])
+        return parser.AST.variables.VariableGroup(str(ctx.groupName.text), int(str(ctx.groupID.text)), [])
 
     # Visit a parse tree produced by POUParser#vars.
     def visitVarDefGroup(self, ctx: POUParser.VarDefGroupContext):
@@ -43,7 +43,7 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
-        dummy = SafeProgAST.VariableParamType.UNSET  # property is set for the whole group
+        dummy = VariableParamType.UNSET  # property is set for the whole group
         initVal = None if ctx.initVal is None else str(ctx.initVal.text)
         desc = (
             None

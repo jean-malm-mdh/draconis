@@ -48,3 +48,43 @@ def test_some_variable_line_properties_are_optional():
     assert v.initVal == 0
     assert v.description is None
     assert v.lineNr is None
+
+
+@dataclass
+class VariableGroup:
+    groupName: str
+    groupID: int
+    varLines: list[VariableLine]
+
+    def __str__(self):
+        variables = "\n".join(map(lambda l: str(l), self.varLines))
+        return f"Group Name: '{self.groupName}'\n{variables}"
+
+
+@dataclass
+class VariableWorkSheet:
+    varGroups: dict[int, VariableGroup]
+
+    def getAllVariables(self):
+        result = []
+        for _, group in self.varGroups.items():
+            result.extend(group.varLines)
+        return result
+
+    def getVariableByName(self, name):
+        allVars = self.getAllVariables()
+        for v in allVars:
+            if name == v.name:
+                return v
+        return None
+
+    def getVarsByType(self, vType: VariableParamType):
+        return list((filter(lambda e: e.varType == vType, self.getAllVariables())))
+
+    def __str__(self):
+        return "\n".join(
+            [
+                f"Group {groupNr}:\n{groupContent}"
+                for groupNr, groupContent in self.varGroups.items()
+            ]
+        )
