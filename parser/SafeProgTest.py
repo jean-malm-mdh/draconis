@@ -3,6 +3,7 @@ import sys
 
 import pytest
 
+import parser.AST.path
 from parser import SafeProgAST
 from parser.SafeProgAST import DataflowDir
 from parser.AST.ast_typing import SafeClass
@@ -52,18 +53,8 @@ def test_given_program_can_extract_names_and_descriptions(programs):
     assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
                                           ["Result_Even", "OutputVar", "UINT", '0', 'Result if the input is an even number', "3"]]
 
-def path_assert_helper(expected, actual):
-    for i in range(len(expected)):
-        a = actual[i]
-        e = expected[i]
-        if "PathDivide" in str(type(e)) and "PathDivide" in str(type(a)):
-            path_assert_helper(e.paths, a.paths)
-        else:
-            assert (e == a)
-    return True
-
 def test_from_output_can_perform_simple_backward_traces(programs):
-    expected = [5, 9, 8, SafeProgAST.PathDivide([[6, 3], [7, 4]])]
+    expected = [5, 9, 8, parser.AST.path.PathDivide([[6, 3], [7, 4]])]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
     assert actual == expected
 def test_from_input_can_perform_simple_forward_traces(programs):

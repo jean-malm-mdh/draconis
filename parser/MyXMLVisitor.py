@@ -4,7 +4,10 @@ from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
+from parser.AST.fbdobject_base import FBDObjData
+from parser.AST.blocks import Expr, VarBlock, FBD_Block
 from parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
+from parser.AST.formalparam import FormalParam, ParamList
 from parser.AST.position import make_absolute_position, make_relative_position
 
 
@@ -19,12 +22,12 @@ class MyXMLVisitor(XMLParserVisitor):
     ):
         elements = content.element()
         blockElements = [self.visitElement(e)[0] for e in elements]
-        varBlocks = [e for e in blockElements if isinstance(e, VarList)]
-        inVars = [e for e in varBlocks if e.varType == VariableType.InputVar]
-        inOutVars = [e for e in varBlocks if e.varType == VariableType.InOutVar]
-        outVars = [e for e in varBlocks if e.varType == VariableType.OutputVar]
+        varBlocks = [e for e in blockElements if isinstance(e, ParamList)]
+        inVars = [e for e in varBlocks if e.varType == VariableParamType.InputVar]
+        inOutVars = [e for e in varBlocks if e.varType == VariableParamType.InOutVar]
+        outVars = [e for e in varBlocks if e.varType == VariableParamType.OutputVar]
         result = FBD_Block(
-            BlockData(int(blockParams["localId"]), blockParams["typeName"]),
+            FBDObjData(int(blockParams["localId"]), blockParams["typeName"]),
             [inVars[0], inOutVars[0], outVars[0]],
         )
         self.local_id_map[int(blockParams["localId"])] = result
@@ -35,7 +38,7 @@ class MyXMLVisitor(XMLParserVisitor):
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
         connection_points = [e for e in blockElements if isinstance(e, ConnectionPoint)][0]
         localId = int(outVarArgs["localId"])
-        blockData = BlockData(localId, direction + "Variable")
+        blockData = FBDObjData(localId, direction + "Variable")
         self.local_id_map[localId] = VarBlock(
             blockData, connection_points, expr
         )
@@ -113,19 +116,19 @@ class MyXMLVisitor(XMLParserVisitor):
                 else:
                     return self.ppx_parse_Connection(None, attrs)
             elif "inputVariables" == name:
-                return VarList(
-                    VariableType.InputVar, self.ppx_parse_variables(ctx.content())
+                return ParamList(
+                    VariableParamType.InputVar, self.ppx_parse_variables(ctx.content())
                 )
             elif "outputVariables" == name:
-                return VarList(
-                    VariableType.OutputVar, self.ppx_parse_variables(ctx.content())
+                return ParamList(
+                    VariableParamType.OutputVar, self.ppx_parse_variables(ctx.content())
                 )
             elif "inOutVariables" == name:
                 content = ctx.content()
                 vars = (
                     None if content is None else self.ppx_parse_variables(ctx.content())
                 )
-                return VarList(VariableType.InOutVar, vars)
+                return ParamList(VariableParamType.InOutVar, vars)
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
             else:

@@ -2,148 +2,11 @@ import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from parser.AST.ast_typing import VariableType, ValType, DataflowDir, SafeClass
-from parser.AST.connections import flow_selector, ConnectionPoint
-
-
-@dataclass
-class Expr:
-    expr: str
-
-
-@dataclass
-class BlockData:
-    localID: int
-    type: str
-
-
-@dataclass
-class FormalParam:
-    name: str
-    connectionPoint: ConnectionPoint
-    ID: int
-    data: dict[str, str]
-
-    def get_connections(self, direction=DataflowDir.Backward):
-        result = []
-        for c in self.connectionPoint.connections:
-            result.append(flow_selector(c, direction))
-        return self.ID, result
-
-
-@dataclass
-class VarList:
-    varType: VariableType
-    list: list[FormalParam]
-
-
-@dataclass
-class VarBlock:
-    data: BlockData
-    outConnection: ConnectionPoint
-    expr: Expr
-
-    def getID(self):
-        return self.data.localID
-
-    def getVarExpr(self):
-        return self.expr.expr
-
-
-@dataclass
-class FBD_Block:
-    data: BlockData
-    varLists: list[VarList]
-
-    def getVarsGivenType(self, type):
-        result = []
-        _vars = [v for v in self.varLists if v.varType == type]
-        for vL in _vars:
-            result.extend([] if vL.list is None else vL.list)
-        return result
-
-    def getInputVars(self):
-        return self.getVarsGivenType(VariableType.InputVar)
-
-    def getOutputVars(self):
-        return self.getVarsGivenType(VariableType.OutputVar)
-
-    def getInOutVars(self):
-        return self.getVarsGivenType(VariableType.InOutVar)
-
-    def __str__(self):
-        def stringify(lst):
-            return ",".join(map(lambda e: str(e), lst))
-
-        return (
-            f"{self.data}\n"
-            f"Inputs:\n{stringify(self.getInputVars())}\n"
-            f"Outputs:\n{stringify(self.getOutputVars())}\n"
-            f"In-Outs:\n{stringify(self.getInOutVars())}"
-        )
-    def getID(self):
-        return self.data.localID
-
-
-def strToVariableType(s):
-    lookup = {
-        "VAR": VariableType.InternalVar,
-        "VAR_INPUT": VariableType.InputVar,
-        "VAR_OUTPUT": VariableType.OutputVar,
-    }
-    return lookup.get(s, None)
-
-
-def strToValType(s):
-    lookup = {"INT": ValType.INT, "UINT": ValType.UINT, "SAFEUINT": ValType.SAFEUINT}
-    return lookup.get(s, None)
-
-
-@dataclass
-class VariableLine:
-    name: str
-    varType: VariableType
-    valueType: ValType
-    initVal: str
-    description: str
-    lineNr: int
-
-    def __str__(self):
-        _init = "" if self.initVal is None else f" = {self.initVal}"
-        _desc = "" if self.description is None else f"Description: '{self.description}'"
-        return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
-
-    def __init__(
-        self, name, var_type, value_type, init_val=None, description=None, line_nr=None
-    ):
-        self.name = name
-        self.varType = var_type
-        self.valueType = value_type
-        self.initVal = 0 if init_val is None else init_val
-        self.description = description
-        self.lineNr = line_nr
-
-
-def test_can_create_variable_line_and_get_properties():
-    v = VariableLine(
-        "aVar", VariableType.InputVar, ValType.INT, 5, "This is a variable", 3
-    )
-    assert v.name == "aVar"
-    assert v.varType == VariableType.InputVar
-    assert v.valueType == ValType.INT
-    assert v.initVal == 5
-    assert v.description == "This is a variable"
-    assert v.lineNr == 3
-
-
-def test_some_variable_line_properties_are_optional():
-    v = VariableLine("optVar", VariableType.InputVar, ValType.UINT)
-    assert v.name == "optVar"
-    assert v.varType == VariableType.InputVar
-    assert v.valueType == ValType.UINT
-    assert v.initVal == 0
-    assert v.description is None
-    assert v.lineNr is None
+from parser.AST.ast_typing import VariableParamType, DataflowDir, SafeClass
+from parser.AST.blocks import VarBlock, FBD_Block
+from parser.AST.connections import flow_selector
+from parser.AST.path import PathDivide
+from parser.AST.variables import VariableLine
 
 
 @dataclass
@@ -174,10 +37,7 @@ class VariableWorkSheet:
                 return v
         return None
 
-    def makeVarDict(self):
-        allVars = self.getAllVariables()
-
-    def getVarsByType(self, vType: VariableType):
+    def getVarsByType(self, vType: VariableParamType):
         return list((filter(lambda e: e.varType == vType, self.getAllVariables())))
 
     def __str__(self):
@@ -187,77 +47,6 @@ class VariableWorkSheet:
                 for groupNr, groupContent in self.varGroups.items()
             ]
         )
-
-
-@dataclass()
-class PathDivide:
-    def __init__(self, paths: List[list[int]]):
-        self.paths = paths
-
-    def __eq__(self, other):
-        signature__ = str(type(other))
-        if "PathDivide" in str(signature__):
-            return self.paths == other.paths
-        return False
-
-    def __ne__(self, other):
-        return not (self.__eq__(other))
-
-    def __str__(self):
-        f'D({";".join([str(e) for e in self.paths])})'
-
-    def __len__(self):
-        return max(map(self.__len__, self.paths))
-
-    @classmethod
-    def unpack_pathlist(cls, pathList):
-        """Take a list of paths and unpack all PathDivide objects into separate lists"""
-        result = []
-        for p in pathList:
-            accList = []
-            NoDividingPath = True
-            for p_e in p:
-                if isinstance(p_e, PathDivide):
-                    NoDividingPath = False
-                    _divPaths = PathDivide.unpack_pathlist(p_e.paths)
-                    for _p in _divPaths:
-                        _fin = [e for e in accList]  # Copy accumulated path until here
-                        _fin.extend(_p)  # Extend with the flattened path
-                        result.append(_fin)
-                else:
-                    accList.append(p_e)
-            if len(accList) and NoDividingPath:
-                result.append(accList)
-        return result
-
-    def flatten(self):
-        return PathDivide.unpack_pathlist(self.paths)
-
-def test_can_flatten_pathdivide_to_path_sequences():
-    assert PathDivide.unpack_pathlist([[1, 2], [3, 4]]) == [[1, 2], [3, 4]]
-
-
-def test_flatten_shall_handle_empty_paths_through_removal():
-    assert PathDivide.unpack_pathlist([[1, 2], []]) == [[1, 2]]
-    assert PathDivide.unpack_pathlist([[], [1, 2]]) == [[1, 2]]
-
-
-def test_can_flatten_multiple_levels_of_pathdivides():
-    div_prime = PathDivide([[3, 4], [5, 6]])
-    actual_input = PathDivide([[1, 2, div_prime], [7, 8]])
-    assert actual_input.flatten() == [[1, 2, 3, 4], [1, 2, 5, 6], [7, 8]]
-
-    div_prime_prime = PathDivide([[10, 11, 12], [13, 14, 15]])
-    div_prime_2 = PathDivide([[3, 4, div_prime], [5, div_prime_prime]])
-    actual_input = PathDivide([[1, 2, div_prime_2], [7, 8], [99, 100]])
-    assert actual_input.flatten() == [
-        [1, 2, 3, 4, 3, 4],
-        [1, 2, 3, 4, 5, 6],
-        [1, 2, 5, 10, 11, 12],
-        [1, 2, 5, 13, 14, 15],
-        [7, 8],
-        [99, 100],
-    ]
 
 
 @dataclass()
@@ -276,13 +65,13 @@ class Program:
 
         res = dict()
         res["OutputVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableType.OutputVar)
+            self.varHeader.getVarsByType(VariableParamType.OutputVar)
         )
         res["InputVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableType.InputVar)
+            self.varHeader.getVarsByType(VariableParamType.InputVar)
         )
         res["InternalVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableType.InternalVar)
+            self.varHeader.getVarsByType(VariableParamType.InternalVar)
         )
         res["Safeness"] = dict([(name_type[0], SafeClass.Safe if "SAFE" in name_type[1] else SafeClass.Unsafe)
                                 for name_type in self.getVarDataColumns("name", "valueType")])
@@ -335,7 +124,7 @@ class Program:
 
                 def IsBlockWithMultipleInputs(entity):
                     return (
-                        isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+                            isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
                     )
 
                 if IsBlockWithMultipleInputs(current_entity):
@@ -410,10 +199,10 @@ class Program:
             ]
         )
         res["NrInputVariables"] = len(
-            self.varHeader.getVarsByType(VariableType.InputVar)
+            self.varHeader.getVarsByType(VariableParamType.InputVar)
         )
         res["NrOutputVariables"] = len(
-            self.varHeader.getVarsByType(VariableType.OutputVar)
+            self.varHeader.getVarsByType(VariableParamType.OutputVar)
         )
 
         return res

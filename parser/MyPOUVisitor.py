@@ -1,4 +1,6 @@
 import SafeProgAST
+import parser.AST.ast_typing
+import parser.AST.variables
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 
@@ -41,14 +43,14 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
-        dummy = SafeProgAST.VariableType.UNSET  # property is set for the whole group
+        dummy = SafeProgAST.VariableParamType.UNSET  # property is set for the whole group
         initVal = None if ctx.initVal is None else str(ctx.initVal.text)
         desc = (
             None
             if ctx.varDesc is None
             else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
         )
-        result = SafeProgAST.VariableLine(
+        result = parser.AST.variables.VariableLine(
             ctx.varName.text,
             dummy,
             self.visitVal_Type(ctx.valueType),
@@ -60,11 +62,11 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#val_Type.
     def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
-        return SafeProgAST.strToValType(str(ctx.children[0]))
+        return parser.AST.ast_typing.strToValType(str(ctx.children[0]))
 
     # Visit a parse tree produced by POUParser#var_type.
     def visitVar_type(self, ctx: POUParser.Var_typeContext):
-        return SafeProgAST.strToVariableType(str(ctx.children[0]))
+        return parser.AST.ast_typing.strToVariableType(str(ctx.children[0]))
 
     # Visit a parse tree produced by POUParser#codeWorkSheet.
     def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):
