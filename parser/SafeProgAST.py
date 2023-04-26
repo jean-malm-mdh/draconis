@@ -1,46 +1,12 @@
+import logging
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import List, Tuple, Optional, Dict
 
-
-class VariableType(IntEnum):
-    UNSET = (0,)
-    InternalVar = 1
-    InputVar = 2
-    OutputVar = 3
-    InOutVar = 4
-
-    def __str__(self):
-        return self.name
-
-
-class ValType(IntEnum):
-    BOOL = 1
-    BYTE = 2
-    WORD = 3
-    DWORD = 4
-    LWORD = 5
-    SINT = 6
-    INT = 7
-    DINT = 8
-    LINT = 9
-    USINT = 10
-    UINT = 11
-    UDINT = 12
-    ULINT = 13
-    REAL = 14
-    LREAL = 15
-    TIME = 16
-    DATE = 17
-    DT = 18
-    TOD = 19
-    STRING = 20
-    WSTRING = 21
-    SAFEUINT = 22
-
-    def __str__(self):
-        return self.name
-
+from parser.AST.ast_typing import VariableType, ValType
+@dataclass
+class Expr:
+    expr: str
 
 class IssueLevel(IntEnum):
     Note = 0
@@ -54,10 +20,6 @@ class Report:
 class SafeClass(IntEnum):
     Unsafe = 0
     Safe = 1
-
-@dataclass
-class Expr:
-    expr: str
 
 
 @dataclass
@@ -161,6 +123,12 @@ class VarBlock:
     outConnection: ConnectionPoint
     expr: Expr
 
+    def getID(self):
+        return self.data.localID
+
+    def getVarExpr(self):
+        return self.expr.expr
+
 
 @dataclass
 class FBD_Block:
@@ -193,6 +161,8 @@ class FBD_Block:
             f"Outputs:\n{stringify(self.getOutputVars())}\n"
             f"In-Outs:\n{stringify(self.getInOutVars())}"
         )
+    def getID(self):
+        return self.data.localID
 
 
 def strToVariableType(s):
@@ -455,7 +425,7 @@ class Program:
                     ]
                     b_Result.append(split_paths(interface_vars_startIDs))
                     break
-            result[b.expr.expr] = b_Result
+            result[b.getVarExpr()] = b_Result
         return result
 
     def getTrace(self, direction=DataflowDir.Backward):
@@ -481,7 +451,7 @@ class Program:
             for block in start_blocks:
                 expr = (
                     # Variable name or constant. if constant, has form <TYPE>#<VALUE> (e.g., UINT#3)
-                    block.expr.expr
+                    block.getVarExpr()
                 )
                 # To trace from front to back, we need to find IDs of all inports
                 ID = block.data.localID
@@ -529,7 +499,38 @@ class Program:
         return res
 
     def check(self):
-        return [Report(IssueLevel.Error, "Unsafe data ('N') flowing to safe output ('Result_Even')")]
+        def exprIsConsideredSafe(safenessProperties, expr):
+            if "#" in expr:
+                # it is a constant
+                return "SAFE" in expr
+            else:
+                res = safenessProperties.get(expr, None)
+                if res is None: 
+                    # log issue
+                    logging.log(level=logging.WARNING,
+                                msg=f"No safety information for {expr} found. Assuming it is unsafe.")
+                    # We have no info, err on the side of caution, it is considered unsafe
+                    return False
+                return res
+        safeness_properties = self.getVarInfo()["Safeness"]
+        outDependencies = self.getBackwardTrace()
+        result = []
+        for name, depNodeIDs in outDependencies.items():
+            safeFact = safeness_properties.get(name, None)
+            if safeFact == SafeClass.Unsafe:
+                continue
+            # The output shall be safe - check that direct dependencies are safe
+            nameDependencyPaths = PathDivide.unpack_pathlist([outDependencies[name]])
+            for p in nameDependencyPaths:
+                source = self.behaviour_id_map.get(p[-1], None)
+                if source is None:
+                    # Source does not exist in mapping
+                    continue
+                if isinstance(source, VarBlock):
+                    expr = source.getVarExpr()
+                    if not exprIsConsideredSafe(safeness_properties, expr):
+                        result.append(f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')")
+        return result
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"

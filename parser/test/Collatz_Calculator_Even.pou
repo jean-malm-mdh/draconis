@@ -43,7 +43,7 @@ END_VAR
   </inVariable>
   <inVariable localId="4" height="4" width="20">
     <position x="42" y="48" />
-    <expression>UINT#2</expression>
+    <expression>SAFEUINT#2</expression>
     <connectionPointOut>
       <relPosition x="20" y="2" />
     </connectionPointOut>

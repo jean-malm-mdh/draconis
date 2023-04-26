@@ -4,14 +4,13 @@ import sys
 import pytest
 
 from parser import SafeProgAST
-from parser.SafeProgAST import DataflowDir, SafeClass, Report, IssueLevel
+from parser.SafeProgAST import DataflowDir, SafeClass
 
 sys.path.append(os.path.dirname(__file__))
 import helper_functions
 
 # TODO(TDD):
 #  It shall be possible to check if functions depend on internal variables/state
-#  It shall be possible to trace the path of a output backwards
 #  * It shall be possible to trace any value in any direction
 
 @pytest.fixture(scope="session", autouse=True)
@@ -19,7 +18,7 @@ def programs():
     programs = dict([(n, helper_functions.parse_pou_file(p)) for n, p in
                 [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
                  ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
-                 ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_Safe.pou")
+                 ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou")
                  ]])
     return programs
 def test_given_a_file_can_extract_numeric_metrics(programs):
@@ -72,15 +71,23 @@ def test_from_input_can_perform_simple_forward_traces(programs):
     assert actual == expected
 
 def test_can_classify_expression_safeness_by_name(programs):
-    assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
-    assert SafeClass.Unsafe == programs["Calc_Even"].getVarInfo()["Safeness"]["N"]
+    assert programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"] == SafeClass.Unsafe
+    assert programs["Calc_Even"].getVarInfo()["Safeness"]["N"] == SafeClass.Unsafe
 
-def test_can_detect_unsafe_usage_of_data_at_output(programs):
+def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
     safeness_info = programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]
     assert \
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Safe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
-    assert [Report(IssueLevel.Error, "Unsafe data ('N') flowing to safe output ('Result_Even')")] == programs["Calc_Even_SafeVer"].check()
+    assert programs["Calc_Even_SafeVer"].check() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
+
+def test_given_unsafe_output_safeness_is_irrelevant(programs):
+    # For sanity checking of test data
+    safeness_info = programs["Calc_Even"].getVarInfo()["Safeness"]
+    assert \
+        (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
+        "Prerequisite for remainder of test to be reasonable does not hold"
+    assert programs["Calc_Even"].check() == []
 
 
 
