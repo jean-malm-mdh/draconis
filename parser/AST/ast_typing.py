@@ -36,18 +36,18 @@ class ValType(IntEnum):
     WSTRING = 21
 
     # 1 << 7 = 128
-    SAFEBYTE = 128
-    SAFEWORD = 129
-    SAFEDWORD = 130
-    SAFELWORD = 131
-    SAFESINT = 132
-    SAFEINT = 133
-    SAFEDINT = 134
-    SAFELINT = 135
-    SAFEUSINT = 136
-    SAFEUINT = 137
-    SAFEUDINT = 138
-    SAFEULINT = 139
+    SAFEANALOG = 128
+    SAFEBOOL = 129
+    SAFEBYTE = 130
+    SAFEDWORD = 131
+    SAFEWORD = 132
+    SAFEINT = 135
+    SAFESINT = 134
+    SAFEDINT = 136
+    SAFEUSINT = 138
+    SAFEUINT = 139
+    SAFEUDINT = 140
+    SAFETIME = 144
 
     #TODO: Figure out a way to provide/compute this properties
     #   ANY, ANY_DERIVED, ANY_ELEMENTARY, ANY_MAGNITUDE, ANY_NUM, ANY_REAL,

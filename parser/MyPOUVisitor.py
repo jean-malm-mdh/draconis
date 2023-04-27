@@ -1,3 +1,5 @@
+import logging
+
 from parser.AST.pou import Program
 from parser.AST.ast_typing import *
 import parser.AST.variables
@@ -62,7 +64,10 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#val_Type.
     def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
-        return parser.AST.ast_typing.strToValType(str(ctx.children[0]))
+        result = parser.AST.ast_typing.strToValType(str(ctx.children[0].start.text))
+        if result is None:
+            logging.warning(f"Type{str(ctx.children[0])} could not be found in lookup")
+        return result
 
     # Visit a parse tree produced by POUParser#var_type.
     def visitVar_type(self, ctx: POUParser.Var_typeContext):

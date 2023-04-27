@@ -30,10 +30,59 @@ varDefGroup : varType=var_type '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'EN
 
 varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=INT)? ';' (varDesc=DESCRIPTION)? ;
 
-val_Type :  'INT'
-            | 'UINT'
-            | 'SAFEUINT'
-            ;
+val_Type : elementary_type | derived_type | generic_type | safe_type  ;
+elementary_type: 'BOOL'
+                | 'BYTE'
+                | 'WORD'
+                | 'DWORD'
+                | 'LWORD'
+                | 'SINT'
+                | 'INT'
+                | 'DINT'
+                | 'LINT'
+                | 'USINT'
+                | 'UINT'
+                | 'UDINT'
+                | 'ULINT'
+                | 'REAL'
+                | 'LREAL'
+                | 'TIME'
+                | 'DATE'
+                | 'DT'
+                | 'TOD'
+                | 'STRING'
+                | 'WSTRING';
+
+safe_type:      'SAFEANALOG'
+               | 'SAFEBOOL'
+               | 'SAFEBYTE'
+               | 'SAFEDINT'
+               | 'SAFEDWORD'
+               | 'SAFEINT'
+               | 'SAFESINT'
+               | 'SAFETIME'
+               | 'SAFEUDINT'
+               | 'SAFEUINT'
+               | 'SAFEUSINT'
+               | 'SAFEWORD' ;
+
+derived_type:   'ARRAY'
+                | 'DERIVED'
+                | 'ENUM'
+                | 'SUBRANGESIGNED'
+                | 'SUBRANGEUNSIGNED'
+                | 'STRUCT';
+
+generic_type:   'ANY'
+                | 'ANY_DERIVED'
+                | 'ANY_ELEMENTARY'
+                | 'ANY_MAGNITUDE'
+                | 'ANY_NUM'
+                | 'ANY_REAL'
+                | 'ANY_INT'
+                | 'ANY_BIT'
+                | 'ANY_STRING'
+                | 'ANY_DATE';
 
 var_type :  'VAR'
             | 'VAR_INPUT'
