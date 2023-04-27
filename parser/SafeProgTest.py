@@ -12,14 +12,17 @@ from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheet
 
 # TODO(TDD):
 #  It shall be possible to check if functions depend on internal variables/state
-#  * It shall be possible to trace any value in any direction
+#  * It shall be possible to start tracing any value in any direction
+#  ** Ports shall only trace one way (outport => backwards, inport => forwards)
+#  Dataflow shall handle cases where outputs depend on several inputs
 
 @pytest.fixture(scope="session", autouse=True)
 def programs():
     programs = dict([(n, parse_pou_file(p)) for n, p in
                      [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
                       ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
-                      ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou")
+                      ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou"),
+                      ("MultiAND", "test/MultiANDer.pou"),
                       ]])
     return programs
 
@@ -65,10 +68,24 @@ def test_given_program_can_extract_names_and_descriptions(programs):
 
 
 def test_from_output_can_perform_simple_backward_traces(programs):
+    """
+    Test checks standard case of dataflow - two numerical values going into binary arithmetic block
+    Resulting operation is dependent on both operands
+    Resulting operation goes directly into outport
+    """
     expected = [5, 9, 8, parser.AST.path.PathDivide([[6, 3], [7, 4]])]
     actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
     assert actual == expected
 
+def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
+    """
+    Test checks standard case of dataflow - two numerical values going into binary arithmetic block
+    Resulting operation is dependent on both operands
+    Resulting operation goes directly into outport
+    """
+    expected = [9, 3, 2, parser.AST.path.PathDivide([ [0,5], [1,7], [4,8]  ])]
+    actual = programs["MultiAND"].getTrace(DataflowDir.Backward)["CanDoWork_ST"]
+    assert actual == expected
 
 def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
@@ -96,76 +113,6 @@ def test_given_unsafe_output_safeness_is_irrelevant(programs):
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even"].check() == []
-
-
-def print_xml_parsing():
-    inputText = """
-  <?xml version="1.0" encoding="utf-16" standalone="yes"?>
-  <FBD>
-   <inVariable localId="1" height="4" width="18">
-    <position x="86" y="14" />
-        <expression>Input1</expression>
-        <connectionPointOut>
-          <relPosition x="18" y="2" />
-        </connectionPointOut>
-      </inVariable>
-      <block localId="4" height="24" width="16" typeName="ADD">
-        <position x="152" y="34" />
-        <addData>
-          <data name="blabla.com" handleUnknown="preserve">
-            <fbData fbFuType="1" />
-          </data>
-        </addData>
-        <inputVariables>
-          <variable formalParameter="IN1" hidden="true">
-            <connectionPointIn>
-              <relPosition x="0" y="8" />
-              <connection refLocalId="0" />
-            </connectionPointIn>
-            <addData>
-              <data name="blabla.com" handleUnknown="preserve">
-                <fp localId="1" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
-              </data>
-            </addData>
-          </variable>
-          <variable formalParameter="IN2" hidden="true">
-            <connectionPointIn>
-              <relPosition x="0" y="16" />
-              <connection refLocalId="5" />
-            </connectionPointIn>
-            <addData>
-              <data name="blabla.com" handleUnknown="preserve">
-                <fp localId="2" inState="640" outState="0" width="2" height="2" flagType="" dataType="ANY_NUM" />
-              </data>
-            </addData>
-          </variable>
-        </inputVariables>
-        <inOutVariables />
-        <outputVariables>
-          <variable formalParameter="ADD" hidden="true">
-              <connectionPointIn>
-                <relPosition x="16" y="10" />
-                <connection refLocalId="5" />
-              </connectionPointIn>
-              <addData>
-                <data name="blabla.com" handleUnknown="preserve">
-                  <fp localId="3" inState="0" outState="640" width="2" height="2" flagType="" dataType="ANY_NUM" />
-                </data>
-              </addData>
-            </variable>
-        </outputVariables>		
-      </block>
-      <inVariable localId="5" height="4" width="18">
-        <position x="86" y="22" />
-        <expression>Input1</expression>
-        <connectionPointOut>
-          <relPosition x="18" y="2" />
-        </connectionPointOut>
-      </inVariable>
-    </FBD>"""
-    elements = parse_code_worksheet(inputText)
-    for e in elements:
-        print(e)
 
 
 def test_metrics_pipeline():
