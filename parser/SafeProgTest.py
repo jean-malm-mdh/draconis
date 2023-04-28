@@ -4,7 +4,7 @@ import sys
 import pytest
 
 import parser.AST.path
-from parser.AST.ast_typing import SafeClass, DataflowDir
+from parser.AST.ast_typing import SafeClass, DataflowDirection
 
 sys.path.append(os.path.dirname(__file__))
 from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheets_from_input, parse_variable_worksheet
@@ -23,6 +23,7 @@ def programs():
                       ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
                       ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou"),
                       ("MultiAND", "test/MultiANDer.pou"),
+                      ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
                       ]])
     return programs
 
@@ -74,7 +75,7 @@ def test_from_output_can_perform_simple_backward_traces(programs):
     Resulting operation goes directly into outport
     """
     expected = [5, 9, 8, parser.AST.path.PathDivide([[6, 3], [7, 4]])]
-    actual = programs["Calc_Even"].getTrace(DataflowDir.Backward)["Result_Even"]
+    actual = programs["Calc_Even"].getTrace(DataflowDirection.Backward)["Result_Even"]
     assert actual == expected
 
 def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
@@ -84,12 +85,45 @@ def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
     Resulting operation goes directly into outport
     """
     expected = [9, 3, 2, parser.AST.path.PathDivide([ [0,5], [1,7], [4,8]  ])]
-    actual = programs["MultiAND"].getTrace(DataflowDir.Backward)["CanDoWork_ST"]
+    actual = programs["MultiAND"].getTrace(DataflowDirection.Backward)["CanDoWork_ST"]
     assert actual == expected
 
+def test_backward_trace_can_handle_single_in_multiple_out_blocks(programs):
+    program = programs["SingleIn_MultiOut"]
+    # ID(5) - Inport #1
+    # ID(1) - Input Param #1
+    # ID(2) - OutPut Param #1
+    # ID(3) - OutPut Param #2
+    # ID(4) - FBD block ID
+    # ID(6) - Outport #1
+    # ID(7) - Outport #2
+    expected = {"OutputByte1": [6, 4, 2, 1, 5], "OutputByte2": [7, 4, 3, 1, 5]}
+    actual = program.getBackwardTrace()
+    assert actual == expected
+
+def test_can_trace_path_through_single_in_multiple_out_blocks(programs):
+    program = programs["SingleIn_MultiOut"]
+
+    expected_forwards = [(1, 2), (1, 3)]
+    expected_backwards = [(2, 1), (3, 1)]
+    assert program.behaviour_id_map[4].getFlow(DataflowDirection.Forward) == expected_forwards
+    assert program.behaviour_id_map[4].getFlow(DataflowDirection.Backward) == expected_backwards
+
+def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
+    program = programs["SingleIn_MultiOut"]
+    # ID(5) - Inport #1
+    # ID(1) - Input Param #1
+    # ID(2) - OutPut Param #1
+    # ID(3) - OutPut Param #2
+    # ID(4) - FBD block ID
+    # ID(6) - Outport #1
+    # ID(7) - Outport #2
+    expected = {"InputWord": [[5, 1, 2, 4, 6], [5, 1, 3, 4, 7]]}
+    actual = program.getTrace(DataflowDirection.Forward)
+    assert actual == expected
 def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
-    actual = programs["Calc_Even"].getTrace(DataflowDir.Forward)["N"]
+    actual = programs["Calc_Even"].getTrace(DataflowDirection.Forward)["N"]
     assert actual == expected
 
 

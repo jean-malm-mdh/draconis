@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from parser.AST.ast_typing import VariableParamType, DataflowDir, SafeClass
+from parser.AST.ast_typing import VariableParamType, DataflowDirection, SafeClass
 from parser.AST.blocks import VarBlock, FBD_Block
 from parser.AST.connections import flow_selector
 from parser.AST.path import PathDivide
@@ -95,29 +95,33 @@ class Program:
             for b in start_blocks:
                 b_Result = [b.data.localID]
                 worklist = [
-                    flow_selector(c, DataflowDir.Backward)
-                    for c in b.outConnection.connections
+                    flow_selector(c, DataflowDirection.Backward) for c in
+                    b.getFlow(DataflowDirection.Backward)
                 ]
                 while worklist:
                     start, end = worklist[0]
+                    worklist = worklist[1:]
+                    b_Result.append(start)
                     if end is None:
                         break
-                    b_Result.append(start)
                     b_Result.append(end)
                     current_entity = self.behaviour_id_map.get(
                         end, self.behaviour_id_map[start]
                     )
 
-                    def IsBlockWithMultipleInputs(entity):
-                        return isinstance(entity, FBD_Block) and len(entity.getInputVars()) > 1
+                    def IsBlock(entity):
+                        return isinstance(entity, FBD_Block)
 
-                    if IsBlockWithMultipleInputs(current_entity):
+                    if IsBlock(current_entity):
                         interface_vars_startIDs = [
-                            fp.get_connections(DataflowDir.Backward)
+                            fp.get_connections(DataflowDirection.Backward)
                             for fp in current_entity.getInputVars()
                         ]
-                        b_Result.append(split_paths(interface_vars_startIDs))
-                        break
+                        if len(interface_vars_startIDs) > 1:
+                            b_Result.append(split_paths(interface_vars_startIDs))
+                        else:
+                            b_Result.append(interface_vars_startIDs[0][0])
+                            worklist.append(interface_vars_startIDs[0][1][0])
                 result[b.getVarExpr()] = b_Result
             return result
 
@@ -126,7 +130,7 @@ class Program:
         ]
         return performTrace(outport_blocks)
 
-    def getTrace(self, direction=DataflowDir.Backward):
+    def getTrace(self, direction=DataflowDirection.Backward):
         def indexOrNone(aList, elem):
             """
 
@@ -187,7 +191,7 @@ class Program:
                             result[expr].append(_res)
             return result
 
-        if direction == DataflowDir.Backward:
+        if direction == DataflowDirection.Backward:
             return self.getBackwardTrace()
         else:
             backwards = self.getBackwardTrace()

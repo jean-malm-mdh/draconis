@@ -1,0 +1,107 @@
+﻿FUNCTION_BLOCK TestPOU_SingleInput_MultipleOutput
+{ VariableWorksheet := 'Variables' }
+﻿{GroupDefinition(0,'NewGroup')}
+
+VAR_INPUT {Group(0)}
+    {LINE(2)}
+    InputWord : WORD;
+END_VAR
+
+VAR_OUTPUT {Group(0)}
+    {LINE(3)}
+    OutputByte1 : BYTE;
+    {LINE(4)}
+    OutputByte2 : BYTE;
+END_VAR
+
+VAR {Group(0)}
+    {LINE(1)}
+    WORD_TO_BYTES_1 : WORD_TO_BYTES;
+END_VAR
+
+{ CodeWorksheet := 'TestPOU_SingleInput_Multi', Type := '.fbd' }
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?><FBD>
+  <addData>
+    <data name="redacted" handleUnknown="preserve" />
+  </addData>
+  <block localId="4" height="24" width="36" typeName="WORD_TO_BYTES" instanceName="WORD_TO_BYTES_1">
+    <position x="46" y="38" />
+    <addData>
+      <data name="redacted" handleUnknown="preserve">
+        <fbData fbFuType="0" />
+      </data>
+    </addData>
+    <inputVariables>
+      <variable formalParameter="IN">
+        <connectionPointIn>
+          <relPosition x="0" y="8" />
+          <connection refLocalId="5" />
+        </connectionPointIn>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="1" inState="128" outState="0" width="5" height="2" flagType="" dataType="WORD" />
+          </data>
+        </addData>
+      </variable>
+    </inputVariables>
+    <inOutVariables />
+    <outputVariables>
+      <variable formalParameter="OUT_0">
+        <connectionPointOut>
+          <relPosition x="36" y="8" />
+        </connectionPointOut>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="2" inState="0" outState="128" width="8" height="2" flagType="" dataType="BYTE" />
+          </data>
+        </addData>
+      </variable>
+      <variable formalParameter="OUT_1">
+        <connectionPointOut>
+          <relPosition x="36" y="16" />
+        </connectionPointOut>
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <fp localId="3" inState="0" outState="128" width="8" height="2" flagType="" dataType="BYTE" />
+          </data>
+        </addData>
+      </variable>
+    </outputVariables>
+  </block>
+  <inVariable localId="5" height="4" width="24">
+    <position x="18" y="44" />
+    <expression>InputWord</expression>
+    <connectionPointOut>
+      <relPosition x="24" y="2" />
+    </connectionPointOut>
+  </inVariable>
+  <outVariable localId="6" height="4" width="28">
+    <position x="86" y="44" />
+    <expression>OutputByte1</expression>
+    <connectionPointIn>
+      <relPosition x="0" y="2" />
+      <connection refLocalId="4" formalParameter="OUT_0">
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <connectedFormalparameter refLocalId="2" />
+          </data>
+        </addData>
+      </connection>
+    </connectionPointIn>
+  </outVariable>
+  <outVariable localId="7" height="4" width="28">
+    <position x="86" y="52" />
+    <expression>OutputByte2</expression>
+    <connectionPointIn>
+      <relPosition x="0" y="2" />
+      <connection refLocalId="4" formalParameter="OUT_1">
+        <addData>
+          <data name="redacted" handleUnknown="preserve">
+            <connectedFormalparameter refLocalId="3" />
+          </data>
+        </addData>
+      </connection>
+    </connectionPointIn>
+  </outVariable>
+</FBD>
+END_FUNCTION_BLOCK
