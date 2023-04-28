@@ -49,6 +49,8 @@ class ValType(IntEnum):
     SAFEUDINT = 140
     SAFETIME = 144
 
+    CUSTOM_FBD = 1024
+
     #TODO: Figure out a way to provide/compute this properties
     #   ANY, ANY_DERIVED, ANY_ELEMENTARY, ANY_MAGNITUDE, ANY_NUM, ANY_REAL,
     #   ANY_INT, ANY_BIT, ANY_STRING, ANY_DATE;
@@ -61,7 +63,7 @@ class ValType(IntEnum):
         return self.value() >= 128
 
 
-class DataflowDir(IntEnum):
+class DataflowDirection(IntEnum):
     Forward = 1
     Backward = 2
 
@@ -96,6 +98,6 @@ def strToValType(s: str):
         s: The string representation of values.
 
     Returns:
-        The corresponding Enum, or None if the value is not found
+        The corresponding Enum. if the value is not recognized, assumes it is a custom FBD instance.
     """
-    return ValType.__dict__.get(s, None)
+    return ValType.__dict__.get(s, ValType.CUSTOM_FBD)

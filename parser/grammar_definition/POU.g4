@@ -30,8 +30,9 @@ varDefGroup : varType=var_type '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'EN
 
 varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=INT)? ';' (varDesc=DESCRIPTION)? ;
 
-val_Type : elementary_type | derived_type | generic_type | safe_type  ;
-elementary_type: 'BOOL'
+val_Type : elementary_type | derived_type | generic_type | safe_type | custom_type=ID  ;
+elementary_type: 'ANALOG'
+                | 'BOOL'
                 | 'BYTE'
                 | 'WORD'
                 | 'DWORD'

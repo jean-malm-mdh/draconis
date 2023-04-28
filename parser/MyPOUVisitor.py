@@ -64,7 +64,7 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#val_Type.
     def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
-        result = parser.AST.ast_typing.strToValType(str(ctx.children[0].start.text))
+        result = parser.AST.ast_typing.strToValType(str(ctx.start.text))
         if result is None:
             logging.warning(f"Type{str(ctx.children[0])} could not be found in lookup")
         return result

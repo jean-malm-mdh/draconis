@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Optional
 
-from parser.AST.ast_typing import DataflowDir
+from parser.AST.ast_typing import DataflowDirection
 from parser.AST.position import GUIPosition, make_absolute_position
 
 
@@ -34,10 +34,10 @@ class Connection:
     formalName: str
 
 
-def flow_selector(conn: Connection, direction: DataflowDir):
+def flow_selector(conn: Connection, direction: DataflowDirection):
     return (
         (conn.endPoint.connectionIndex, conn.startPoint.connectionIndex)
-        if direction == DataflowDir.Backward
+        if direction == DataflowDirection.Backward
         else (conn.startPoint.connectionIndex, conn.endPoint.connectionIndex)
     )
 

@@ -213,19 +213,39 @@ class MyXMLVisitor(XMLParserVisitor):
         elements = list(connData.element())
 
         def hasOnlyPositionData(elements: List[XMLParser.ElementContext]):
+            foundPositionData = False
+            foundAdditionalData = False
             for e in elements:
-                if "position" not in e.blockTag.text:
-                    return False
-            return True
+                if "position" in e.blockTag.text:
+                    foundPositionData = True
+                if "addData" == e.blockTag.text:
+                    foundAdditionalData = True
+            return foundPositionData and not(foundAdditionalData)
+
+        def hasOnlyAdditionalData(elements: List[XMLParser.ElementContext]):
+            foundPositionData = False
+            foundAdditionalData = False
+            for e in elements:
+                if "position" in e.blockTag.text:
+                    foundPositionData = True
+                if "addData" == e.blockTag.text:
+                    foundAdditionalData = True
+            return not(foundPositionData) and foundAdditionalData
 
         startID = None
         if hasOnlyPositionData(elements):
             toPosition = self.visitElement(elements[0])
             fromPosition = self.visitElement(elements[1])
-        else:
+        elif hasOnlyAdditionalData(elements):
+            toPosition = make_absolute_position(-1,-1)
+            fromPosition = make_absolute_position(-1,-1)
             addDataNode = elements[0]
+            parsedDataElements = self.parse_addData_node(addDataNode)
+            startID, _, _ = parsedDataElements[0]
+        else:
             toPosition = self.visitElement(elements[1])
             fromPosition = self.visitElement(elements[2])
+            addDataNode = elements[0]
             parsedDataElements = self.parse_addData_node(addDataNode)
             startID, _, _ = parsedDataElements[0]
         startConnPoint = ConnectionData(fromPosition, startID)
