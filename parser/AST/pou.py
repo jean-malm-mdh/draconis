@@ -15,6 +15,27 @@ class Program:
     varHeader: VariableWorkSheet
     behaviourElements: List[FBD_Block]
     behaviour_id_map: Dict[int, FBD_Block]
+    backward_flow: Dict[str, List[int]]
+    forward_flow: Dict[str, List[int]]
+
+    def __init__(self, name, varWorkSheet, behaviourElementList = None, behaviourIDMap = None):
+        self.progName = name
+        self.varHeader = varWorkSheet
+        self.behaviourElements = [] if behaviourElementList is None else behaviourElementList
+        self.behaviour_id_map = {} if behaviourIDMap is None else behaviourIDMap
+        self.backward_flow = {}
+        self.forward_flow = {}
+
+
+    def post_parse_analysis(self):
+        """
+        Performs some necessary pre-steps for other analyses.
+        Returns:
+            No return value - will mutate the instance object
+        """
+
+        # Fill up the memoised elements
+        self.getTrace(direction=DataflowDirection.Forward)
 
     def getVarInfo(self):
         """
@@ -125,10 +146,16 @@ class Program:
                 result[b.getVarExpr()] = b_Result
             return result
 
+        if {} != self.backward_flow:
+            return self.backward_flow
         outport_blocks = [
             e for e in self.behaviourElements if isinstance(e, VarBlock) and e.data.type == "outVariable"
         ]
-        return performTrace(outport_blocks)
+        result = performTrace(outport_blocks)
+        # Memoize backward trace
+        self.backward_flow = result
+
+        return result
 
     def getTrace(self, direction=DataflowDirection.Backward):
         def indexOrNone(aList, elem):
@@ -155,6 +182,9 @@ class Program:
             Returns: From each inport, provides the dataflow paths to the outports
 
             """
+            if {} != self.forward_flow:
+                return self.forward_flow
+
             flattened_flow = [
                 e for e in [PathDivide.unpack_pathlist([f]) for f in back_flow.values()]
             ]
@@ -189,6 +219,7 @@ class Program:
                             _res = path[: (i + 1)]
                             _res.reverse()
                             result[expr].append(_res)
+            self.forward_flow = result
             return result
 
         if direction == DataflowDirection.Backward:
@@ -216,7 +247,7 @@ class Program:
 
         return res
 
-    def check(self):
+    def checkSafeDataFlow(self):
         def exprIsConsideredSafe(safenessProperties, expr):
             if "#" in expr:
                 # it is a constant

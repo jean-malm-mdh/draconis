@@ -60,7 +60,7 @@ class ValType(IntEnum):
         return self.name
 
     def isSafeValueType(self):
-        return self.value() >= 128
+        return "SAFE" in self.name
 
 
 class DataflowDirection(IntEnum):

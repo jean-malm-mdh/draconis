@@ -23,13 +23,11 @@ class VarBlock:
     def getVarExpr(self):
         return self.expr.expr
 
-    def getFlow(self, data_flow_dir:DataflowDirection):
+    def getFlow(self, data_flow_dir: DataflowDirection):
         if DataflowDirection.Forward == data_flow_dir:
             return [] if self.data.type == "outVariable" else [c for c in self.outConnection.connections]
         if DataflowDirection.Backward == data_flow_dir:
             return [] if self.data.type == "inVariable" else [c for c in self.outConnection.connections]
-
-
 
 
 @dataclass
@@ -44,7 +42,7 @@ class FBD_Block:
             result.extend([] if vL.list is None else vL.list)
         return result
 
-    def getFlow(self, data_flow_dir:DataflowDirection):
+    def getFlow(self, data_flow_dir: DataflowDirection):
         """
         
         Args:
@@ -86,5 +84,6 @@ class FBD_Block:
             f"Outputs:\n{stringify(self.getOutputVars())}\n"
             f"In-Outs:\n{stringify(self.getInOutVars())}"
         )
+
     def getID(self):
         return self.data.localID

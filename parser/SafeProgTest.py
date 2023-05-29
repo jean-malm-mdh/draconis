@@ -15,6 +15,7 @@ from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheet
 #  * It shall be possible to start tracing any value in any direction
 #  ** Ports shall only trace one way (outport => backwards, inport => forwards)
 #  Dataflow shall handle cases where outputs depend on several inputs
+#  * Dataflow shall handle cases where some outputs depend on some inputs
 
 @pytest.fixture(scope="session", autouse=True)
 def programs():
@@ -121,6 +122,16 @@ def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     expected = {"InputWord": [[5, 1, 2, 4, 6], [5, 1, 3, 4, 7]]}
     actual = program.getTrace(DataflowDirection.Forward)
     assert actual == expected
+
+def test_can_get_dataflow_from_func_block(programs):
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Backward) == [(8, 6), (8, 7)]
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Forward) == [(6, 8), (6, 7)]
+
+def test_can_get_dataflow_from_var_block(programs):
+    inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
+    assert inVarBlock.getFlow(DataflowDirection.Backward) == []
+    assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, 6)]
+
 def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
     actual = programs["Calc_Even"].getTrace(DataflowDirection.Forward)["N"]
@@ -137,7 +148,7 @@ def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
     assert \
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Safe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
-    assert programs["Calc_Even_SafeVer"].check() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
+    assert programs["Calc_Even_SafeVer"].checkSafeDataFlow() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
 
 
 def test_given_unsafe_output_safeness_is_irrelevant(programs):
@@ -146,7 +157,7 @@ def test_given_unsafe_output_safeness_is_irrelevant(programs):
     assert \
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
-    assert programs["Calc_Even"].check() == []
+    assert programs["Calc_Even"].checkSafeDataFlow() == []
 
 
 def test_metrics_pipeline():
