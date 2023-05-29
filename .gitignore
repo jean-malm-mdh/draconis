@@ -166,3 +166,6 @@ venv/
 
 !generated/POU.g4
 *generated/
+
+db.sqlite3
+geckodriver.log
