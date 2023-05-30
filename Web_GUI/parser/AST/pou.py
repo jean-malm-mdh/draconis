@@ -4,7 +4,7 @@ from typing import List, Tuple, Dict
 
 from ast_typing import VariableParamType, DataflowDirection, SafeClass
 from blocks import VarBlock, FBD_Block
-from Web_GUI.parser.AST.connections import flow_selector
+from Web_GUI.parser.AST.connections import trace_connection_in_dataflow_direction
 from Web_GUI.parser.AST.path import PathDivide
 from Web_GUI.parser.AST.variables import VariableLine, VariableWorkSheet
 
@@ -127,10 +127,7 @@ class Program:
                 flow = b.getFlow(DataflowDirection.Backward)
                 if b.getBlockType() == "FunctionBlock":
                     return cheat()
-                worklist = [
-                    flow_selector(c, DataflowDirection.Backward) for c in
-                    flow
-                ]
+                worklist = flow
                 while worklist:
                     start, end = worklist[0]
                     worklist = worklist[1:]

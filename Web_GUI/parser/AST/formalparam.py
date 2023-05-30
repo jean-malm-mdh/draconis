@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from Web_GUI.parser.AST.ast_typing import DataflowDirection, VariableParamType
-from Web_GUI.parser.AST.connections import ConnectionPoint, flow_selector
+from Web_GUI.parser.AST.connections import ConnectionPoint, trace_connection_in_dataflow_direction
 
 
 @dataclass
@@ -14,7 +14,7 @@ class FormalParam:
     def get_connections(self, direction=DataflowDirection.Backward):
         result = []
         for c in self.connectionPoint.connections:
-            result.append(flow_selector(c, direction))
+            result.append(trace_connection_in_dataflow_direction(c, direction))
         return self.ID, result
 
     def getID(self):

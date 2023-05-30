@@ -34,11 +34,7 @@ class Connection:
     formalName: str
 
 
-def flow_selector(conn: Connection, direction: DataflowDirection):
-    # TODO: FIX UGLY HACK
-    c = conn.__class__
-    if "tuple" in str(c).lower():
-        return conn
+def trace_connection_in_dataflow_direction(conn: Connection, direction: DataflowDirection):
     result = ((conn.endPoint.connectionIndex,
                conn.startPoint.connectionIndex) if direction == DataflowDirection.Backward else (
     conn.startPoint.connectionIndex, conn.endPoint.connectionIndex))

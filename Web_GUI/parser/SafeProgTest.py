@@ -105,14 +105,6 @@ def test_backward_trace_can_handle_single_in_multiple_out_blocks(programs):
     actual = program.getBackwardTrace()
     assert actual == expected
 
-def test_can_trace_path_through_single_in_multiple_out_blocks(programs):
-    program = programs["SingleIn_MultiOut"]
-
-    expected_forwards = [(1, 2), (1, 3)]
-    expected_backwards = [(2, 1), (3, 1)]
-    assert program.behaviour_id_map[4].getFlow(DataflowDirection.Forward) == expected_forwards
-    assert program.behaviour_id_map[4].getFlow(DataflowDirection.Backward) == expected_backwards
-
 def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     program = programs["SingleIn_MultiOut"]
     # ID(5) - Inport #1
