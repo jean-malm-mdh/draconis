@@ -36,7 +36,8 @@ class Program:
 
         # Fill up the memoised elements
         self.getTrace(direction=DataflowDirection.Forward)
-
+    def getVarGroups(self):
+        return self.varHeader.varGroups.values()
     def getVarInfo(self):
         """
         Computes and returns a number of metrics related to variables in a lookup table.

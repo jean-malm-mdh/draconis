@@ -27,6 +27,9 @@ class VariableLine:
         self.description = description
         self.lineNr = line_nr
 
+    def getName(self):
+        return self.name
+
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
@@ -55,6 +58,26 @@ class VariableGroup:
     groupName: str
     groupID: int
     varLines: list[VariableLine]
+    def getName(self):
+        return self.groupName
+    def getID(self):
+        return self.groupID
+
+    def checkForCohesionIssues(self):
+        def isOutputGroup():
+            return "Output" in self.getName()
+        def isInputGroup():
+            return "Input" in self.getName()
+        result = []
+        if isOutputGroup():
+            for var in self.varLines:
+                if var.varType != VariableParamType.OutputVar:
+                    result.append(f"Non-output detected in Output group: {var.getName()}")
+        elif isInputGroup():
+            for var in self.varLines:
+                if var.varType != VariableParamType.InputVar:
+                    result.append(f"Non-input detected in Input group: {var.getName()}")
+        return result
 
     def __str__(self):
         variables = "\n".join(map(lambda l: str(l), self.varLines))

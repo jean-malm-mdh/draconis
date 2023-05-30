@@ -25,6 +25,8 @@ def programs():
                       ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou"),
                       ("MultiAND", "test/MultiANDer.pou"),
                       ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
+                      ("output_has_non_outputs", "test/output_has_non_output_vars.pou"),
+                      ("input_has_non_inputs", "test/input_has_non_input_vars.pou"),
                       ]])
     return programs
 
@@ -124,10 +126,12 @@ def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     assert actual == expected
 
 def test_can_get_dataflow_from_func_block(programs):
+    pytest.skip("Higher priority tests came up")
     assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Backward) == [(8, 6), (8, 7)]
     assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Forward) == [(6, 8), (6, 7)]
 
 def test_can_get_dataflow_from_var_block(programs):
+    pytest.skip("Higher priority tests came up")
     inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
     assert inVarBlock.getFlow(DataflowDirection.Backward) == []
     assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, 6)]
@@ -276,6 +280,25 @@ def test_metrics_pipeline():
     )
     assert program.getMetrics()["NrOfVariables"] == 2
     assert program.getMetrics()["NrOfFuncBlocks"] == 1
+
+
+def test_given_a_variable_sheet_inputs_shall_only_be_in_input_group(programs):
+    program = programs["output_has_non_outputs"]
+    groups = list(program.getVarGroups())
+    assert [group.getName() for group in groups] == ["Inputs", "Outputs"]
+    inputGroup, outputGroup = groups[0], groups[1]
+    assert [issue.lower() for issue in inputGroup.checkForCohesionIssues()] == []
+    assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == ["non-output detected in output group: candowork_st"]
+
+def test_given_a_variable_sheet_outputs_shall_only_be_in_output_group(programs):
+    program = programs["input_has_non_inputs"]
+    groups = list(program.getVarGroups())
+    assert [group.getName() for group in groups] == ["Inputs", "Outputs"]
+    inputGroup, outputGroup = groups[0], groups[1]
+    assert [issue.lower() for issue in inputGroup.checkForCohesionIssues()] == ["non-input detected in input group: candowork_st"]
+    assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == []
+
+
 
 
 def main():

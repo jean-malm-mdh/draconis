@@ -1,0 +1,35 @@
+PROGRAM Main
+{ VariableWorksheet := 'Variables' }
+{GroupDefinition(0, 'Inputs')}
+{GroupDefinition(3, 'Outputs')}
+VAR_INPUT
+{Group(0)}
+    {LINE(1)}
+    IsOn_ST : SAFEBOOL; (*If system is on*)
+END_VAR
+VAR_OUTPUT
+{Group(0)}
+    {LINE(2)}
+    CanDoWork_ST : SAFEBOOL; (*If System can do work*)
+END_VAR
+VAR
+{Group(0)}
+END_VAR
+
+VAR_INPUT
+{Group(3)}
+END_VAR
+VAR_OUTPUT
+{Group(3)}
+    {LINE(4)}
+    I_Can_Be_here : SAFEBOOL; (*just to have some data*)
+END_VAR
+VAR
+{Group(3)}
+END_VAR
+
+{ CodeWorksheet := 'Main', Type := '.fbd' }
+<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<FBD>
+</FBD>
+END_PROGRAM
