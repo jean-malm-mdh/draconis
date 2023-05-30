@@ -1,8 +1,8 @@
 import logging
 
-from parser.AST.pou import Program
-from parser.AST.ast_typing import *
-import parser.AST.variables
+from AST.pou import Program
+from Web_GUI import parser
+from Web_GUI.parser.AST.ast_typing import VariableParamType
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 

@@ -1,9 +1,11 @@
 from dataclasses import dataclass
-
-from parser.AST.ast_typing import VariableParamType, DataflowDirection
-from parser.AST.fbdobject_base import FBDObjData
-from parser.AST.connections import ConnectionPoint, ConnectionDirection, Connection
-from parser.AST.formalparam import ParamList
+import os
+import sys
+sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser")
+from Web_GUI.parser.AST.ast_typing import VariableParamType, DataflowDirection
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from Web_GUI.parser.AST.connections import ConnectionPoint
+from Web_GUI.parser.AST.formalparam import ParamList
 
 
 @dataclass
@@ -28,6 +30,9 @@ class VarBlock:
             return [] if self.data.type == "outVariable" else [c for c in self.outConnection.connections]
         if DataflowDirection.Backward == data_flow_dir:
             return [] if self.data.type == "inVariable" else [c for c in self.outConnection.connections]
+
+    def getBlockType(self):
+        return "Port"
 
 
 @dataclass
@@ -87,3 +92,6 @@ class FBD_Block:
 
     def getID(self):
         return self.data.localID
+
+    def getBlockType(self):
+        return "FunctionBlock"

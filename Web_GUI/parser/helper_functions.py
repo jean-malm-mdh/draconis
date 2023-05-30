@@ -1,5 +1,8 @@
-from antlr4 import InputStream, CommonTokenStream
+import sys
 
+from antlr4 import InputStream, CommonTokenStream
+print(sys.path)
+sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser/Web_GUI/parser")
 import MyPOUVisitor
 import MyXMLVisitor
 from antlr_generated.python import POULexer, POUParser
@@ -62,3 +65,4 @@ def parse_pou_file(pou_file_path: str):
         resultProgram.behaviour_id_map,
     ) = parse_code_worksheet(codeSheet)
     return resultProgram
+

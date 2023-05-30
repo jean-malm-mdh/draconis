@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 # Java
-gen/
+Web_GUI/parser/gen/
 
 # Distribution / packaging
 .Python

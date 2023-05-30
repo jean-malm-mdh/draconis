@@ -1,0 +1,13 @@
+<html>
+<head>
+    <title>SafeProgParsalyser</title>
+</head>
+<body>
+<h1>Analyser for POU files</h1>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{form}}
+    <br/><br/><input type="submit" value="Analyse!">
+</form>
+</body>
+</html>

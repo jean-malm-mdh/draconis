@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Optional
 
-from parser.AST.ast_typing import DataflowDirection
-from parser.AST.position import GUIPosition, make_absolute_position
+from Web_GUI.parser.AST.ast_typing import DataflowDirection
+from Web_GUI.parser.AST.position import GUIPosition, make_absolute_position
 
 
 class ConnectionDirection(IntEnum):

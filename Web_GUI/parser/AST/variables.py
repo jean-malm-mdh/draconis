@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from parser.AST.ast_typing import VariableParamType, ValType
+from Web_GUI.parser.AST.ast_typing import VariableParamType, ValType
 
 
 @dataclass
@@ -62,18 +62,18 @@ class VariableGroup:
         return self.groupName
     def getID(self):
         return self.groupID
+    def isOutputGroup(self):
+        return "output" in self.getName().lower()
+    def isInputGroup(self):
+        return "input" in self.getName().lower()
 
     def checkForCohesionIssues(self):
-        def isOutputGroup():
-            return "Output" in self.getName()
-        def isInputGroup():
-            return "Input" in self.getName()
         result = []
-        if isOutputGroup():
+        if self.isOutputGroup():
             for var in self.varLines:
                 if var.varType != VariableParamType.OutputVar:
                     result.append(f"Non-output detected in Output group: {var.getName()}")
-        elif isInputGroup():
+        elif self.isInputGroup():
             for var in self.varLines:
                 if var.varType != VariableParamType.InputVar:
                     result.append(f"Non-input detected in Input group: {var.getName()}")
@@ -111,3 +111,20 @@ class VariableWorkSheet:
                 for groupNr, groupContent in self.varGroups.items()
             ]
         )
+
+    def evaluate_cohesion_of_sheet(self):
+        result = []
+        # Check if inputs and output groups actually exist
+        inputFound, outputFound = False, False
+        for group in self.varGroups.values():
+            inputFound = inputFound or group.isInputGroup()
+            outputFound = outputFound or group.isOutputGroup()
+        if not inputFound and self.getVarsByType(VariableParamType.InputVar) != []:
+            result.append("Input variables exist, but no corresponding variable grouping has been created.")
+        if not outputFound and self.getVarsByType(VariableParamType.OutputVar) != []:
+            result.append("Output variables exist, but no corresponding variable grouping has been created.")
+        for groupNr, groupContent in self.varGroups.items():
+            groupCheck = groupContent.checkForCohesionIssues()
+            if groupCheck:
+                result.append(groupCheck)
+        return result

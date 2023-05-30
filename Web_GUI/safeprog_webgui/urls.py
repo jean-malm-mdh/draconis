@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from reports import views
+from analyser import views
 urlpatterns = [
-    path('', views.home_page, name='home')
+    path('', views.home_page, name='home'),
 ]

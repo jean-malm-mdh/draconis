@@ -3,8 +3,8 @@ import sys
 
 import pytest
 
-import parser.AST.path
-from parser.AST.ast_typing import SafeClass, DataflowDirection
+from Web_GUI.parser.AST.ast_typing import SafeClass, DataflowDirection
+from Web_GUI.parser.AST.path import PathDivide
 
 sys.path.append(os.path.dirname(__file__))
 from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheets_from_input, parse_variable_worksheet
@@ -77,7 +77,7 @@ def test_from_output_can_perform_simple_backward_traces(programs):
     Resulting operation is dependent on both operands
     Resulting operation goes directly into outport
     """
-    expected = [5, 9, 8, parser.AST.path.PathDivide([[6, 3], [7, 4]])]
+    expected = [5, 9, 8, PathDivide([[6, 3], [7, 4]])]
     actual = programs["Calc_Even"].getTrace(DataflowDirection.Backward)["Result_Even"]
     assert actual == expected
 
@@ -87,7 +87,7 @@ def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
     Resulting operation is dependent on both operands
     Resulting operation goes directly into outport
     """
-    expected = [9, 3, 2, parser.AST.path.PathDivide([ [0,5], [1,7], [4,8]  ])]
+    expected = [9, 3, 2, PathDivide([[0, 5], [1, 7], [4, 8]])]
     actual = programs["MultiAND"].getTrace(DataflowDirection.Backward)["CanDoWork_ST"]
     assert actual == expected
 
@@ -162,7 +162,6 @@ def test_given_unsafe_output_safeness_is_irrelevant(programs):
         (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
         "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even"].checkSafeDataFlow() == []
-
 
 def test_metrics_pipeline():
     inputProgram = """PROGRAM Main

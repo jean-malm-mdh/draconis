@@ -2,11 +2,11 @@ import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from parser.AST.ast_typing import VariableParamType, DataflowDirection, SafeClass
-from parser.AST.blocks import VarBlock, FBD_Block
-from parser.AST.connections import flow_selector
-from parser.AST.path import PathDivide
-from parser.AST.variables import VariableLine, VariableWorkSheet
+from ast_typing import VariableParamType, DataflowDirection, SafeClass
+from blocks import VarBlock, FBD_Block
+from Web_GUI.parser.AST.connections import flow_selector
+from Web_GUI.parser.AST.path import PathDivide
+from Web_GUI.parser.AST.variables import VariableLine, VariableWorkSheet
 
 
 @dataclass()
@@ -38,6 +38,7 @@ class Program:
         self.getTrace(direction=DataflowDirection.Forward)
     def getVarGroups(self):
         return self.varHeader.varGroups.values()
+
     def getVarInfo(self):
         """
         Computes and returns a number of metrics related to variables in a lookup table.
@@ -131,10 +132,7 @@ class Program:
                         end, self.behaviour_id_map[start]
                     )
 
-                    def IsBlock(entity):
-                        return isinstance(entity, FBD_Block)
-
-                    if IsBlock(current_entity):
+                    if current_entity.getBlockType() == "FunctionBlock":
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
                             for fp in current_entity.getInputVars()
@@ -150,7 +148,7 @@ class Program:
         if {} != self.backward_flow:
             return self.backward_flow
         outport_blocks = [
-            e for e in self.behaviourElements if isinstance(e, VarBlock) and e.data.type == "outVariable"
+            e for e in self.behaviourElements if (e.getBlockType() == "Port") and e.data.type == "outVariable"
         ]
         result = performTrace(outport_blocks)
         # Memoize backward trace
@@ -190,7 +188,7 @@ class Program:
                 e for e in [PathDivide.unpack_pathlist([f]) for f in back_flow.values()]
             ]
             interface_blocks = [
-                e for e in self.behaviourElements if isinstance(e, VarBlock)
+                e for e in self.behaviourElements if e.getBlockType() == "Port"
             ]
             # Assumption: We care only about inports
             start_blocks = [b for b in interface_blocks if b.data.type == "inVariable"]
@@ -232,12 +230,10 @@ class Program:
     def getMetrics(self):
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
+
+        blocks = [e for e in self.behaviourElements if "FunctionBlock" in e.getBlockType()]
         res["NrOfFuncBlocks"] = len(
-            [
-                e
-                for e in self.behaviourElements
-                if isinstance(e, FBD_Block) and "Variable" not in e.data.type
-            ]
+            blocks
         )
         res["NrInputVariables"] = len(
             self.varHeader.getVarsByType(VariableParamType.InputVar)
@@ -277,7 +273,7 @@ class Program:
                 if source is None:
                     # Source does not exist in mapping
                     continue
-                if isinstance(source, VarBlock):
+                if source.getBlockType() == "Port":
                     expr = source.getVarExpr()
                     if not exprIsConsideredSafe(safeness_properties, expr):
                         result.append(f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')")
@@ -285,3 +281,43 @@ class Program:
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
+
+
+
+
+    def check_rules(self):
+        metrics = self.getMetrics()
+        def evaluate_variable_limit_rule(metrics, varLimit):
+            ruleName = "FBD.MetricRule.TooManyVariables"
+            verdict = "Pass"
+            justification = f"The number of variables ({metrics['NrOfVariables']}) does not exceed chosen limit of {varLimit}"
+            if metrics["NrOfVariables"] > varLimit:
+                verdict = "Fail"
+                justification = f"number of variables ({metrics['NrOfVariables']}) exceeds chosen limit of {varLimit}"
+            return [ruleName, verdict, justification]
+        def evaluate_safeness_data_flow():
+            ruleName = "FBD.DataFlow.SafenessProperty"
+            verdict = "Pass"
+            justification = f"No detected mixing between safe and unsafe data."
+            safeDataVerdict = self.checkSafeDataFlow()
+            if any(safeDataVerdict):
+                verdict = "Fail"
+                justification = "\n".join(safeDataVerdict)
+            return [ruleName, verdict, justification]
+
+        def evaluate_var_group_cohesion_rules():
+            ruleName = "FBD.Naming.VarGroupStructure"
+            verdict = "Pass"
+            justification = "Variables are properly sorted into inputs and outputs groups"
+            results = self.varHeader.evaluate_cohesion_of_sheet()
+            if any(results):
+                verdict = "Fail"
+                justification = "\n".join(results)
+            return [ruleName, verdict, justification]
+
+        result = []
+        result.append(evaluate_variable_limit_rule(metrics, 20))
+        result.append(evaluate_safeness_data_flow())
+        result.append(evaluate_var_group_cohesion_rules())
+
+        return result

@@ -5,12 +5,12 @@ from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
-from parser.AST.ast_typing import VariableParamType
-from parser.AST.fbdobject_base import FBDObjData
-from parser.AST.blocks import Expr, VarBlock, FBD_Block
-from parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
-from parser.AST.formalparam import FormalParam, ParamList
-from parser.AST.position import make_absolute_position, make_relative_position
+from Web_GUI.parser.AST.ast_typing import VariableParamType
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
+from Web_GUI.parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
+from Web_GUI.parser.AST.formalparam import FormalParam, ParamList
+from Web_GUI.parser.AST.position import make_absolute_position, make_relative_position
 
 
 class MyXMLVisitor(XMLParserVisitor):
