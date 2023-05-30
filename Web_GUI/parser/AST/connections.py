@@ -35,11 +35,14 @@ class Connection:
 
 
 def flow_selector(conn: Connection, direction: DataflowDirection):
-    return (
-        (conn.endPoint.connectionIndex, conn.startPoint.connectionIndex)
-        if direction == DataflowDirection.Backward
-        else (conn.startPoint.connectionIndex, conn.endPoint.connectionIndex)
-    )
+    # TODO: FIX UGLY HACK
+    c = conn.__class__
+    if "tuple" in str(c).lower():
+        return conn
+    result = ((conn.endPoint.connectionIndex,
+               conn.startPoint.connectionIndex) if direction == DataflowDirection.Backward else (
+    conn.startPoint.connectionIndex, conn.endPoint.connectionIndex))
+    return result
 
 
 @dataclass

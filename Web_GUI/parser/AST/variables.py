@@ -114,17 +114,25 @@ class VariableWorkSheet:
 
     def evaluate_cohesion_of_sheet(self):
         result = []
+        for groupNr, groupContent in self.varGroups.items():
+            groupCheck = groupContent.checkForCohesionIssues()
+            if groupCheck:
+                result.append(groupCheck)
+        return result
+
+    def evaluate_structure_of_var_sheet(self):
+        result = []
         # Check if inputs and output groups actually exist
         inputFound, outputFound = False, False
         for group in self.varGroups.values():
             inputFound = inputFound or group.isInputGroup()
             outputFound = outputFound or group.isOutputGroup()
-        if not inputFound and self.getVarsByType(VariableParamType.InputVar) != []:
-            result.append("Input variables exist, but no corresponding variable grouping has been created.")
-        if not outputFound and self.getVarsByType(VariableParamType.OutputVar) != []:
-            result.append("Output variables exist, but no corresponding variable grouping has been created.")
-        for groupNr, groupContent in self.varGroups.items():
-            groupCheck = groupContent.checkForCohesionIssues()
-            if groupCheck:
-                result.append(groupCheck)
+        if not self.getVarsByType(VariableParamType.InputVar):
+            result.append("No input variables defined.")
+        if not inputFound:
+            result.append("The Input group has not been defined.")
+        if not self.getVarsByType(VariableParamType.OutputVar):
+            result.append("No output variables defined.")
+        if not outputFound:
+            result.append("The Output group has not been defined.")
         return result

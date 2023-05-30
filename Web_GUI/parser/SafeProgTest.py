@@ -27,6 +27,7 @@ def programs():
                       ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
                       ("output_has_non_outputs", "test/output_has_non_output_vars.pou"),
                       ("input_has_non_inputs", "test/input_has_non_input_vars.pou"),
+                      ("empty_no_proper_groups", "test/empty_prog_no_groups.pou")
                       ]])
     return programs
 
@@ -154,6 +155,34 @@ def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
         "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even_SafeVer"].checkSafeDataFlow() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
 
+
+def test_can_check_cohesiveness_and_structure_of_variable_header(programs):
+    assert programs["empty_no_proper_groups"].varHeader.evaluate_cohesion_of_sheet() == []
+    assert programs["empty_no_proper_groups"].varHeader.evaluate_structure_of_var_sheet() == \
+           [ 'No input variables defined.',
+             'The Input group has not been defined.',
+             'No output variables defined.',
+             'The Output group has not been defined.']
+
+def test_multi_sequence_FBD_block_dataflow_trace(programs):
+    program = programs["Calc_Odd"]
+    # ID 0-5: line segments
+    # ID 6: Input Port (constant UINT#1)
+    # ID 7: Input Port (N)
+    # ID 8: Input Port (constant UINT#3)
+    # ID 9: Output Port (Result_Odd)
+    # ID 10: Param Input 1 ADD
+    # ID 11: Param Input 2 ADD
+    # ID 12: Param Output ADD
+    # ID 13: Param Input 1 MULT
+    # ID 14: Param Input 2 MULT
+    # ID 15: Param Output MULT
+    # ID 16: ADD Block
+    # ID 17: MULT Block
+    # TODO: Problem seems to be when connecting from one block to another
+    backtrace = program.getBackwardTrace()
+    flattened_trace = PathDivide.unpack_pathlist([backtrace["Result_Odd"]])
+    assert flattened_trace == [[9, 16, 12, 10, 17, 15, 13, 7], [9, 16, 12, 10, 17, 15, 14, 8], [9, 16, 12, 11, 6]]
 
 def test_given_unsafe_output_safeness_is_irrelevant(programs):
     # For sanity checking of test data

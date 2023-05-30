@@ -4,7 +4,7 @@ import sys
 sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser")
 from Web_GUI.parser.AST.ast_typing import VariableParamType, DataflowDirection
 from Web_GUI.parser.AST.fbdobject_base import FBDObjData
-from Web_GUI.parser.AST.connections import ConnectionPoint
+from Web_GUI.parser.AST.connections import ConnectionPoint, flow_selector
 from Web_GUI.parser.AST.formalparam import ParamList
 
 
@@ -60,14 +60,15 @@ class FBD_Block:
         out_params = self.getOutputVars()
         result = []
         # Basic fully-connected calculation
+        # Todo: Connect to outside
         if DataflowDirection.Forward == data_flow_dir:
             for inP in in_params:
-                _res = [oP.getID() for oP in out_params]
-                result.extend([(inP.getID(), o) for o in _res])
+                _res = [(oP.connectionPoint.connections[0], oP.getID()) for oP in out_params]
+                result.extend([(inP.getID(), oPort, flow_selector(conn, data_flow_dir)) for conn, oPort in _res])
         else:
             for inP in out_params:
-                _res = [oP.getID() for oP in in_params]
-                result.extend([(inP.getID(), o) for o in _res])
+                _res = [(oP.connectionPoint.connections[0], oP.getID()) for oP in in_params]
+                result.extend([(inP.getID(), oPort, flow_selector(conn, data_flow_dir)) for conn, oPort in _res])
         return result
 
     def getInputVars(self):

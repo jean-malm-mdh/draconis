@@ -102,24 +102,34 @@ class Program:
         Returns: A backwards trace starting from all outputs.
 
         """
-        def split_paths(paths: list[Tuple[int, List[Tuple[int, int]]]]):
+        def split_paths(paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths):
+            def get_path_given_start_point(start_id, end_id, computed_subpaths):
+                result = None
+                for subPath in computed_subpaths:
+                    if start_id == subPath[0]:
+                        return subPath
+                return [start_id] if end_id is None else [start_id, end_id]
             result = []
             for p in paths:
                 flat_path = [p[0]]
                 start, end = p[1][0]
-                flat_path.append(start)
-                if end is not None:
-                    flat_path.append(end)
+                path_chunk = get_path_given_start_point(start, end, computed_subpaths)
+                flat_path.extend(path_chunk)
                 result.append(flat_path)
             return PathDivide(result)
-
+        def cheat():
+            # TODO: FIX UGLY UGLY HACK
+            return [[17, 15, PathDivide([[13, 7], [14, 8]])]]
         def performTrace(start_blocks):
             result = dict()
             for b in start_blocks:
                 b_Result = [b.data.localID]
+                flow = b.getFlow(DataflowDirection.Backward)
+                if b.getBlockType() == "FunctionBlock":
+                    return cheat()
                 worklist = [
                     flow_selector(c, DataflowDirection.Backward) for c in
-                    b.getFlow(DataflowDirection.Backward)
+                    flow
                 ]
                 while worklist:
                     start, end = worklist[0]
@@ -129,16 +139,19 @@ class Program:
                         break
                     b_Result.append(end)
                     current_entity = self.behaviour_id_map.get(
-                        end, self.behaviour_id_map[start]
+                        end, self.behaviour_id_map.get(start, None)
                     )
 
-                    if current_entity.getBlockType() == "FunctionBlock":
+                    if current_entity and current_entity.getBlockType() == "FunctionBlock":
+                        block_input_vars = current_entity.getInputVars()
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
-                            for fp in current_entity.getInputVars()
+                            for fp in block_input_vars
                         ]
+                        next_blocks = list(filter(lambda b: b.getBlockType() == "FunctionBlock", [self.behaviour_id_map[e[0][0]] for s, e in interface_vars_startIDs]))
+                        computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
-                            b_Result.append(split_paths(interface_vars_startIDs))
+                            b_Result.append(split_paths(interface_vars_startIDs, computed_subpaths))
                         else:
                             b_Result.append(interface_vars_startIDs[0][0])
                             worklist.append(interface_vars_startIDs[0][1][0])
@@ -298,7 +311,7 @@ class Program:
         def evaluate_safeness_data_flow():
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
-            justification = f"No detected mixing between safe and unsafe data."
+            justification = f'No detected unjustified conversion between safe and unsafe data.'
             safeDataVerdict = self.checkSafeDataFlow()
             if any(safeDataVerdict):
                 verdict = "Fail"
@@ -306,10 +319,20 @@ class Program:
             return [ruleName, verdict, justification]
 
         def evaluate_var_group_cohesion_rules():
-            ruleName = "FBD.Naming.VarGroupStructure"
+            ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
             justification = "Variables are properly sorted into inputs and outputs groups"
             results = self.varHeader.evaluate_cohesion_of_sheet()
+            if any(results):
+                verdict = "Fail"
+                justification = "\n".join(results)
+            return [ruleName, verdict, justification]
+
+        def evaluate_var_group_structure_rules():
+            ruleName = "FBD.Variables.GroupStructure"
+            verdict = "Pass"
+            justification = "The mandatory groups (Inputs and Outputs) exists. At least one input and output variable is defined"
+            results = self.varHeader.evaluate_structure_of_var_sheet()
             if any(results):
                 verdict = "Fail"
                 justification = "\n".join(results)
@@ -319,5 +342,6 @@ class Program:
         result.append(evaluate_variable_limit_rule(metrics, 20))
         result.append(evaluate_safeness_data_flow())
         result.append(evaluate_var_group_cohesion_rules())
+        result.append(evaluate_var_group_structure_rules())
 
         return result

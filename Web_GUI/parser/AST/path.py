@@ -30,7 +30,7 @@ class PathDivide:
             accList = []
             NoDividingPath = True
             for p_e in p:
-                if isinstance(p_e, PathDivide):
+                if isinstance(p_e, PathDivide) or "PathDivide" in str(p_e.__class__):
                     NoDividingPath = False
                     _divPaths = PathDivide.unpack_pathlist(p_e.paths)
                     for _p in _divPaths:
