@@ -166,6 +166,6 @@ venv/
 
 !generated/POU.g4
 *generated/
-
+.DS_Store
 db.sqlite3
 geckodriver.log
