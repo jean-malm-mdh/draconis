@@ -117,7 +117,7 @@ class VariableWorkSheet:
         for groupNr, groupContent in self.varGroups.items():
             groupCheck = groupContent.checkForCohesionIssues()
             if groupCheck:
-                result.append(groupCheck)
+                result.extend(groupCheck)
         return result
 
     def evaluate_structure_of_var_sheet(self):

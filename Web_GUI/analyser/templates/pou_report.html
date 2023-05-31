@@ -57,6 +57,30 @@
         {% endfor %}
     </tbody>
 </table>
+<h2>Variable Info</h2>
+<table id="id_var_table">
+    <thead>
+    <tr>
+        <th>Variable name</th>
+        <th>Variable Type</th>
+        <th>Data Type</th>
+        <th>Default Value</th>
+        <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for value in variable_info  %}
+        <tr>
+            <td>{{value.0}}</td>
+            <td>{{value.1}}</td>
+            <td>{{value.2}}</td>
+            <td>{{value.3}}</td>
+            <td>{{value.4}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 <h2>Dependency Analysis</h2>
 <table id="id_dependency_table">
     <thead>

@@ -169,3 +169,4 @@ venv/
 .DS_Store
 db.sqlite3
 geckodriver.log
+/Web_GUI/parser/test/DEMO/
