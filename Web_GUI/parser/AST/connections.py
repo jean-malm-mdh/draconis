@@ -40,6 +40,10 @@ def trace_connection_in_dataflow_direction(conn: Connection, direction: Dataflow
     conn.startPoint.connectionIndex, conn.endPoint.connectionIndex))
     return result
 
+def trace_connection_in_dataflow_direction_list_version(conn: Connection, direction: DataflowDirection):
+    result = [conn.endPoint.connectionIndex, conn.startPoint.connectionIndex] if direction == DataflowDirection.Backward \
+        else [conn.startPoint.connectionIndex, conn.endPoint.connectionIndex]
+    return result
 
 @dataclass
 class ConnectionPoint:

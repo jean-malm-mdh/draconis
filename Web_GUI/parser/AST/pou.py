@@ -9,6 +9,35 @@ from Web_GUI.parser.AST.path import PathDivide
 from Web_GUI.parser.AST.variables import VariableLine, VariableWorkSheet
 
 
+def AllindexOrNone(aList, elem, startIndex=0):
+    """
+
+    Args:
+        aList: enumerable to search through
+        elem: element to search for
+
+    Returns: A list of all indices matching element. If elem cannot be found, returns None
+
+    """
+    result = []
+    for i in range(startIndex, len(aList)):
+        if aList[i] == elem:
+            result.append(i)
+    return result
+def indexOrNone(aList, elem, startIndex=0):
+    """
+
+    Args:
+        aList: enumerable to search through
+        elem: element to search for
+
+    Returns: Index of element elem in list aList. If elem cannot be found, returns None
+
+    """
+    for i in range(startIndex, len(aList)):
+        if aList[i] == elem:
+            return i
+    return None
 @dataclass()
 class Program:
     progName: str
@@ -117,26 +146,24 @@ class Program:
                 flat_path.extend(path_chunk)
                 result.append(flat_path)
             return PathDivide(result)
-        def cheat():
-            # TODO: FIX UGLY UGLY HACK
-            return [[17, 15, PathDivide([[13, 7], [14, 8]])]]
+
         def performTrace(start_blocks):
             result = dict()
             for b in start_blocks:
                 b_Result = [b.data.localID]
                 flow = b.getFlow(DataflowDirection.Backward)
-                if b.getBlockType() == "FunctionBlock":
-                    return cheat()
                 worklist = flow
+                # Worklist assumption is that start elements are unique
                 while worklist:
-                    start, end = worklist[0]
+                    start, *end, postEnd = worklist[0]
                     worklist = worklist[1:]
                     b_Result.append(start)
-                    if end is None:
+                    if end is None or postEnd is None:
                         break
-                    b_Result.append(end)
+                    b_Result.extend(end)
+                    b_Result.append(postEnd)
                     current_entity = self.behaviour_id_map.get(
-                        end, self.behaviour_id_map.get(start, None)
+                        postEnd, self.behaviour_id_map.get(start, None)
                     )
 
                     if current_entity and current_entity.getBlockType() == "FunctionBlock":
@@ -152,6 +179,21 @@ class Program:
                         else:
                             b_Result.append(interface_vars_startIDs[0][0])
                             worklist.append(interface_vars_startIDs[0][1][0])
+                if b.getBlockType() == "FunctionBlock":
+                    _result = []
+                    _result.append(b_Result[0])
+                    rem = b_Result[1:]
+                    count = 0
+                    split_point = indexOrNone(rem, rem[count], 1)
+                    last_split_point = split_point
+                    # Found a common start element in subpaths
+                    while(split_point is not None):
+                        _result.append(rem[count])
+                        count = count+1
+                        last_split_point = split_point
+                        split_point = indexOrNone( rem, rem[count], split_point)
+                    _result.append(PathDivide([rem[count:last_split_point], rem[last_split_point+1:]]))
+                    return [_result]
                 result[b.getVarExpr()] = b_Result
             return result
 
@@ -167,20 +209,6 @@ class Program:
         return result
 
     def getTrace(self, direction=DataflowDirection.Backward):
-        def indexOrNone(aList, elem):
-            """
-
-            Args:
-                aList: enumerable to search through
-                elem: element to search for
-
-            Returns: Index of element elem in list aList. If elem cannot be found, returns None
-
-            """
-            for i in range(len(aList)):
-                if aList[i] == elem:
-                    return i
-            return None
 
         def ComputeForwardFlowFromBack(back_flow):
             """
