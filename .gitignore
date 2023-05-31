@@ -164,6 +164,7 @@ cython_debug/
 
 venv/
 
+DATASTORE/
 !generated/POU.g4
 *generated/
 .DS_Store
