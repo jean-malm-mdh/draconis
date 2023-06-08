@@ -323,7 +323,10 @@ class Program:
     def report_as_text(self):
         num_inputs = self.getMetrics()["NrInputVariables"]
         metrics_part = f"Metrics:\nNum_Inputs: {num_inputs}\nNum_Outputs: {self.getMetrics()['NrOutputVariables']}"
-        return f"Variables:\n{metrics_part}"
+        variables_part = f"Variables:\n"
+        for vData in self.getVarDataColumns("name", "varType", "valueType", "initVal", "description"):
+            variables_part = f"{variables_part}\n{'(' + ', '.join(vData) + ')'}"
+        return f"{variables_part}\n{metrics_part}"
 
 
     def check_rules(self):

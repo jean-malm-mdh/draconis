@@ -9,6 +9,7 @@ from antlr_generated.python import POULexer, POUParser
 from antlr_generated.python import XMLLexer, XMLParser
 
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
 # Helpers
 
@@ -66,3 +67,14 @@ def parse_pou_file(pou_file_path: str):
     ) = parse_code_worksheet(codeSheet)
     return resultProgram
 
+def change_pou_description(description, description_file):
+    parsed_tree = ET.parse(description_file)
+    for translation in parsed_tree.iter("translation"):
+        translation.text = description
+    parsed_tree.write(description_file)
+def get_pou_description(pou_description_file):
+    """Grabs description from DescriptionTranslation_SF.xml file"""
+    parsed_tree = ET.parse(pou_description_file)
+    res_trans = list(parsed_tree.iter("translation"))[0]
+
+    return res_trans.text

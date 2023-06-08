@@ -23,7 +23,7 @@ class VariableLine:
         self.name = name
         self.varType = var_type
         self.valueType = value_type
-        self.initVal = 0 if init_val is None else init_val
+        self.initVal = "UNINIT" if init_val is None else init_val
         self.description = description
         self.lineNr = line_nr
 
