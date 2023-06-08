@@ -98,6 +98,12 @@
         {% endfor %}
     </tbody>
 </table>
+
+{% if Image %}
+<img src="{{Image}}">
+{% else %}
+<-- No image file found -->
+{% endif %}
 </body>
 
 </html>

@@ -31,13 +31,20 @@ def home_page(request):
             backward_trace = {}
             for name, paths in program.getBackwardTrace().items():
                 backward_trace[name] = [program.behaviour_id_map[e[-1]].expr.expr for e in PathDivide.unpack_pathlist([paths])]
-            print(backward_trace)
-            return render(request, "pou_report.html", { "file_name": request.FILES["file"].name,
-                                                        "pou_progName": program.progName,
-                                                        "rule_reports": reports,
-                                                        "metrics": metrics,
-                                                        "backward_trace": backward_trace,
-                                                        "variable_info": variable_info})
+
+            renderData = {"file_name": request.FILES["file"].name,
+                     "pou_progName": program.progName,
+                     "rule_reports": reports,
+                     "metrics": metrics,
+                     "backward_trace": backward_trace,
+                     "variable_info": variable_info}
+            imgFile = str(file_path) + ".png"
+            hasImageFile = os.path.exists(imgFile)
+            print(imgFile)
+            print(hasImageFile)
+            if hasImageFile:
+                renderData["Image"] = imgFile
+            return render(request, "pou_report.html", renderData)
         else:
             return render(request, "home.html", {"form": form})
     else:
