@@ -1,0 +1,7 @@
+<TranslationDocument>
+    <ItemList>
+        <Item id="1" readonly="False">
+            <translation xml:lang="undefined">Collatz_Even: Performs Collatz calculation assuming the input is an even number</translation>
+        </Item>
+    </ItemList>
+</TranslationDocument>
