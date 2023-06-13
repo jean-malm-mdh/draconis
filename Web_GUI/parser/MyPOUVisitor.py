@@ -3,6 +3,7 @@ import logging
 from AST.pou import Program
 from Web_GUI import parser
 from Web_GUI.parser.AST.ast_typing import VariableParamType
+from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableGroup, VariableLine, VariableParamType
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 
