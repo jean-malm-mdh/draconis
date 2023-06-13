@@ -45,8 +45,8 @@ class FBDParseReportTest(unittest.TestCase):
         self.assertIn("(IsOn_ST, InputVar, SAFEBOOL, UNINIT, If system is on)", prog_report_2)
 
         #Check Outputs
-        #self.assertIn("(Result_Odd, Output, UINT, 0, Result if the input is an odd number)", prog_report_1)
-        #self.assertIn("(CanDoWork_ST, Output, SAFEBOOL, If System can do work)", prog_report_2)
+        self.assertIn("(Result_Odd, OutputVar, UINT, 0, Result if the input is an odd number)", prog_report_1)
+        self.assertIn("(CanDoWork_ST, OutputVar, SAFEBOOL, UNINIT, If System can do work)", prog_report_2)
 
 
     def test_can_output_to_description_file_show_then_clean_up(self):
