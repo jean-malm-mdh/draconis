@@ -1,6 +1,7 @@
 import sys
 
 from antlr4 import InputStream, CommonTokenStream
+
 print(sys.path)
 sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser/Web_GUI/parser")
 import MyPOUVisitor
@@ -20,7 +21,7 @@ def get_worksheets_from_input(input_program: str):
     index_end_of_XML = input_program.index(end_of_xml_tag)
     input_varWorkSheet = input_program[0:index_start_of_XML]
     input_codeSheet = input_program[
-        index_start_of_XML:(index_end_of_XML + len(end_of_xml_tag))
+        index_start_of_XML : (index_end_of_XML + len(end_of_xml_tag))
     ]
 
     return input_varWorkSheet, input_codeSheet
@@ -67,11 +68,14 @@ def parse_pou_file(pou_file_path: str):
     ) = parse_code_worksheet(codeSheet)
     return resultProgram
 
+
 def change_pou_description(description, description_file):
     parsed_tree = ET.parse(description_file)
     for translation in parsed_tree.iter("translation"):
         translation.text = description
     parsed_tree.write(description_file)
+
+
 def get_pou_description(pou_description_file):
     """Grabs description from DescriptionTranslation_SF.xml file"""
     parsed_tree = ET.parse(pou_description_file)

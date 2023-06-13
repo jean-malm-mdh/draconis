@@ -51,10 +51,9 @@ class ValType(IntEnum):
 
     CUSTOM_FBD = 1024
 
-    #TODO: Figure out a way to provide/compute this properties
+    # TODO: Figure out a way to provide/compute this properties
     #   ANY, ANY_DERIVED, ANY_ELEMENTARY, ANY_MAGNITUDE, ANY_NUM, ANY_REAL,
     #   ANY_INT, ANY_BIT, ANY_STRING, ANY_DATE;
-
 
     def __str__(self):
         return self.name

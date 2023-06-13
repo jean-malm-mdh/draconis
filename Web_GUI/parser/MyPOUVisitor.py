@@ -32,7 +32,9 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
-        return parser.AST.variables.VariableGroup(str(ctx.groupName.text), int(str(ctx.groupID.text)), [])
+        return parser.AST.variables.VariableGroup(
+            str(ctx.groupName.text), int(str(ctx.groupID.text)), []
+        )
 
     # Visit a parse tree produced by POUParser#vars.
     def visitVarDefGroup(self, ctx: POUParser.VarDefGroupContext):

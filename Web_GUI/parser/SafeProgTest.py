@@ -7,7 +7,12 @@ from Web_GUI.parser.AST.ast_typing import SafeClass, DataflowDirection
 from Web_GUI.parser.AST.path import PathDivide
 
 sys.path.append(os.path.dirname(__file__))
-from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheets_from_input, parse_variable_worksheet
+from helper_functions import (
+    parse_pou_file,
+    parse_code_worksheet,
+    get_worksheets_from_input,
+    parse_variable_worksheet,
+)
 
 
 # TODO(TDD):
@@ -17,18 +22,27 @@ from helper_functions import parse_pou_file, parse_code_worksheet, get_worksheet
 #  Dataflow shall handle cases where outputs depend on several inputs
 #  * Dataflow shall handle cases where some outputs depend on some inputs
 
+
 @pytest.fixture(scope="session", autouse=True)
 def programs():
-    programs = dict([(n, parse_pou_file(p)) for n, p in
-                     [("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
-                      ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
-                      ("Calc_Even_SafeVer", "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou"),
-                      ("MultiAND", "test/MultiANDer.pou"),
-                      ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
-                      ("output_has_non_outputs", "test/output_has_non_output_vars.pou"),
-                      ("input_has_non_inputs", "test/input_has_non_input_vars.pou"),
-                      ("empty_no_proper_groups", "test/empty_prog_no_groups.pou")
-                      ]])
+    programs = dict(
+        [
+            (n, parse_pou_file(p))
+            for n, p in [
+                ("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
+                ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
+                (
+                    "Calc_Even_SafeVer",
+                    "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+                ),
+                ("MultiAND", "test/MultiANDer.pou"),
+                ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
+                ("output_has_non_outputs", "test/output_has_non_output_vars.pou"),
+                ("input_has_non_inputs", "test/input_has_non_input_vars.pou"),
+                ("empty_no_proper_groups", "test/empty_prog_no_groups.pou"),
+            ]
+        ]
+    )
     return programs
 
 
@@ -42,10 +56,16 @@ def test_given_a_file_can_extract_numeric_metrics(programs):
 
 def test_given_a_name_can_get_variable_info_by_name(programs):
     info = programs["Calc_Even"].getVarInfo()
-    assert str(info["OutputVariables"].get("Result_Even", None)).replace("'", "").replace('"', "") == \
-           "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
-    assert str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "") == \
-           "Var(UINT N: InputVar = 1; Description: Collatz Input)"
+    assert (
+        str(info["OutputVariables"].get("Result_Even", None))
+        .replace("'", "")
+        .replace('"', "")
+        == "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
+    )
+    assert (
+        str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "")
+        == "Var(UINT N: InputVar = 1; Description: Collatz Input)"
+    )
     assert len(info["InternalVariables"]) == 0
 
 
@@ -53,23 +73,43 @@ def test_given_program_can_extract_names_and_descriptions(programs):
     program = programs["Calc_Even"]
     """Basic functionality"""
     assert program.getVarDataColumns("name") == [["N"], ["Result_Even"]]
-    assert program.getVarDataColumns("name", "description") == [["N", "Collatz Input"], ["Result_Even",
-                                                                                         "Result if the input is an even number"]]
-    assert program.getVarDataColumns("description", "name") == [["Collatz Input", "N"],
-                                                                ["Result if the input is an even number",
-                                                                 "Result_Even"]]
+    assert program.getVarDataColumns("name", "description") == [
+        ["N", "Collatz Input"],
+        ["Result_Even", "Result if the input is an even number"],
+    ]
+    assert program.getVarDataColumns("description", "name") == [
+        ["Collatz Input", "N"],
+        ["Result if the input is an even number", "Result_Even"],
+    ]
 
     """Boundary Values"""
     varInfo_noSpecifiedFields = program.getVarDataColumns()
-    assert varInfo_noSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
-                                         ["Result_Even", "OutputVar", "UINT", '0',
-                                          'Result if the input is an even number', "3"]]
+    assert varInfo_noSpecifiedFields == [
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "1"],
+        [
+            "Result_Even",
+            "OutputVar",
+            "UINT",
+            "0",
+            "Result if the input is an even number",
+            "3",
+        ],
+    ]
 
-    varInfo_AllSpecifiedFields = program.getVarDataColumns("name", "varType", "valueType", "initVal", "description",
-                                                           "lineNr")
-    assert varInfo_AllSpecifiedFields == [['N', "InputVar", "UINT", "1", "Collatz Input", "1"],
-                                          ["Result_Even", "OutputVar", "UINT", '0',
-                                           'Result if the input is an even number', "3"]]
+    varInfo_AllSpecifiedFields = program.getVarDataColumns(
+        "name", "varType", "valueType", "initVal", "description", "lineNr"
+    )
+    assert varInfo_AllSpecifiedFields == [
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "1"],
+        [
+            "Result_Even",
+            "OutputVar",
+            "UINT",
+            "0",
+            "Result if the input is an even number",
+            "3",
+        ],
+    ]
 
 
 def test_from_output_can_perform_simple_backward_traces(programs):
@@ -82,6 +122,7 @@ def test_from_output_can_perform_simple_backward_traces(programs):
     actual = programs["Calc_Even"].getTrace(DataflowDirection.Backward)["Result_Even"]
     assert actual == expected
 
+
 def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
     """
     Test checks standard case of dataflow - two numerical values going into binary arithmetic block
@@ -91,6 +132,7 @@ def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
     expected = [9, 3, 2, PathDivide([[0, 5], [1, 7], [4, 8]])]
     actual = programs["MultiAND"].getTrace(DataflowDirection.Backward)["CanDoWork_ST"]
     assert actual == expected
+
 
 def test_backward_trace_can_handle_single_in_multiple_out_blocks(programs):
     program = programs["SingleIn_MultiOut"]
@@ -105,6 +147,7 @@ def test_backward_trace_can_handle_single_in_multiple_out_blocks(programs):
     actual = program.getBackwardTrace()
     assert actual == expected
 
+
 def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     program = programs["SingleIn_MultiOut"]
     # ID(5) - Inport #1
@@ -118,16 +161,23 @@ def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     actual = program.getTrace(DataflowDirection.Forward)
     assert actual == expected
 
+
 def test_can_get_dataflow_from_func_block(programs):
     pytest.skip("Higher priority tests came up")
-    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Backward) == [(8, 6), (8, 7)]
-    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(DataflowDirection.Forward) == [(6, 8), (6, 7)]
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
+        DataflowDirection.Backward
+    ) == [(8, 6), (8, 7)]
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
+        DataflowDirection.Forward
+    ) == [(6, 8), (6, 7)]
+
 
 def test_can_get_dataflow_from_var_block(programs):
     pytest.skip("Higher priority tests came up")
     inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
     assert inVarBlock.getFlow(DataflowDirection.Backward) == []
     assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, 6)]
+
 
 def test_from_input_can_perform_simple_forward_traces(programs):
     expected = [[3, 6, 8, 9, 5]]
@@ -136,25 +186,37 @@ def test_from_input_can_perform_simple_forward_traces(programs):
 
 
 def test_can_classify_expression_safeness_by_name(programs):
-    assert programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"] == SafeClass.Unsafe
+    assert (
+        programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
+        == SafeClass.Unsafe
+    )
     assert programs["Calc_Even"].getVarInfo()["Safeness"]["N"] == SafeClass.Unsafe
 
 
 def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
     safeness_info = programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]
-    assert \
-        (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Safe == safeness_info["Result_Even"]), \
-        "Prerequisite for remainder of test to be reasonable does not hold"
-    assert programs["Calc_Even_SafeVer"].checkSafeDataFlow() == ["ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"]
+    assert (
+        SafeClass.Unsafe == safeness_info["N"]
+        and SafeClass.Safe == safeness_info["Result_Even"]
+    ), "Prerequisite for remainder of test to be reasonable does not hold"
+    assert programs["Calc_Even_SafeVer"].checkSafeDataFlow() == [
+        "ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"
+    ]
 
 
 def test_can_check_cohesiveness_and_structure_of_variable_header(programs):
-    assert programs["empty_no_proper_groups"].varHeader.evaluate_cohesion_of_sheet() == []
-    assert programs["empty_no_proper_groups"].varHeader.evaluate_structure_of_var_sheet() == \
-           [ 'No input variables defined.',
-             'The Input group has not been defined.',
-             'No output variables defined.',
-             'The Output group has not been defined.']
+    assert (
+        programs["empty_no_proper_groups"].varHeader.evaluate_cohesion_of_sheet() == []
+    )
+    assert programs[
+        "empty_no_proper_groups"
+    ].varHeader.evaluate_structure_of_var_sheet() == [
+        "No input variables defined.",
+        "The Input group has not been defined.",
+        "No output variables defined.",
+        "The Output group has not been defined.",
+    ]
+
 
 def test_multi_sequence_FBD_block_dataflow_trace(programs):
     program = programs["Calc_Odd"]
@@ -174,15 +236,22 @@ def test_multi_sequence_FBD_block_dataflow_trace(programs):
     # TODO: Problem seems to be when connecting from one block to another
     backtrace = program.getBackwardTrace()
     flattened_trace = PathDivide.unpack_pathlist([backtrace["Result_Odd"]])
-    assert flattened_trace == [[9, 16, 12, 10, 17, 15, 13, 7], [9, 16, 12, 10, 17, 15, 14, 8], [9, 16, 12, 11, 6]]
+    assert flattened_trace == [
+        [9, 16, 12, 10, 17, 15, 13, 7],
+        [9, 16, 12, 10, 17, 15, 14, 8],
+        [9, 16, 12, 11, 6],
+    ]
+
 
 def test_given_unsafe_output_safeness_is_irrelevant(programs):
     # For sanity checking of test data
     safeness_info = programs["Calc_Even"].getVarInfo()["Safeness"]
-    assert \
-        (SafeClass.Unsafe == safeness_info["N"] and SafeClass.Unsafe == safeness_info["Result_Even"]), \
-        "Prerequisite for remainder of test to be reasonable does not hold"
+    assert (
+        SafeClass.Unsafe == safeness_info["N"]
+        and SafeClass.Unsafe == safeness_info["Result_Even"]
+    ), "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even"].checkSafeDataFlow() == []
+
 
 def test_metrics_pipeline():
     inputProgram = """PROGRAM Main
@@ -308,17 +377,20 @@ def test_given_a_variable_sheet_inputs_shall_only_be_in_input_group(programs):
     assert [group.getName() for group in groups] == ["Inputs", "Outputs"]
     inputGroup, outputGroup = groups[0], groups[1]
     assert [issue.lower() for issue in inputGroup.checkForCohesionIssues()] == []
-    assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == ["non-output detected in output group: candowork_st"]
+    assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == [
+        "non-output detected in output group: candowork_st"
+    ]
+
 
 def test_given_a_variable_sheet_outputs_shall_only_be_in_output_group(programs):
     program = programs["input_has_non_inputs"]
     groups = list(program.getVarGroups())
     assert [group.getName() for group in groups] == ["Inputs", "Outputs"]
     inputGroup, outputGroup = groups[0], groups[1]
-    assert [issue.lower() for issue in inputGroup.checkForCohesionIssues()] == ["non-input detected in input group: candowork_st"]
+    assert [issue.lower() for issue in inputGroup.checkForCohesionIssues()] == [
+        "non-input detected in input group: candowork_st"
+    ]
     assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == []
-
-
 
 
 def main():

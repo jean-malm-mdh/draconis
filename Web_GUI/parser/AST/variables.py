@@ -58,12 +58,16 @@ class VariableGroup:
     groupName: str
     groupID: int
     varLines: list[VariableLine]
+
     def getName(self):
         return self.groupName
+
     def getID(self):
         return self.groupID
+
     def isOutputGroup(self):
         return "output" in self.getName().lower()
+
     def isInputGroup(self):
         return "input" in self.getName().lower()
 
@@ -72,7 +76,9 @@ class VariableGroup:
         if self.isOutputGroup():
             for var in self.varLines:
                 if var.varType != VariableParamType.OutputVar:
-                    result.append(f"Non-output detected in Output group: {var.getName()}")
+                    result.append(
+                        f"Non-output detected in Output group: {var.getName()}"
+                    )
         elif self.isInputGroup():
             for var in self.varLines:
                 if var.varType != VariableParamType.InputVar:

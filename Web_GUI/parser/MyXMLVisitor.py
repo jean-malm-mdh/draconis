@@ -8,7 +8,12 @@ import logging
 from Web_GUI.parser.AST.ast_typing import VariableParamType
 from Web_GUI.parser.AST.fbdobject_base import FBDObjData
 from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
-from Web_GUI.parser.AST.connections import ConnectionDirection, ConnectionData, Connection, ConnectionPoint
+from Web_GUI.parser.AST.connections import (
+    ConnectionDirection,
+    ConnectionData,
+    Connection,
+    ConnectionPoint,
+)
 from Web_GUI.parser.AST.formalparam import FormalParam, ParamList
 from Web_GUI.parser.AST.position import make_absolute_position, make_relative_position
 
@@ -20,7 +25,7 @@ class MyXMLVisitor(XMLParserVisitor):
         self.local_id_map = {}
 
     def ppx_parse_block(
-            self, blockParams: dict[str, str], content: XMLParser.ContentContext
+        self, blockParams: dict[str, str], content: XMLParser.ContentContext
     ):
         elements = content.element()
         blockElements = [self.visitElement(e)[0] for e in elements]
@@ -38,12 +43,12 @@ class MyXMLVisitor(XMLParserVisitor):
     def ppx_parse_VarBlock(self, outVarArgs, content, direction="in"):
         blockElements = [self.visitElement(e)[0] for e in content.element()]
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
-        connection_points = [e for e in blockElements if isinstance(e, ConnectionPoint)][0]
+        connection_points = [
+            e for e in blockElements if isinstance(e, ConnectionPoint)
+        ][0]
         localId = int(outVarArgs["localId"])
         blockData = FBDObjData(localId, direction + "Variable")
-        self.local_id_map[localId] = VarBlock(
-            blockData, connection_points, expr
-        )
+        self.local_id_map[localId] = VarBlock(blockData, connection_points, expr)
         return self.local_id_map[localId]
 
     def ppx_parse_expression(self, content):
@@ -61,7 +66,7 @@ class MyXMLVisitor(XMLParserVisitor):
     # Visit a parse tree produced by XMLParser#element.
     def visitElement(self, ctx: XMLParser.ElementContext):
         def get_value_or_none(d: dict, v, f):
-            return (f(d.get(v)) if d.get(v, None) else None)
+            return f(d.get(v)) if d.get(v, None) else None
 
         def handle_ppx_element(attrs, ctx, name):
             """Parse ppx: elements based on their tag names"""
@@ -69,13 +74,21 @@ class MyXMLVisitor(XMLParserVisitor):
             if "block" == name:
                 self.elements.append(self.ppx_parse_block(attrs, ctx.content()))
             elif "inVariable" == name:
-                self.elements.append(self.ppx_parse_VarBlock(attrs, ctx.content(), "in"))
+                self.elements.append(
+                    self.ppx_parse_VarBlock(attrs, ctx.content(), "in")
+                )
             elif "outVariable" == name:
-                self.elements.append(self.ppx_parse_VarBlock(attrs, ctx.content(), "out"))
+                self.elements.append(
+                    self.ppx_parse_VarBlock(attrs, ctx.content(), "out")
+                )
             elif "connectionPointIn" == name:
-                return self.ppx_parse_ConnectionPoint(ctx.content(), ConnectionDirection.Input)
+                return self.ppx_parse_ConnectionPoint(
+                    ctx.content(), ConnectionDirection.Input
+                )
             elif "connectionPointOut" == name:
-                return self.ppx_parse_ConnectionPoint(ctx.content(), ConnectionDirection.Output)
+                return self.ppx_parse_ConnectionPoint(
+                    ctx.content(), ConnectionDirection.Output
+                )
             elif "expression" == name:
                 return self.ppx_parse_expression(ctx.content())
             elif "FBD" == name:
@@ -89,6 +102,7 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
             elif "data" == name:
+
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
                         return self.visitElement(e)
@@ -112,7 +126,12 @@ class MyXMLVisitor(XMLParserVisitor):
                     int(attrs.get("x", -1)), int(attrs.get("y", -1))
                 )
             elif "connection" == name:
-                _data = [c for c in ctx.getChildren(lambda e: isinstance(e, XMLParser.ContentContext))]
+                _data = [
+                    c
+                    for c in ctx.getChildren(
+                        lambda e: isinstance(e, XMLParser.ContentContext)
+                    )
+                ]
                 if _data:
                     return self.ppx_parse_Connection(_data[0], attrs)
                 else:
@@ -140,7 +159,7 @@ class MyXMLVisitor(XMLParserVisitor):
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
-                str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
+            str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
         )
         if ctx.blockTag is None:
             return
@@ -180,15 +199,15 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_Connection(self, connData: XMLParser.ContentContext, attrs):
         """
-        <connection refLocalId="16" formalParameter="ADD">
-            <addData>
-              <data name="redacted" handleUnknown="preserve">
-                <connectedFormalparameter refLocalId="12" />
-              </data>
-            </addData>
-            <position x="154" y="44" />
-            <position x="144" y="44" />
-      </connection>
+          <connection refLocalId="16" formalParameter="ADD">
+              <addData>
+                <data name="redacted" handleUnknown="preserve">
+                  <connectedFormalparameter refLocalId="12" />
+                </data>
+              </addData>
+              <position x="154" y="44" />
+              <position x="144" y="44" />
+        </connection>
         """
         """
           <connection refLocalId="6">
@@ -202,13 +221,16 @@ class MyXMLVisitor(XMLParserVisitor):
           <connection refLocalId="8" /> <--
         </connectionPointIn>
         """
+
         def hasNoExtraData():
             return connData is None or len(connData.element()) == 0
 
         if hasNoExtraData():
-            return Connection(ConnectionData(),
-                              ConnectionData(pos=None, connIndex=int(attrs["refLocalId"])),
-                              formalName=attrs.get("formalParameter", None))
+            return Connection(
+                ConnectionData(),
+                ConnectionData(pos=None, connIndex=int(attrs["refLocalId"])),
+                formalName=attrs.get("formalParameter", None),
+            )
 
         elements = list(connData.element())
 
@@ -220,7 +242,7 @@ class MyXMLVisitor(XMLParserVisitor):
                     foundPositionData = True
                 if "addData" == e.blockTag.text:
                     foundAdditionalData = True
-            return foundPositionData and not(foundAdditionalData)
+            return foundPositionData and not (foundAdditionalData)
 
         def hasOnlyAdditionalData(elements: List[XMLParser.ElementContext]):
             foundPositionData = False
@@ -230,15 +252,15 @@ class MyXMLVisitor(XMLParserVisitor):
                     foundPositionData = True
                 if "addData" == e.blockTag.text:
                     foundAdditionalData = True
-            return not(foundPositionData) and foundAdditionalData
+            return not (foundPositionData) and foundAdditionalData
 
         startID = None
         if hasOnlyPositionData(elements):
             toPosition = self.visitElement(elements[0])
             fromPosition = self.visitElement(elements[1])
         elif hasOnlyAdditionalData(elements):
-            toPosition = make_absolute_position(-1,-1)
-            fromPosition = make_absolute_position(-1,-1)
+            toPosition = make_absolute_position(-1, -1)
+            fromPosition = make_absolute_position(-1, -1)
             addDataNode = elements[0]
             parsedDataElements = self.parse_addData_node(addDataNode)
             startID, _, _ = parsedDataElements[0]
@@ -250,7 +272,11 @@ class MyXMLVisitor(XMLParserVisitor):
             startID, _, _ = parsedDataElements[0]
         startConnPoint = ConnectionData(fromPosition, startID)
         endConnPoint = ConnectionData(toPosition, int(attrs["refLocalId"]))
-        return Connection(startPoint=startConnPoint, endPoint=endConnPoint, formalName=attrs.get("formalParameter", None))
+        return Connection(
+            startPoint=startConnPoint,
+            endPoint=endConnPoint,
+            formalName=attrs.get("formalParameter", None),
+        )
 
     def ppx_parse_ConnectionPoint(self, param: XMLParser.ContentContext, conn_type):
         connectionData = ConnectionData()
@@ -270,7 +296,9 @@ class MyXMLVisitor(XMLParserVisitor):
         ## TODO: After debugging is done, refactor to one-liner is possible
         return [self.visitElement(e)[0] for e in variables_content.element()]
 
-    def ppx_parse_formal_variable(self, attrs, variable_content: XMLParser.ContentContext):
+    def ppx_parse_formal_variable(
+        self, attrs, variable_content: XMLParser.ContentContext
+    ):
         elements = variable_content.element()
         assert len(elements) == 2
         parsed_element_results = [self.visitElement(e)[0] for e in elements]
@@ -278,4 +306,9 @@ class MyXMLVisitor(XMLParserVisitor):
         fpData = parsed_element_results[1][0]
         assert "fp" == fpData[1]
 
-        return FormalParam(name=attrs["formalParameter"], connectionPoint=connPoint, ID=fpData[0], data=fpData[2])
+        return FormalParam(
+            name=attrs["formalParameter"],
+            connectionPoint=connPoint,
+            ID=fpData[0],
+            data=fpData[2],
+        )

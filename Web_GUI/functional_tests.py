@@ -5,9 +5,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 import unittest
 
+
 class NewVisitorTest(unittest.TestCase):
     def setUp(self) -> None:
         self.browser = webdriver.Firefox()
+
     def tearDown(self) -> None:
         self.browser.quit()
 
@@ -30,14 +32,16 @@ class NewVisitorTest(unittest.TestCase):
         review_textbox = self.browser.find_element(By.ID, "review_comment")
         review_textbox.send_keys("This is my amended review comment for the issue")
         time.sleep(2)
-        #Send the review
+        # Send the review
         review_textbox.send_keys(Keys.ENTER)
 
         time.sleep(1)
         affected_review = self.browser.find_element(By.ID, "rev2")
 
-        self.assertIn("This is my amended review comment for the issue",
-                      affected_review.text)
+        self.assertIn(
+            "This is my amended review comment for the issue", affected_review.text
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

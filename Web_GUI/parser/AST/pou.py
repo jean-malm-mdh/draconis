@@ -24,6 +24,8 @@ def AllindexOrNone(aList, elem, startIndex=0):
         if aList[i] == elem:
             result.append(i)
     return result
+
+
 def indexOrNone(aList, elem, startIndex=0):
     """
 
@@ -38,6 +40,8 @@ def indexOrNone(aList, elem, startIndex=0):
         if aList[i] == elem:
             return i
     return None
+
+
 @dataclass()
 class Program:
     progName: str
@@ -47,14 +51,17 @@ class Program:
     backward_flow: Dict[str, List[int]]
     forward_flow: Dict[str, List[int]]
 
-    def __init__(self, name, varWorkSheet, behaviourElementList = None, behaviourIDMap = None):
+    def __init__(
+        self, name, varWorkSheet, behaviourElementList=None, behaviourIDMap=None
+    ):
         self.progName = name
         self.varHeader = varWorkSheet
-        self.behaviourElements = [] if behaviourElementList is None else behaviourElementList
+        self.behaviourElements = (
+            [] if behaviourElementList is None else behaviourElementList
+        )
         self.behaviour_id_map = {} if behaviourIDMap is None else behaviourIDMap
         self.backward_flow = {}
         self.forward_flow = {}
-
 
     def post_parse_analysis(self):
         """
@@ -65,6 +72,7 @@ class Program:
 
         # Fill up the memoised elements
         self.getTrace(direction=DataflowDirection.Forward)
+
     def getVarGroups(self):
         return self.varHeader.varGroups.values()
 
@@ -98,8 +106,15 @@ class Program:
         res["InternalVariables"] = list_to_name_dict(
             self.varHeader.getVarsByType(VariableParamType.InternalVar)
         )
-        res["Safeness"] = dict([(name_type[0], SafeClass.Safe if "SAFE" in name_type[1] else SafeClass.Unsafe)
-                                for name_type in self.getVarDataColumns("name", "valueType")])
+        res["Safeness"] = dict(
+            [
+                (
+                    name_type[0],
+                    SafeClass.Safe if "SAFE" in name_type[1] else SafeClass.Unsafe,
+                )
+                for name_type in self.getVarDataColumns("name", "valueType")
+            ]
+        )
         return res
 
     def getVarDataColumns(self, *args):
@@ -131,13 +146,17 @@ class Program:
         Returns: A backwards trace starting from all outputs.
 
         """
-        def split_paths(paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths):
+
+        def split_paths(
+            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+        ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 result = None
                 for subPath in computed_subpaths:
                     if start_id == subPath[0]:
                         return subPath
                 return [start_id] if end_id is None else [start_id, end_id]
+
             result = []
             for p in paths:
                 flat_path = [p[0]]
@@ -166,16 +185,29 @@ class Program:
                         postEnd, self.behaviour_id_map.get(start, None)
                     )
 
-                    if current_entity and current_entity.getBlockType() == "FunctionBlock":
+                    if (
+                        current_entity
+                        and current_entity.getBlockType() == "FunctionBlock"
+                    ):
                         block_input_vars = current_entity.getInputVars()
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
                             for fp in block_input_vars
                         ]
-                        next_blocks = list(filter(lambda b: b.getBlockType() == "FunctionBlock", [self.behaviour_id_map[e[0][0]] for s, e in interface_vars_startIDs]))
+                        next_blocks = list(
+                            filter(
+                                lambda b: b.getBlockType() == "FunctionBlock",
+                                [
+                                    self.behaviour_id_map[e[0][0]]
+                                    for s, e in interface_vars_startIDs
+                                ],
+                            )
+                        )
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
-                            b_Result.append(split_paths(interface_vars_startIDs, computed_subpaths))
+                            b_Result.append(
+                                split_paths(interface_vars_startIDs, computed_subpaths)
+                            )
                         else:
                             b_Result.append(interface_vars_startIDs[0][0])
                             worklist.append(interface_vars_startIDs[0][1][0])
@@ -187,12 +219,16 @@ class Program:
                     split_point = indexOrNone(rem, rem[count], 1)
                     last_split_point = split_point
                     # Found a common start element in subpaths
-                    while(split_point is not None):
+                    while split_point is not None:
                         _result.append(rem[count])
-                        count = count+1
+                        count = count + 1
                         last_split_point = split_point
-                        split_point = indexOrNone( rem, rem[count], split_point)
-                    _result.append(PathDivide([rem[count:last_split_point], rem[last_split_point+1:]]))
+                        split_point = indexOrNone(rem, rem[count], split_point)
+                    _result.append(
+                        PathDivide(
+                            [rem[count:last_split_point], rem[last_split_point + 1 :]]
+                        )
+                    )
                     return [_result]
                 result[b.getVarExpr()] = b_Result
             return result
@@ -200,7 +236,9 @@ class Program:
         if {} != self.backward_flow:
             return self.backward_flow
         outport_blocks = [
-            e for e in self.behaviourElements if (e.getBlockType() == "Port") and e.data.type == "outVariable"
+            e
+            for e in self.behaviourElements
+            if (e.getBlockType() == "Port") and e.data.type == "outVariable"
         ]
         result = performTrace(outport_blocks)
         # Memoize backward trace
@@ -209,7 +247,6 @@ class Program:
         return result
 
     def getTrace(self, direction=DataflowDirection.Backward):
-
         def ComputeForwardFlowFromBack(back_flow):
             """
 
@@ -245,9 +282,7 @@ class Program:
                     result[expr] = []  # Initialize a new list to fill up with paths
 
                 # Extract related paths from backward flow
-                for (
-                        outport_pathlist
-                ) in flattened_flow:
+                for outport_pathlist in flattened_flow:
                     for path in outport_pathlist:
                         # Find if path contains the ID of interest, and where
                         i = indexOrNone(path, ID)
@@ -269,10 +304,10 @@ class Program:
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
 
-        blocks = [e for e in self.behaviourElements if "FunctionBlock" in e.getBlockType()]
-        res["NrOfFuncBlocks"] = len(
-            blocks
-        )
+        blocks = [
+            e for e in self.behaviourElements if "FunctionBlock" in e.getBlockType()
+        ]
+        res["NrOfFuncBlocks"] = len(blocks)
         res["NrInputVariables"] = len(
             self.varHeader.getVarsByType(VariableParamType.InputVar)
         )
@@ -291,8 +326,10 @@ class Program:
                 res = safenessProperties.get(expr, None)
                 if res is None:
                     # log issue
-                    logging.log(level=logging.WARNING,
-                                msg=f"No safety information for {expr} found. Assuming it is unsafe.")
+                    logging.log(
+                        level=logging.WARNING,
+                        msg=f"No safety information for {expr} found. Assuming it is unsafe.",
+                    )
                     # We have no info, err on the side of caution, it is considered unsafe
                     return False
                 return res
@@ -314,7 +351,9 @@ class Program:
                 if source.getBlockType() == "Port":
                     expr = source.getVarExpr()
                     if not exprIsConsideredSafe(safeness_properties, expr):
-                        result.append(f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')")
+                        result.append(
+                            f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')"
+                        )
         return result
 
     def __str__(self):
@@ -324,13 +363,15 @@ class Program:
         num_inputs = self.getMetrics()["NrInputVariables"]
         metrics_part = f"Metrics:\nNum_Inputs: {num_inputs}\nNum_Outputs: {self.getMetrics()['NrOutputVariables']}"
         variables_part = f"Variables:\n"
-        for vData in self.getVarDataColumns("name", "varType", "valueType", "initVal", "description"):
+        for vData in self.getVarDataColumns(
+            "name", "varType", "valueType", "initVal", "description"
+        ):
             variables_part = f"{variables_part}\n{'(' + ', '.join(vData) + ')'}"
         return f"{variables_part}\n{metrics_part}"
 
-
     def check_rules(self):
         metrics = self.getMetrics()
+
         def evaluate_variable_limit_rule(metrics, varLimit):
             ruleName = "FBD.MetricRule.TooManyVariables"
             verdict = "Pass"
@@ -339,10 +380,13 @@ class Program:
                 verdict = "Fail"
                 justification = f"number of variables ({metrics['NrOfVariables']}) exceeds chosen limit of {varLimit}"
             return [ruleName, verdict, justification]
+
         def evaluate_safeness_data_flow():
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
-            justification = f'No detected unjustified conversion between safe and unsafe data.'
+            justification = (
+                f"No detected unjustified conversion between safe and unsafe data."
+            )
             safeDataVerdict = self.checkSafeDataFlow()
             if any(safeDataVerdict):
                 verdict = "Fail"
@@ -352,7 +396,9 @@ class Program:
         def evaluate_var_group_cohesion_rules():
             ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
-            justification = "Variables are properly sorted into inputs and outputs groups"
+            justification = (
+                "Variables are properly sorted into inputs and outputs groups"
+            )
             results = self.varHeader.evaluate_cohesion_of_sheet()
             if any(results):
                 verdict = "Fail"
