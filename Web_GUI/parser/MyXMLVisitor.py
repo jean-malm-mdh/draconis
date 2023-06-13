@@ -102,7 +102,6 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
             elif "data" == name:
-
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
                         return self.visitElement(e)
@@ -153,8 +152,7 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
             else:
-                logging.debug(str(ctx) + " is not parsed")
-                print(str(ctx) + " is not parsed - tag name:" + name)
+                logging.warning(str(ctx) + " is not parsed - tag name:" + name)
             return result
 
         # Consistency check if we are visiting an entire block

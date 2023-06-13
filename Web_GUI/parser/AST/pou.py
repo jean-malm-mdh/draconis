@@ -356,19 +356,31 @@ class Program:
                         )
         return result
 
+
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
 
     def report_as_text(self):
+        def gen_variable_string():
+            _variables_part = f"Variables:"
+            for vData in self.getVarDataColumns(
+                    "name", "varType", "valueType", "initVal", "description"
+            ):
+                _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
+            return _variables_part
         num_inputs = self.getMetrics()["NrInputVariables"]
         metrics_part = f"Metrics:\nNum_Inputs: {num_inputs}\nNum_Outputs: {self.getMetrics()['NrOutputVariables']}"
-        variables_part = f"Variables:\n"
-        for vData in self.getVarDataColumns(
-            "name", "varType", "valueType", "initVal", "description"
-        ):
-            variables_part = f"{variables_part}\n{'(' + ', '.join(vData) + ')'}"
-        return f"{variables_part}\n{metrics_part}"
+        variables_part = gen_variable_string()
+        rule_violations = self.get_rule_violation_report()
+        return f"{rule_violations}\n{variables_part}\n{metrics_part}"
 
+
+    def get_rule_violation_report(self):
+        res = "Design Rule Report:"
+        for rule_report in self.check_rules():
+            [name, verdict, justification] = rule_report
+            res = f"{res}\n{name:40}{verdict:4}: {justification}\n"
+        return res
     def check_rules(self):
         metrics = self.getMetrics()
 
