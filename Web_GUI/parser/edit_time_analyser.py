@@ -1,3 +1,5 @@
+import argparse
+
 import watchdog.events
 import watchdog.observers
 import time
@@ -22,12 +24,19 @@ def getWatchDogHandler(source_path):
     observer.start()
     return observer
 
+argParser = argparse.ArgumentParser()
+argParser.add_argument("--base-path", action="store", required=True)
 
-if __name__ == "__main__":
-    observer = getWatchDogHandler(r"./test")
+def main():
+    args = argParser.parse_args()
+    observer = getWatchDogHandler(args.base_path)
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
+
+if __name__ == "__main__":
+    main()
