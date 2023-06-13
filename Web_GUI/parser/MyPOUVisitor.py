@@ -44,11 +44,15 @@ class MyPOUVisitor(POUVisitor):
             _var.varType = self.visitVar_type(ctx.varType)
             varList.append(_var)
         return int(str(ctx.groupNr.text)), varList
-
+    def visitValTypeRule(self, ctx:POUParser.ValTypeRuleContext):
+        as_int = ctx.INT()
+        if as_int is None:
+            return ctx.getText()
+        return str(as_int)
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
         dummy = VariableParamType.UNSET  # property is set for the whole group
-        initVal = None if ctx.initVal is None else str(ctx.initVal.text)
+        initVal = None if ctx.initVal is None else self.visitValTypeRule(ctx.initVal)
         desc = (
             None
             if ctx.varDesc is None

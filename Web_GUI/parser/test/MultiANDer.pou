@@ -5,9 +5,9 @@
 
 VAR_INPUT {Group(0)}
     {LINE(1)}
-    IsOn_ST : SAFEBOOL; (*If system is on*)
+    IsOn_ST : SAFEBOOL := SAFEFALSE; (*If system is on*)
     {LINE(2)}
-    IsRunning_ST : SAFEBOOL; (*If system is running*)
+    IsRunning_ST : SAFEBOOL {Feedback(true)}; (*If system is running*)
     {LINE(3)}
     IsNotBusy_ST : SAFEBOOL; (*If system is busy*)
 END_VAR

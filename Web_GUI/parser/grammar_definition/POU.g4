@@ -28,7 +28,10 @@ varDefGroups : varDefGroup+ ;
 
 varDefGroup : varType=var_type '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'END_VAR' ;
 
-varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=INT)? ';' (varDesc=DESCRIPTION)? ;
+valTypeRule : INT | 'SAFETRUE' | 'SAFEFALSE' ;
+feedbackRule : '{' 'Feedback' '(' 'true' ')' '}' ;
+
+varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=valTypeRule)? (isFeedback=feedbackRule)? ';' (varDesc=DESCRIPTION)? ;
 
 val_Type : elementary_type | derived_type | generic_type | safe_type | custom_type=ID  ;
 elementary_type: 'ANALOG'
