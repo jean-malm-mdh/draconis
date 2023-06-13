@@ -20,11 +20,11 @@ class FBDParseReportTest(unittest.TestCase):
             [
                 (n, parse_pou_file(p))
                 for n, p in [
-                    ("Calc_Odd", "Collatz_Calculator_Odd.pou"),
-                    ("Calc_Even", "Collatz_Calculator_Even.pou"),
+                    ("Calc_Odd", "Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
+                    ("Calc_Even", "Collatz_Calculator_Even/Collatz_Calculator_Even.pou"),
                     (
                         "Calc_Even_SafeVer",
-                        "Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+                        "Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
                     ),
                     ("MultiAND", "MultiANDer.pou"),
                     ("SingleIn_MultiOut", "TestPOU_SingleInput_MultipleOutput.pou"),
@@ -53,7 +53,7 @@ class FBDParseReportTest(unittest.TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         for p, desc in cls.descriptions.values():
-            change_pou_description(desc, p)
+            change_pou_description(p, desc)
 
     def test_report_text_includes_variable_numeric_metrics(self):
         """Code-REQ-028"""
@@ -105,15 +105,15 @@ class FBDParseReportTest(unittest.TestCase):
         test_file = "DESCRIPTIONTranslation_SF.xml"
         original_description_content = get_pou_description(test_file)
         change_string = "OK! You changed this"
-        change_pou_description(change_string, test_file)
+        change_pou_description(test_file, change_string)
         self.assertEqual(get_pou_description(test_file), change_string)
         # check that reset has gone through
-        change_pou_description(original_description_content, test_file)
+        change_pou_description(test_file, original_description_content)
         self.assertNotEqual(get_pou_description(test_file), change_string)
 
     def test_can_output_to_description_file_show_then_clean_up(self):
         # The selected program is analysed, and a report is generated
-        prog_report = parse_pou_file("Collatz_Calculator_Odd.pou").report_as_text()
+        prog_report = parse_pou_file("Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou").report_as_text()
 
         # The current description is read
         pou_description_file = "Collatz_Calculator_Odd/DESCRIPTIONTranslation_SF.xml"
@@ -125,7 +125,7 @@ class FBDParseReportTest(unittest.TestCase):
         )
 
         # Update the POU Description
-        change_pou_description(description_with_report, pou_description_file)
+        change_pou_description( pou_description_file, description_with_report)
 
         # Assert that update has been made, and report info is in the file
         new_description_content = get_pou_description(pou_description_file)
@@ -133,7 +133,7 @@ class FBDParseReportTest(unittest.TestCase):
         self.assertIn("Variables", new_description_content)
 
         # Reset things
-        change_pou_description(original_description_content, pou_description_file)
+        change_pou_description(pou_description_file, original_description_content)
 
 
 if __name__ == "__main__":

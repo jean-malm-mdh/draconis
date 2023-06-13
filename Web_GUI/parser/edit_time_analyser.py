@@ -1,7 +1,7 @@
 import watchdog.events
 import watchdog.observers
 import time
-from helper_functions import parse_pou_file
+from helper_functions import parse_pou_file, change_pou_description
 
 
 class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
@@ -12,6 +12,7 @@ class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
     def on_modified(self, event):
         program = parse_pou_file(event.src_path)
         print(program.report_as_text())
+
 
 
 def getWatchDogHandler(source_path):
