@@ -11,6 +11,7 @@ class VariableLine:
     initVal: str
     description: str
     lineNr: int
+    isFeedback: bool
 
     def __str__(self):
         _init = "" if self.initVal is None else f" = {self.initVal}"
@@ -18,7 +19,7 @@ class VariableLine:
         return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
 
     def __init__(
-        self, name, var_type, value_type, init_val=None, description=None, line_nr=None
+        self, name, var_type, value_type, init_val=None, description=None, line_nr=None, isFeedback=False
     ):
         self.name = name
         self.varType = var_type
@@ -26,6 +27,8 @@ class VariableLine:
         self.initVal = "UNINIT" if init_val is None else init_val
         self.description = description
         self.lineNr = line_nr
+        self.isFeedback = isFeedback
+
 
     def getName(self):
         return self.name

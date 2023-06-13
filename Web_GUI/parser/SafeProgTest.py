@@ -29,11 +29,11 @@ def programs():
         [
             (n, parse_pou_file(p))
             for n, p in [
-                ("Calc_Odd", "test/Collatz_Calculator_Odd.pou"),
-                ("Calc_Even", "test/Collatz_Calculator_Even.pou"),
+                ("Calc_Odd", "test/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
+                ("Calc_Even", "test/Collatz_Calculator_Even/Collatz_Calculator_Even.pou"),
                 (
                     "Calc_Even_SafeVer",
-                    "test/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+                    "test/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
                 ),
                 ("MultiAND", "test/MultiANDer.pou"),
                 ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
@@ -85,22 +85,22 @@ def test_given_program_can_extract_names_and_descriptions(programs):
     """Boundary Values"""
     varInfo_noSpecifiedFields = program.getVarDataColumns()
     assert varInfo_noSpecifiedFields == [
-        ["N", "InputVar", "UINT", "1", "Collatz Input", "1"],
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "1", "False"],
         [
             "Result_Even",
             "OutputVar",
             "UINT",
             "0",
             "Result if the input is an even number",
-            "3",
+            "3", "False",
         ],
     ]
 
     varInfo_AllSpecifiedFields = program.getVarDataColumns(
-        "name", "varType", "valueType", "initVal", "description", "lineNr"
+        "name", "varType", "valueType", "initVal", "description", "lineNr", "isFeedback"
     )
     assert varInfo_AllSpecifiedFields == [
-        ["N", "InputVar", "UINT", "1", "Collatz Input", "1"],
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "1", "False"],
         [
             "Result_Even",
             "OutputVar",
@@ -108,6 +108,7 @@ def test_given_program_can_extract_names_and_descriptions(programs):
             "0",
             "Result if the input is an even number",
             "3",
+            "False"
         ],
     ]
 

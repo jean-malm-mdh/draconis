@@ -49,6 +49,9 @@ class MyPOUVisitor(POUVisitor):
         if as_int is None:
             return ctx.getText()
         return str(as_int)
+
+    def visitFeedbackRule(self, ctx:POUParser.FeedbackRuleContext):
+        return ctx is not None
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
         dummy = VariableParamType.UNSET  # property is set for the whole group
@@ -58,15 +61,16 @@ class MyPOUVisitor(POUVisitor):
             if ctx.varDesc is None
             else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
         )
-        result = parser.AST.variables.VariableLine(
+        isFeedback = self.visitFeedbackRule(ctx.isFeedback)
+        return parser.AST.variables.VariableLine(
             ctx.varName.text,
             dummy,
             self.visitVal_Type(ctx.valueType),
             initVal,
             desc,
             int(str(ctx.lineNr.text)),
+            isFeedback
         )
-        return result
 
     # Visit a parse tree produced by POUParser#val_Type.
     def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
