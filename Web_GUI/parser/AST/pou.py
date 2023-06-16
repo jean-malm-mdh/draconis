@@ -1,3 +1,4 @@
+import itertools
 import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
@@ -358,21 +359,24 @@ class Program:
 
     def compute_delta(self, other_program):
         def find_variable_changes():
-            vars_1 = self.varHeader.getAllVariables()
-            vars_2 = other_program.varHeader.getAllVariables()
-            len_1 = len(vars_1)
-            len_2 = len(vars_2)
+            vars_1 = set(self.varHeader.getAllVariables())
+            vars_2 = set(other_program.varHeader.getAllVariables())
             res = []
-            if len_1 != len_2:
-                return [("Different number of variables", f"{len_1} != {len_2}")]
-            vars_1.sort(key=lambda v: v.name)
-            vars_2.sort(key=lambda v: v.name)
-            for v_i in range(len_1):
-                v1 = vars_1[v_i]
-                v2 = vars_2[v_i]
-                if v1 == v2:
-                    continue
-                res.append((str(v1), str(v2)))
+            vars_changed_from_1 = dict([(v.name, v) for v in vars_1.difference(vars_2)])
+            vars_changed_from_2 = dict([(v.name, v) for v in vars_2.difference(vars_1)])
+            for n, v in vars_changed_from_1.items():
+                get = vars_changed_from_2.get(n, None)
+                if get:
+                    # exists in both, add (original, changed) tuple
+                    res.append((str(v), str(get)))
+                    vars_changed_from_2.pop(n)
+                else:
+                    # variable removed/renamed during change
+                    res.append((str(v), ""))
+            # at this point, we have processed all common variables and those found in first set.
+            # The remaining variables represent additions during the change
+            for v in vars_changed_from_2.values():
+                res.append(("", str(v)))
             return res
 
         if not isinstance(other_program, Program):
