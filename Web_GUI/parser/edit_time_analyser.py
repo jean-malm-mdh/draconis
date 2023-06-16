@@ -11,9 +11,18 @@ class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
         watchdog.events.PatternMatchingEventHandler.__init__(self, patterns=['*.pou'],
                                                              ignore_directories=True, case_sensitive=False)
 
+        self.analysed_programs = dict()
+
     def on_modified(self, event):
         program = parse_pou_file(event.src_path)
-        print(program.report_as_text())
+        if self.analysed_programs.get(program.progName, None) is None:
+            self.analysed_programs[program.progName] = program
+            print(program.report_as_text())
+        else:
+            old_version = self.analysed_programs[program.progName]
+            changes = old_version.compute_delta(program)
+            print("Found previous version of analysed program. Printing changes:")
+            print(changes)
 
 
 
@@ -30,6 +39,7 @@ argParser.add_argument("--base-path", action="store", required=True)
 def main():
     args = argParser.parse_args()
     observer = getWatchDogHandler(args.base_path)
+    print("Analyser watchdog now listening to changes in path ", args.base_path)
     try:
         while True:
             time.sleep(1)

@@ -356,6 +356,38 @@ class Program:
                         )
         return result
 
+    def compute_delta(self, other_program):
+        def find_variable_changes():
+            vars_1 = self.varHeader.getAllVariables()
+            vars_2 = other_program.varHeader.getAllVariables()
+            len_1 = len(vars_1)
+            len_2 = len(vars_2)
+            res = []
+            if len_1 != len_2:
+                return [("Different number of variables", f"{len_1} != {len_2}")]
+            vars_1.sort(key=lambda v: v.name)
+            vars_2.sort(key=lambda v: v.name)
+            for v_i in range(len_1):
+                v1 = vars_1[v_i]
+                v2 = vars_2[v_i]
+                if v1 == v2:
+                    continue
+                res.append((str(v1), str(v2)))
+            return res
+
+        if not isinstance(other_program, Program):
+            raise ValueError("Trying to compute delta between a program and a " + type(other_program))
+        if self == other_program:
+            return []
+        if self.progName != other_program.progName:
+            # Slightly nuclear option for determining programs should not be compared. For now it works with intended use case.
+            return [("Program names are different. Delta analysis will not continue", f"{self.progName} != {other_program.progName}")]
+        res = []
+        res.extend(find_variable_changes())
+
+        return res
+
+
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
