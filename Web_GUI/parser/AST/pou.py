@@ -346,21 +346,15 @@ class Program:
             vars_1 = set(self.varHeader.getAllVariables())
             vars_2 = set(other_program.varHeader.getAllVariables())
             res = []
-            vars_changed_from_1 = dict([(v.name, v) for v in vars_1.difference(vars_2)])
-            vars_changed_from_2 = dict([(v.name, v) for v in vars_2.difference(vars_1)])
-            for n, v in vars_changed_from_1.items():
-                get = vars_changed_from_2.get(n, None)
-                if get:
-                    # exists in both, add (original, changed) tuple
-                    res.append((str(v), str(get)))
-                    vars_changed_from_2.pop(n)
-                else:
-                    # variable removed/renamed during change
-                    res.append((str(v), ""))
+            variable_changes_old_to_new = {v.name: v for v in vars_1.difference(vars_2)}
+            variable_changes_new_to_old = {v.name: v for v in vars_2.difference(vars_1)}
+
+            res = [(str(v), str(variable_changes_new_to_old.pop(n, ""))) for n, v in
+                   variable_changes_old_to_new.items()]
             # at this point, we have processed all common variables and those found in first set.
             # The remaining variables represent additions during the change
-            for v in vars_changed_from_2.values():
-                res.append(("", str(v)))
+            res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
+
             return res
 
         if not isinstance(other_program, Program):
@@ -403,6 +397,14 @@ class Program:
         return res
     def check_rules(self):
         metrics = self.getMetrics()
+        def evaluate_rule(ruleName, defaultVerdict, defaultJustification, evaluate_func):
+            verdict = defaultVerdict
+            justification = defaultJustification
+            results = evaluate_func()
+            if any(results):
+                verdict = "Fail"
+                justification = "\n".join(results)
+            return [ruleName, verdict, justification]
 
         def evaluate_variable_limit_rule(metrics, varLimit):
             ruleName = "FBD.MetricRule.TooManyVariables"
@@ -416,36 +418,20 @@ class Program:
         def evaluate_safeness_data_flow():
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
-            justification = (
-                f"No detected unjustified conversion between safe and unsafe data."
-            )
-            safeDataVerdict = self.checkSafeDataFlow()
-            if any(safeDataVerdict):
-                verdict = "Fail"
-                justification = "\n".join(safeDataVerdict)
-            return [ruleName, verdict, justification]
+            justification = f"No detected unjustified conversion between safe and unsafe data."
+            return evaluate_rule(ruleName, verdict, justification, self.checkSafeDataFlow)
 
         def evaluate_var_group_cohesion_rules():
             ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
-            justification = (
-                "Variables are properly sorted into inputs and outputs groups"
-            )
-            results = self.varHeader.evaluate_cohesion_of_sheet()
-            if any(results):
-                verdict = "Fail"
-                justification = "\n".join(results)
-            return [ruleName, verdict, justification]
+            justification = "Variables are properly sorted into inputs and outputs groups"
+            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_cohesion_of_sheet)
 
         def evaluate_var_group_structure_rules():
             ruleName = "FBD.Variables.GroupStructure"
             verdict = "Pass"
             justification = "The mandatory groups (Inputs and Outputs) exists. At least one input and output variable is defined"
-            results = self.varHeader.evaluate_structure_of_var_sheet()
-            if any(results):
-                verdict = "Fail"
-                justification = "\n".join(results)
-            return [ruleName, verdict, justification]
+            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_structure_of_var_sheet)
 
         result = []
         result.append(evaluate_variable_limit_rule(metrics, 20))
