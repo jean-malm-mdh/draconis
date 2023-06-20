@@ -88,10 +88,7 @@ class Program:
         """
 
         def list_to_name_dict(allVars: list[VariableLine]):
-            res_dict = dict()
-            for v in allVars:
-                res_dict[v.name] = v
-            return res_dict
+            return {v.name: v for v in allVars}
 
         res = dict()
         res["OutputVariables"] = list_to_name_dict(
@@ -153,7 +150,11 @@ class Program:
                         return subPath
                 return [start_id] if end_id is None else [start_id, end_id]
 
-            result = [[p[0]] + get_path_given_start_point(p[1][0][0], p[1][0][1], computed_subpaths) for p in paths]
+            result = [
+                [p[0]]
+                + get_path_given_start_point(p[1][0][0], p[1][0][1], computed_subpaths)
+                for p in paths
+            ]
             return PathDivide(result)
 
         def performTrace(start_blocks):
@@ -184,9 +185,11 @@ class Program:
                             for fp in (current_entity.getInputVars())
                         ]
                         next_blocks = [
-                                    self.behaviour_id_map[e[0][0]]
-                                    for _, e in interface_vars_startIDs if self.behaviour_id_map[e[0][0]].getBlockType() == "FunctionBlock"
-                                ]
+                            self.behaviour_id_map[e[0][0]]
+                            for _, e in interface_vars_startIDs
+                            if self.behaviour_id_map[e[0][0]].getBlockType()
+                            == "FunctionBlock"
+                        ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
                             b_Result.append(
@@ -196,8 +199,7 @@ class Program:
                             b_Result.append(interface_vars_startIDs[0][0])
                             worklist.append(interface_vars_startIDs[0][1][0])
                 if b.getBlockType() == "FunctionBlock":
-                    _result = []
-                    _result.append(b_Result[0])
+                    _result = [b_Result[0]]
                     rem = b_Result[1:]
                     count = 0
                     split_point = indexOrNone(rem, rem[count], 1)
@@ -345,31 +347,38 @@ class Program:
         def find_variable_changes():
             vars_1 = set(self.varHeader.getAllVariables())
             vars_2 = set(other_program.varHeader.getAllVariables())
-            res = []
             variable_changes_old_to_new = {v.name: v for v in vars_1.difference(vars_2)}
             variable_changes_new_to_old = {v.name: v for v in vars_2.difference(vars_1)}
 
-            res = [(str(v), str(variable_changes_new_to_old.pop(n, ""))) for n, v in
-                   variable_changes_old_to_new.items()]
+            _res = [
+                (str(v), str(variable_changes_new_to_old.pop(n, "")))
+                for n, v in variable_changes_old_to_new.items()
+            ]
             # at this point, we have processed all common variables and those found in first set.
             # The remaining variables represent additions during the change
-            res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
+            _res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
 
-            return res
+            return _res
 
         if not isinstance(other_program, Program):
-            raise ValueError("Trying to compute delta between a program and a " + type(other_program))
+            raise ValueError(
+                "Trying to compute delta between a program and a " + type(other_program)
+            )
         if self == other_program:
             return []
         if self.progName != other_program.progName:
-            # Slightly nuclear option for determining programs should not be compared. For now it works with intended use case.
-            return [("Program names are different. Delta analysis will not continue", f"{self.progName} != {other_program.progName}")]
+            # Slightly nuclear option for determining programs should not be compared. For now it works with intended
+            # use case.
+            return [
+                (
+                    "Program names are different. Delta analysis will not continue",
+                    f"{self.progName} != {other_program.progName}",
+                )
+            ]
         res = []
         res.extend(find_variable_changes())
 
         return res
-
-
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
@@ -378,16 +387,16 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                    "name", "varType", "valueType", "initVal", "description"
+                "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
+
         num_inputs = self.getMetrics()["NrInputVariables"]
         metrics_part = f"Metrics:\nNum_Inputs: {num_inputs}\nNum_Outputs: {self.getMetrics()['NrOutputVariables']}"
         variables_part = gen_variable_string()
         rule_violations = self.get_rule_violation_report()
         return f"{rule_violations}\n{variables_part}\n{metrics_part}"
-
 
     def get_rule_violation_report(self):
         res = "Design Rule Report:"
@@ -395,9 +404,13 @@ class Program:
             [name, verdict, justification] = rule_report
             res = f"{res}\n{name:40}{verdict:4}: {justification}\n"
         return res
+
     def check_rules(self):
         metrics = self.getMetrics()
-        def evaluate_rule(ruleName, defaultVerdict, defaultJustification, evaluate_func):
+
+        def evaluate_rule(
+            ruleName, defaultVerdict, defaultJustification, evaluate_func
+        ):
             verdict = defaultVerdict
             justification = defaultJustification
             results = evaluate_func()
@@ -418,20 +431,36 @@ class Program:
         def evaluate_safeness_data_flow():
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
-            justification = f"No detected unjustified conversion between safe and unsafe data."
-            return evaluate_rule(ruleName, verdict, justification, self.checkSafeDataFlow)
+            justification = (
+                f"No detected unjustified conversion between safe and unsafe data."
+            )
+            return evaluate_rule(
+                ruleName, verdict, justification, self.checkSafeDataFlow
+            )
 
         def evaluate_var_group_cohesion_rules():
             ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
-            justification = "Variables are properly sorted into inputs and outputs groups"
-            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_cohesion_of_sheet)
+            justification = (
+                "Variables are properly sorted into inputs and outputs groups"
+            )
+            return evaluate_rule(
+                ruleName,
+                verdict,
+                justification,
+                self.varHeader.evaluate_cohesion_of_sheet,
+            )
 
         def evaluate_var_group_structure_rules():
             ruleName = "FBD.Variables.GroupStructure"
             verdict = "Pass"
             justification = "The mandatory groups (Inputs and Outputs) exists. At least one input and output variable is defined"
-            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_structure_of_var_sheet)
+            return evaluate_rule(
+                ruleName,
+                verdict,
+                justification,
+                self.varHeader.evaluate_structure_of_var_sheet,
+            )
 
         result = []
         result.append(evaluate_variable_limit_rule(metrics, 20))

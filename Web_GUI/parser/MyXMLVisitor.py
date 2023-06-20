@@ -102,6 +102,7 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
             elif "data" == name:
+
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
                         return self.visitElement(e)

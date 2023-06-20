@@ -19,7 +19,14 @@ class VariableLine:
         return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
 
     def __init__(
-        self, name, var_type, value_type, init_val=None, description=None, line_nr=None, isFeedback=False
+        self,
+        name,
+        var_type,
+        value_type,
+        init_val=None,
+        description=None,
+        line_nr=None,
+        isFeedback=False,
     ):
         self.name = name
         self.varType = var_type
@@ -38,9 +45,18 @@ class VariableLine:
         same_varType = self.varType == other.varType
         same_initVal = self.initVal == other.initVal
         same_value_type = self.valueType == other.valueType
-        return same_name and same_feedback and same_description and same_varType and same_value_type and same_initVal
+        return (
+            same_name
+            and same_feedback
+            and same_description
+            and same_varType
+            and same_value_type
+            and same_initVal
+        )
+
     def __hash__(self):
         return hash(self.name)
+
     def getName(self):
         return self.name
 

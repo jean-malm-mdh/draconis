@@ -3,7 +3,12 @@ import logging
 from AST.pou import Program
 from Web_GUI import parser
 from Web_GUI.parser.AST.ast_typing import VariableParamType
-from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableGroup, VariableLine, VariableParamType
+from Web_GUI.parser.AST.variables import (
+    VariableWorkSheet,
+    VariableGroup,
+    VariableLine,
+    VariableParamType,
+)
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 
@@ -45,14 +50,16 @@ class MyPOUVisitor(POUVisitor):
             _var.varType = self.visitVar_type(ctx.varType)
             varList.append(_var)
         return int(str(ctx.groupNr.text)), varList
-    def visitValTypeRule(self, ctx:POUParser.ValTypeRuleContext):
+
+    def visitValTypeRule(self, ctx: POUParser.ValTypeRuleContext):
         as_int = ctx.INT()
         if as_int is None:
             return ctx.getText()
         return str(as_int)
 
-    def visitFeedbackRule(self, ctx:POUParser.FeedbackRuleContext):
+    def visitFeedbackRule(self, ctx: POUParser.FeedbackRuleContext):
         return ctx is not None
+
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
         dummy = VariableParamType.UNSET  # property is set for the whole group
@@ -70,7 +77,7 @@ class MyPOUVisitor(POUVisitor):
             initVal,
             desc,
             int(str(ctx.lineNr.text)),
-            isFeedback
+            isFeedback,
         )
 
     # Visit a parse tree produced by POUParser#val_Type.

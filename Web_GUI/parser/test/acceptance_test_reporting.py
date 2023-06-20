@@ -21,7 +21,10 @@ class FBDParseReportTest(unittest.TestCase):
                 (n, parse_pou_file(p))
                 for n, p in [
                     ("Calc_Odd", "Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
-                    ("Calc_Even", "Collatz_Calculator_Even/Collatz_Calculator_Even.pou"),
+                    (
+                        "Calc_Even",
+                        "Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
+                    ),
                     (
                         "Calc_Even_SafeVer",
                         "Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
@@ -113,7 +116,9 @@ class FBDParseReportTest(unittest.TestCase):
 
     def test_can_output_to_description_file_show_then_clean_up(self):
         # The selected program is analysed, and a report is generated
-        prog_report = parse_pou_file("Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou").report_as_text()
+        prog_report = parse_pou_file(
+            "Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"
+        ).report_as_text()
 
         # The current description is read
         pou_description_file = "Collatz_Calculator_Odd/DESCRIPTIONTranslation_SF.xml"
@@ -125,7 +130,7 @@ class FBDParseReportTest(unittest.TestCase):
         )
 
         # Update the POU Description
-        change_pou_description( pou_description_file, description_with_report)
+        change_pou_description(pou_description_file, description_with_report)
 
         # Assert that update has been made, and report info is in the file
         new_description_content = get_pou_description(pou_description_file)

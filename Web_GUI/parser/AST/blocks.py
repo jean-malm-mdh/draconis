@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import os
 import sys
 
 sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser")
