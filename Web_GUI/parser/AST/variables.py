@@ -29,7 +29,18 @@ class VariableLine:
         self.lineNr = line_nr
         self.isFeedback = isFeedback
 
-
+    def __eq__(self, other):
+        if not isinstance(other, VariableLine):
+            return False
+        same_name = self.name == other.name
+        same_feedback = self.isFeedback == other.isFeedback
+        same_description = self.description == other.description
+        same_varType = self.varType == other.varType
+        same_initVal = self.initVal == other.initVal
+        same_value_type = self.valueType == other.valueType
+        return same_name and same_feedback and same_description and same_varType and same_value_type and same_initVal
+    def __hash__(self):
+        return hash(self.name)
     def getName(self):
         return self.name
 

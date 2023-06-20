@@ -1,3 +1,4 @@
+import itertools
 import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
@@ -19,11 +20,7 @@ def AllindexOrNone(aList, elem, startIndex=0):
     Returns: A list of all indices matching element. If elem cannot be found, returns None
 
     """
-    result = []
-    for i in range(startIndex, len(aList)):
-        if aList[i] == elem:
-            result.append(i)
-    return result
+    return [i for i, val in enumerate(aList[startIndex:]) if val == elem] or None
 
 
 def indexOrNone(aList, elem, startIndex=0):
@@ -151,19 +148,12 @@ class Program:
             paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
-                result = None
                 for subPath in computed_subpaths:
                     if start_id == subPath[0]:
                         return subPath
                 return [start_id] if end_id is None else [start_id, end_id]
 
-            result = []
-            for p in paths:
-                flat_path = [p[0]]
-                start, end = p[1][0]
-                path_chunk = get_path_given_start_point(start, end, computed_subpaths)
-                flat_path.extend(path_chunk)
-                result.append(flat_path)
+            result = [[p[0]] + get_path_given_start_point(p[1][0][0], p[1][0][1], computed_subpaths) for p in paths]
             return PathDivide(result)
 
         def performTrace(start_blocks):
@@ -189,20 +179,14 @@ class Program:
                         current_entity
                         and current_entity.getBlockType() == "FunctionBlock"
                     ):
-                        block_input_vars = current_entity.getInputVars()
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
-                            for fp in block_input_vars
+                            for fp in (current_entity.getInputVars())
                         ]
-                        next_blocks = list(
-                            filter(
-                                lambda b: b.getBlockType() == "FunctionBlock",
-                                [
+                        next_blocks = [
                                     self.behaviour_id_map[e[0][0]]
-                                    for s, e in interface_vars_startIDs
-                                ],
-                            )
-                        )
+                                    for _, e in interface_vars_startIDs if self.behaviour_id_map[e[0][0]].getBlockType() == "FunctionBlock"
+                                ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
                             b_Result.append(
@@ -221,7 +205,7 @@ class Program:
                     # Found a common start element in subpaths
                     while split_point is not None:
                         _result.append(rem[count])
-                        count = count + 1
+                        count += 1
                         last_split_point = split_point
                         split_point = indexOrNone(rem, rem[count], split_point)
                     _result.append(
@@ -233,6 +217,7 @@ class Program:
                 result[b.getVarExpr()] = b_Result
             return result
 
+        # Check if value is memoized, if so - return memoized version
         if {} != self.backward_flow:
             return self.backward_flow
         outport_blocks = [
@@ -356,6 +341,35 @@ class Program:
                         )
         return result
 
+    def compute_delta(self, other_program):
+        def find_variable_changes():
+            vars_1 = set(self.varHeader.getAllVariables())
+            vars_2 = set(other_program.varHeader.getAllVariables())
+            res = []
+            variable_changes_old_to_new = {v.name: v for v in vars_1.difference(vars_2)}
+            variable_changes_new_to_old = {v.name: v for v in vars_2.difference(vars_1)}
+
+            res = [(str(v), str(variable_changes_new_to_old.pop(n, ""))) for n, v in
+                   variable_changes_old_to_new.items()]
+            # at this point, we have processed all common variables and those found in first set.
+            # The remaining variables represent additions during the change
+            res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
+
+            return res
+
+        if not isinstance(other_program, Program):
+            raise ValueError("Trying to compute delta between a program and a " + type(other_program))
+        if self == other_program:
+            return []
+        if self.progName != other_program.progName:
+            # Slightly nuclear option for determining programs should not be compared. For now it works with intended use case.
+            return [("Program names are different. Delta analysis will not continue", f"{self.progName} != {other_program.progName}")]
+        res = []
+        res.extend(find_variable_changes())
+
+        return res
+
+
 
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
@@ -383,6 +397,14 @@ class Program:
         return res
     def check_rules(self):
         metrics = self.getMetrics()
+        def evaluate_rule(ruleName, defaultVerdict, defaultJustification, evaluate_func):
+            verdict = defaultVerdict
+            justification = defaultJustification
+            results = evaluate_func()
+            if any(results):
+                verdict = "Fail"
+                justification = "\n".join(results)
+            return [ruleName, verdict, justification]
 
         def evaluate_variable_limit_rule(metrics, varLimit):
             ruleName = "FBD.MetricRule.TooManyVariables"
@@ -396,36 +418,20 @@ class Program:
         def evaluate_safeness_data_flow():
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
-            justification = (
-                f"No detected unjustified conversion between safe and unsafe data."
-            )
-            safeDataVerdict = self.checkSafeDataFlow()
-            if any(safeDataVerdict):
-                verdict = "Fail"
-                justification = "\n".join(safeDataVerdict)
-            return [ruleName, verdict, justification]
+            justification = f"No detected unjustified conversion between safe and unsafe data."
+            return evaluate_rule(ruleName, verdict, justification, self.checkSafeDataFlow)
 
         def evaluate_var_group_cohesion_rules():
             ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
-            justification = (
-                "Variables are properly sorted into inputs and outputs groups"
-            )
-            results = self.varHeader.evaluate_cohesion_of_sheet()
-            if any(results):
-                verdict = "Fail"
-                justification = "\n".join(results)
-            return [ruleName, verdict, justification]
+            justification = "Variables are properly sorted into inputs and outputs groups"
+            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_cohesion_of_sheet)
 
         def evaluate_var_group_structure_rules():
             ruleName = "FBD.Variables.GroupStructure"
             verdict = "Pass"
             justification = "The mandatory groups (Inputs and Outputs) exists. At least one input and output variable is defined"
-            results = self.varHeader.evaluate_structure_of_var_sheet()
-            if any(results):
-                verdict = "Fail"
-                justification = "\n".join(results)
-            return [ruleName, verdict, justification]
+            return evaluate_rule(ruleName, verdict, justification, self.varHeader.evaluate_structure_of_var_sheet)
 
         result = []
         result.append(evaluate_variable_limit_rule(metrics, 20))
