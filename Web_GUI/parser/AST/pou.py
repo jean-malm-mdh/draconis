@@ -20,11 +20,7 @@ def AllindexOrNone(aList, elem, startIndex=0):
     Returns: A list of all indices matching element. If elem cannot be found, returns None
 
     """
-    result = []
-    for i in range(startIndex, len(aList)):
-        if aList[i] == elem:
-            result.append(i)
-    return result
+    return [i for i, val in enumerate(aList[startIndex:]) if val == elem] or None
 
 
 def indexOrNone(aList, elem, startIndex=0):
@@ -152,19 +148,12 @@ class Program:
             paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
-                result = None
                 for subPath in computed_subpaths:
                     if start_id == subPath[0]:
                         return subPath
                 return [start_id] if end_id is None else [start_id, end_id]
 
-            result = []
-            for p in paths:
-                flat_path = [p[0]]
-                start, end = p[1][0]
-                path_chunk = get_path_given_start_point(start, end, computed_subpaths)
-                flat_path.extend(path_chunk)
-                result.append(flat_path)
+            result = [[p[0]] + get_path_given_start_point(p[1][0][0], p[1][0][1], computed_subpaths) for p in paths]
             return PathDivide(result)
 
         def performTrace(start_blocks):
@@ -190,20 +179,14 @@ class Program:
                         current_entity
                         and current_entity.getBlockType() == "FunctionBlock"
                     ):
-                        block_input_vars = current_entity.getInputVars()
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
-                            for fp in block_input_vars
+                            for fp in (current_entity.getInputVars())
                         ]
-                        next_blocks = list(
-                            filter(
-                                lambda b: b.getBlockType() == "FunctionBlock",
-                                [
+                        next_blocks = [
                                     self.behaviour_id_map[e[0][0]]
-                                    for s, e in interface_vars_startIDs
-                                ],
-                            )
-                        )
+                                    for _, e in interface_vars_startIDs if self.behaviour_id_map[e[0][0]].getBlockType() == "FunctionBlock"
+                                ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
                             b_Result.append(
@@ -222,7 +205,7 @@ class Program:
                     # Found a common start element in subpaths
                     while split_point is not None:
                         _result.append(rem[count])
-                        count = count + 1
+                        count += 1
                         last_split_point = split_point
                         split_point = indexOrNone(rem, rem[count], split_point)
                     _result.append(
@@ -234,6 +217,7 @@ class Program:
                 result[b.getVarExpr()] = b_Result
             return result
 
+        # Check if value is memoized, if so - return memoized version
         if {} != self.backward_flow:
             return self.backward_flow
         outport_blocks = [
