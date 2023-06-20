@@ -452,7 +452,6 @@ def test_given_programs_with_changed_variable_number_delta_shall_contain_additio
 
 
 
-
 def main():
     pass
 
