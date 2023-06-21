@@ -15,6 +15,9 @@ class Point:
         if not isinstance(other, Point):
             raise ValueError("Not a Point")
         return Point(self.x - other.x, self.y - other.y)
+
+    def getAsTuple(self):
+        return self.x, self.y
 @dataclass
 class Rectangle:
     top_left: Point
@@ -25,6 +28,9 @@ class Rectangle:
 
     def getSize(self):
         return Point(abs(self.bot_right.x - self.top_left.x), abs(self.bot_right.y - self.top_left.y))
+
+    def getAsTuple(self):
+        return self.top_left.x, self.top_left.y, self.bot_right.x, self.bot_right.y
 
     @classmethod
     def check_overlap(cls, rect1, rect2):

@@ -469,3 +469,4 @@ class Program:
         result.append(evaluate_var_group_structure_rules())
 
         return result
+

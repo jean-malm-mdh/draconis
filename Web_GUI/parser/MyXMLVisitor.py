@@ -6,7 +6,7 @@ from antlr_generated.python.XMLParser import XMLParser
 import logging
 
 from Web_GUI.parser.AST.ast_typing import VariableParamType
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData, GUIPosition, Rectangle, Point
 from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import (
     ConnectionDirection,
@@ -33,8 +33,12 @@ class MyXMLVisitor(XMLParserVisitor):
         inVars = [e for e in varBlocks if e.varType == VariableParamType.InputVar]
         inOutVars = [e for e in varBlocks if e.varType == VariableParamType.InOutVar]
         outVars = [e for e in varBlocks if e.varType == VariableParamType.OutputVar]
+        GUI_position_top_left = [e for e in blockElements if "GUIPosition" in str(e.__class__)][0]
+        position_top_left = Point(GUI_position_top_left.x, GUI_position_top_left.y)
+        size = Point(int(blockParams["width"]), int(blockParams["height"]))
+        bounding_box = Rectangle(position_top_left, position_top_left + size)
         result = FBD_Block(
-            FBDObjData(int(blockParams["localId"]), blockParams["typeName"]),
+            FBDObjData(int(blockParams["localId"]), blockParams["typeName"], bounding_box),
             [inVars[0], inOutVars[0], outVars[0]],
         )
         self.local_id_map[int(blockParams["localId"])] = result
