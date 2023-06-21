@@ -7,20 +7,17 @@ from AST.pou import Program
 from Web_GUI.parser.AST.connections import ConnectionDirection
 from Web_GUI.parser.AST.fbdobject_base import Point
 
-fonts = {"Arial_Unicode": "/Library/Fonts/Arial Unicode.ttf"}
-
 
 @dataclasses.dataclass
 class DrawContext:
     canvas: ImageDraw
     fonts: dict[str, ImageFont]
 
-    def __init__(self, img_width, img_height, font_config, scaler=None, bg_col="white"):
+    def __init__(self, img_width, img_height, scaler=None, bg_col="white"):
         self.image = Image.new("RGB", (img_width, img_height), color=bg_col)
         self.canvas = ImageDraw.Draw(self.image)
-        self.fonts = {k: ImageFont.truetype(v, 10) for k, v in font_config.items()}
-        self.fonts["__DEFAULT__"] = ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 10)
-        self.fonts["__HEADER__"] = ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20)
+        self.fonts = {"__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 10),
+                      "__HEADER__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20)}
         self.scaler = scaler or (lambda e: e)
 
     def save_image_to_file(self, path):
@@ -104,14 +101,10 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
     def scaler(int_val):
         return int(int_val * scale)
 
-    _width, _height = 250, 250
-
+    _height, _width = get_program_width_height(program)
     width = scaler(_width)
     height = scaler(_height)
-    im = Image.new("RGB", (width, height), color="white")
-    draw = ImageDraw.Draw(im)
-    info_font = ImageFont.truetype(fonts["Arial_Unicode"], 10)
-    draw_context = DrawContext(width, height, fonts, scaler, bg_col="white")
+    draw_context = DrawContext(width, height, scaler, bg_col="white")
     text = program.progName
     text_x = width // 2
     draw_context.draw_text_centered(text, (text_x, 15), font_name="__HEADER__", col="black")
@@ -123,6 +116,23 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
     draw_context.save_image_to_file(img_result_path)
+
+
+def get_program_width_height(program):
+    _width, _height = 100, 100
+    # Find actual width and height, based on elements present
+    for b in program.behaviourElements:
+        _x, _y = b.data.boundary_box.bot_right.getAsTuple()
+        _width = max(_width, _x)
+        _height = max(_height, _y)
+    for l in program.lines:
+        s_p, e_p = l
+        _width = max(_width, s_p.x, e_p.x)
+        _height = max(_height, s_p.y, e_p.y)
+    # Add some space for annotations etc
+    _width += 50
+    _height += 50
+    return _height, _width
 
 
 def render_block(b, scaler, font, canvas):
