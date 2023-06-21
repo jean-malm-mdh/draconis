@@ -42,9 +42,15 @@ def render_blocks(blocks, scaler, font, canvas):
         render_block(b, scaler, font, canvas)
 
 
-def render_port_block(b, scaler, font, canvas):
-    l, t, r, b = map(scaler, b.data.boundary_box.getAsTuple())
+def render_port_block(block, scaler, font, canvas):
+    l, t, r, b = map(scaler, block.data.boundary_box.getAsTuple())
     canvas.rectangle((l, t, r, b), outline="purple", width=2)
+    expr_text = block.getVarExpr()
+    text_width, text_height = canvas.textsize(expr_text, font=font)
+    block_width_scaled = r-l
+    text_offset_x = (block_width_scaled - text_width) // 2
+    text_offset_y = 0
+    canvas.text((l+text_offset_x, t+text_offset_y), expr_text, font=font, fill="black")
 
 
 def render_block(b, scaler, font, canvas):

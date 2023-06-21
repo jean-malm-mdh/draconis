@@ -46,12 +46,17 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_VarBlock(self, outVarArgs, content, direction="in"):
         blockElements = [self.visitElement(e)[0] for e in content.element()]
+        GUI_position_top_left = [e for e in blockElements if "GUIPosition" in str(e.__class__)][0]
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
         connection_points = [
             e for e in blockElements if isinstance(e, ConnectionPoint)
         ][0]
         localId = int(outVarArgs["localId"])
-        blockData = FBDObjData(localId, direction + "Variable")
+        height, width = int(outVarArgs["height"]), int(outVarArgs["width"])
+        upper_left_point = Point(GUI_position_top_left.x, GUI_position_top_left.y)
+        lower_right_point = upper_left_point + Point(width, height)
+        boundingBox = Rectangle(upper_left_point, lower_right_point)
+        blockData = FBDObjData(localId, direction + "Variable", boundingBox)
         self.local_id_map[localId] = VarBlock(blockData, connection_points, expr)
         return self.local_id_map[localId]
 

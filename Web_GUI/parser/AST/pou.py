@@ -3,6 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
+from Web_GUI.parser.AST.fbdobject_base import Point
 from ast_typing import VariableParamType, DataflowDirection, SafeClass
 from blocks import VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import trace_connection_in_dataflow_direction
@@ -47,16 +48,16 @@ class Program:
     behaviour_id_map: Dict[int, FBD_Block]
     backward_flow: Dict[str, List[int]]
     forward_flow: Dict[str, List[int]]
+    lines: List[Tuple[Point, Point]]
 
     def __init__(
-        self, name, varWorkSheet, behaviourElementList=None, behaviourIDMap=None
+        self, name, varWorkSheet, behaviourElementList=None, behaviourIDMap=None, lines=None
     ):
         self.progName = name
         self.varHeader = varWorkSheet
-        self.behaviourElements = (
-            [] if behaviourElementList is None else behaviourElementList
-        )
-        self.behaviour_id_map = {} if behaviourIDMap is None else behaviourIDMap
+        self.behaviourElements = behaviourElementList or []
+        self.lines = lines or []
+        self.behaviour_id_map = behaviourIDMap or {}
         self.backward_flow = {}
         self.forward_flow = {}
 
