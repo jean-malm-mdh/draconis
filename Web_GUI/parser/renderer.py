@@ -19,7 +19,12 @@ class DrawContext:
         self.fonts = {"__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 10),
                       "__HEADER__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20)}
         self.scaler = scaler or (lambda e: e)
-
+    @property
+    def Width(self):
+        return self.image.width
+    @property
+    def Height(self):
+        return self.image.height
     def save_image_to_file(self, path):
         self.image.save(path)
 
@@ -40,8 +45,10 @@ class DrawContext:
         l, t = l_t
         r, b = r_b
         self.canvas.rectangle((l, t, r, b), outline=col, width=width)
-    def render_message_box(self, pos_upper_left, header_msg, message, color, font, draw):
+    def render_message_box(self, pos_upper_left, header_msg, message, color):
+        draw = self.canvas
         header_font = self.fonts["__HEADER__"]
+        font = self.fonts["__DEFAULT__"]
         header_width, header_height = draw.textsize(header_msg, header_font)
         message_width, message_height = draw.textsize(message, font)
         l, t = (pos_upper_left[0], pos_upper_left[1])
@@ -50,6 +57,7 @@ class DrawContext:
         self.draw_rect_filled(pos_upper_left, (r, b), col=color)
         draw.text((l, t), header_msg, fill="black", font=header_font)
         draw.text((l, t + header_height + header_message_offset_height), message, fill="black", font=font)
+        return (l, t, r, b)
 
     def render_block(self, b):
         render_block(b, self.scaler, self.fonts["__DEFAULT__"], self.canvas)
@@ -95,13 +103,12 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
 
     Returns:
         if OK, returns path to created image file
-
     """
 
     def scaler(int_val):
         return int(int_val * scale)
-
-    _height, _width = get_program_width_height(program)
+    margin_size = 200
+    _height, _width = get_program_width_height(program, min_size=100, margin_offset_size=margin_size)
     width = scaler(_width)
     height = scaler(_height)
     draw_context = DrawContext(width, height, scaler, bg_col="white")
@@ -115,11 +122,21 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
     render_lines(program.lines, draw_context)
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
+
+    render_reports(program, margin_size, draw_context)
+
     draw_context.save_image_to_file(img_result_path)
 
+def render_reports(program:Program, margin_offset_size, draw_context:DrawContext):
+    rule_checks = program.check_rules()
+    margin_start_x = draw_context.Width - margin_offset_size
+    b = 0
+    for r in rule_checks:
+        _,_,_, b = draw_context.render_message_box((margin_start_x, b), header_msg=r[0], message=r[1], color="yellow")
 
-def get_program_width_height(program):
-    _width, _height = 100, 100
+
+def get_program_width_height(program, min_size=100, margin_offset_size=50):
+    _width, _height = min_size, min_size
     # Find actual width and height, based on elements present
     for b in program.behaviourElements:
         _x, _y = b.data.boundary_box.bot_right.getAsTuple()
@@ -130,8 +147,8 @@ def get_program_width_height(program):
         _width = max(_width, s_p.x, e_p.x)
         _height = max(_height, s_p.y, e_p.y)
     # Add some space for annotations etc
-    _width += 50
-    _height += 50
+    _width += margin_offset_size
+    _height += margin_offset_size
     return _height, _width
 
 
