@@ -49,7 +49,7 @@ def parse_code_worksheet(input_codeWorkSheet: str):
     tree = parser.document()  # Begin parsing at this rule
     visitor = MyXMLVisitor.MyXMLVisitor()
     visitor.visitDocument(tree)
-    return visitor.elements, visitor.local_id_map
+    return visitor.elements, visitor.local_id_map, visitor.lines
 
 
 def clean_pou_string(input_pou_prog: str):
@@ -65,6 +65,7 @@ def parse_pou_file(pou_file_path: str):
     (
         resultProgram.behaviourElements,
         resultProgram.behaviour_id_map,
+        resultProgram.lines
     ) = parse_code_worksheet(codeSheet)
     return resultProgram
 

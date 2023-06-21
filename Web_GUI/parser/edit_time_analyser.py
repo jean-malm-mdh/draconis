@@ -19,7 +19,7 @@ class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
         if self.analysed_programs.get(program.progName, None) is None:
             self.analysed_programs[program.progName] = program
             print(program.report_as_text())
-            generate_image_of_program(program, "testrender.jpg", scale=4.0)
+            generate_image_of_program(program, f"testrender_{program.progName}.jpg", scale=4.0)
         else:
             old_version = self.analysed_programs[program.progName]
             changes = old_version.compute_delta(program)

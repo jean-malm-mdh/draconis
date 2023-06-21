@@ -23,6 +23,7 @@ class MyXMLVisitor(XMLParserVisitor):
         self.connections = []
         self.elements = []
         self.local_id_map = {}
+        self.lines = []
 
     def ppx_parse_block(
         self, blockParams: dict[str, str], content: XMLParser.ContentContext
@@ -104,14 +105,16 @@ class MyXMLVisitor(XMLParserVisitor):
                 # We ignore signal lines locations for now
                 content = ctx.content()
                 elements = [e for e in content.element()]
-                for i in range(1, len(elements)):
-                    self.visitElement(elements[i])
+                for e in elements:
+                    self.visitElement(e)
             elif "line" == name:
+                start_x, start_y, end_x, end_y = map(int, (attrs["beginX"], attrs["beginY"], attrs["endX"], attrs["endY"]))
+                self.lines.append((Point(start_x
+                                         , start_y), Point(end_x, end_y)))
                 return attrs
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
             elif "data" == name:
-
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
                         return self.visitElement(e)
@@ -156,7 +159,7 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "inOutVariables" == name:
                 content = ctx.content()
                 vars = (
-                    None if content is None else self.ppx_parse_variables(ctx.content())
+                    None if content is None else self.ppx_parse_variables(content)
                 )
                 return ParamList(VariableParamType.InOutVar, vars)
             elif "variable" == name:
