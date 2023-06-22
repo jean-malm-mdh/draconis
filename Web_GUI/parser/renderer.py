@@ -19,12 +19,15 @@ class DrawContext:
         self.fonts = {"__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 10),
                       "__HEADER__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20)}
         self.scaler = scaler or (lambda e: e)
+
     @property
     def Width(self):
         return self.image.width
+
     @property
     def Height(self):
         return self.image.height
+
     def save_image_to_file(self, path):
         self.image.save(path)
 
@@ -45,15 +48,34 @@ class DrawContext:
         l, t = l_t
         r, b = r_b
         self.canvas.rectangle((l, t, r, b), outline=col, width=width)
-    def render_message_box(self, pos_upper_left, header_msg, message, color):
+
+    def render_message_box(self, pos_upper_left, header_msg, message, color, maxWidth):
+        def isWS_Or_Punct(c):
+            return not c.isalnum()
+        def trimMessageToWidth(_message, _font, _maxWidth):
+            _msg_width, _msg_height = draw.textsize(_message, _font)
+            while _msg_width > _maxWidth:
+                message_len = len(_message)
+                msg_split_point = message_len // 2
+                while msg_split_point < message_len and not isWS_Or_Punct(_message[msg_split_point]):
+                    msg_split_point += 1
+                if msg_split_point == message_len:
+                    msg_split_point = message_len // 2
+                    while msg_split_point >= 0 and not isWS_Or_Punct(_message[msg_split_point]):
+                        msg_split_point -= 1
+                _message = _message[:msg_split_point] + "\n" + _message[msg_split_point:]
+                _msg_width, _msg_height = draw.textsize(_message, header_font)
+            return _message, _msg_width, _msg_height
+
         draw = self.canvas
         header_font = self.fonts["__HEADER__"]
         font = self.fonts["__DEFAULT__"]
-        header_width, header_height = draw.textsize(header_msg, header_font)
-        message_width, message_height = draw.textsize(message, font)
+        message, message_width, message_height = trimMessageToWidth(message, font, maxWidth)
+        header_msg, header_width, header_height = trimMessageToWidth(header_msg, header_font, maxWidth)
         l, t = (pos_upper_left[0], pos_upper_left[1])
         header_message_offset_height = 10
-        r, b = (l + max(header_width, message_width), t + header_height + message_height + header_message_offset_height)
+        message_max_width = max(header_width, message_width)
+        r, b = (l + message_max_width, t + header_height + message_height + header_message_offset_height)
         self.draw_rect_filled(pos_upper_left, (r, b), col=color)
         draw.text((l, t), header_msg, fill="black", font=header_font)
         draw.text((l, t + header_height + header_message_offset_height), message, fill="black", font=font)
@@ -93,10 +115,11 @@ def render_blocks(blocks, draw_context):
         draw_context.render_block(b)
 
 
-def generate_image_of_program(program: Program, img_result_path: str, scale=1.0):
+def generate_image_of_program(program: Program, img_result_path: str, scale=1.0, generate_report_in_image=False):
     """
     Generate an image of the program
     Args:
+        generate_report_in_image: If image shall contain report information
         program: The program to render into an image
         img_result_path: The path to the result image
         scale: The scaling factor for the rendering
@@ -107,13 +130,20 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
 
     def scaler(int_val):
         return int(int_val * scale)
-    margin_size = 200
-    _height, _width = get_program_width_height(program, min_size=100, margin_offset_size=margin_size)
+
+    boundary = 25
+    margin_size = 300 if generate_report_in_image else 0
+    _height, _width = get_program_width_height(program, min_size=100)
     width = scaler(_width)
     height = scaler(_height)
+    # Add some space for margins and annotations
+    width += margin_size
+    height += margin_size
+    width += boundary
+    height += boundary
     draw_context = DrawContext(width, height, scaler, bg_col="white")
     text = program.progName
-    text_x = width // 2
+    text_x = (width - margin_size) // 2
     draw_context.draw_text_centered(text, (text_x, 15), font_name="__HEADER__", col="black")
 
     # render the FBD blocks
@@ -122,17 +152,20 @@ def generate_image_of_program(program: Program, img_result_path: str, scale=1.0)
     render_lines(program.lines, draw_context)
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
-
-    render_reports(program, margin_size, draw_context)
+    if generate_report_in_image:
+        render_reports(program, margin_size, draw_context)
 
     draw_context.save_image_to_file(img_result_path)
 
-def render_reports(program:Program, margin_offset_size, draw_context:DrawContext):
+
+def render_reports(program: Program, margin_offset_size, draw_context: DrawContext):
     rule_checks = program.check_rules()
     margin_start_x = draw_context.Width - margin_offset_size
     b = 0
     for r in rule_checks:
-        _,_,_, b = draw_context.render_message_box((margin_start_x, b), header_msg=r[0], message=r[1], color="yellow")
+        name, verdict, justification = r
+        col = "yellow" if verdict == "Fail" else "lightgreen"
+        _, _, _, b = draw_context.render_message_box((margin_start_x, b), header_msg=name, message=f"{verdict}\n{justification}", color=col, maxWidth=margin_offset_size)
 
 
 def get_program_width_height(program, min_size=100, margin_offset_size=50):
@@ -146,9 +179,6 @@ def get_program_width_height(program, min_size=100, margin_offset_size=50):
         s_p, e_p = l
         _width = max(_width, s_p.x, e_p.x)
         _height = max(_height, s_p.y, e_p.y)
-    # Add some space for annotations etc
-    _width += margin_offset_size
-    _height += margin_offset_size
     return _height, _width
 
 
