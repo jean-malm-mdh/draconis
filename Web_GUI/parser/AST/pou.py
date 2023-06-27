@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
 from Web_GUI.parser.AST.fbdobject_base import Point
+from Web_GUI.parser.AST.position import GUIPosition
 from ast_typing import VariableParamType, DataflowDirection, SafeClass
 from blocks import VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import trace_connection_in_dataflow_direction
@@ -38,6 +39,11 @@ def indexOrNone(aList, elem, startIndex=0):
         if aList[i] == elem:
             return i
     return None
+
+@dataclass()
+class Comment:
+    position: GUIPosition
+    content: str
 
 
 @dataclass()

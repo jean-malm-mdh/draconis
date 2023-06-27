@@ -182,5 +182,18 @@ END_VAR
       </variable>
     </outputVariables>
   </block>
+  <comment localId="21" height="16" width="48">
+    <position x="0" y="56" />
+    <content>
+      <html xmlns="">
+        <head>
+          <title />
+          <body>
+            <p style="">This is a comment</p>
+          </body>
+        </head>
+      </html>
+    </content>
+  </comment>
 </FBD>
 END_FUNCTION_BLOCK
