@@ -18,5 +18,6 @@ class GraphicalTests(unittest.TestCase):
         rect3 = Rectangle(Point(10, 10), Point(20, 20))
         self.assertIsNone(Rectangle.check_overlap(rect1, rect3))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

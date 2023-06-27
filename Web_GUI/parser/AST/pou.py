@@ -51,7 +51,12 @@ class Program:
     lines: List[Tuple[Point, Point]]
 
     def __init__(
-        self, name, varWorkSheet, behaviourElementList=None, behaviourIDMap=None, lines=None
+        self,
+        name,
+        varWorkSheet,
+        behaviourElementList=None,
+        behaviourIDMap=None,
+        lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -433,7 +438,7 @@ class Program:
             ruleName = "FBD.DataFlow.SafenessProperty"
             verdict = "Pass"
             justification = (
-                f"No detected unjustified conversion between safe and unsafe data."
+                f"No unjustified conversion between safe and unsafe data detected."
             )
             return evaluate_rule(
                 ruleName, verdict, justification, self.checkSafeDataFlow
@@ -470,4 +475,3 @@ class Program:
         result.append(evaluate_var_group_structure_rules())
 
         return result
-

@@ -451,7 +451,6 @@ def test_given_programs_with_changed_variable_number_delta_shall_contain_additio
     assert expected in prog.compute_delta(prog_removal)
 
 
-
 def main():
     pass
 

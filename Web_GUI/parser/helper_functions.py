@@ -65,7 +65,7 @@ def parse_pou_file(pou_file_path: str):
     (
         resultProgram.behaviourElements,
         resultProgram.behaviour_id_map,
-        resultProgram.lines
+        resultProgram.lines,
     ) = parse_code_worksheet(codeSheet)
     return resultProgram
 

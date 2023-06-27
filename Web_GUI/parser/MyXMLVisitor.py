@@ -34,12 +34,16 @@ class MyXMLVisitor(XMLParserVisitor):
         inVars = [e for e in varBlocks if e.varType == VariableParamType.InputVar]
         inOutVars = [e for e in varBlocks if e.varType == VariableParamType.InOutVar]
         outVars = [e for e in varBlocks if e.varType == VariableParamType.OutputVar]
-        GUI_position_top_left = [e for e in blockElements if "GUIPosition" in str(e.__class__)][0]
+        GUI_position_top_left = [
+            e for e in blockElements if "GUIPosition" in str(e.__class__)
+        ][0]
         position_top_left = Point(GUI_position_top_left.x, GUI_position_top_left.y)
         size = Point(int(blockParams["width"]), int(blockParams["height"]))
         bounding_box = Rectangle(position_top_left, position_top_left + size)
         result = FBD_Block(
-            FBDObjData(int(blockParams["localId"]), blockParams["typeName"], bounding_box),
+            FBDObjData(
+                int(blockParams["localId"]), blockParams["typeName"], bounding_box
+            ),
             [inVars[0], inOutVars[0], outVars[0]],
         )
         self.local_id_map[int(blockParams["localId"])] = result
@@ -47,7 +51,9 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_VarBlock(self, outVarArgs, content, direction="in"):
         blockElements = [self.visitElement(e)[0] for e in content.element()]
-        GUI_position_top_left = [e for e in blockElements if "GUIPosition" in str(e.__class__)][0]
+        GUI_position_top_left = [
+            e for e in blockElements if "GUIPosition" in str(e.__class__)
+        ][0]
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
         connection_points = [
             e for e in blockElements if isinstance(e, ConnectionPoint)
@@ -108,13 +114,16 @@ class MyXMLVisitor(XMLParserVisitor):
                 for e in elements:
                     self.visitElement(e)
             elif "line" == name:
-                start_x, start_y, end_x, end_y = map(int, (attrs["beginX"], attrs["beginY"], attrs["endX"], attrs["endY"]))
-                self.lines.append((Point(start_x
-                                         , start_y), Point(end_x, end_y)))
+                start_x, start_y, end_x, end_y = map(
+                    int,
+                    (attrs["beginX"], attrs["beginY"], attrs["endX"], attrs["endY"]),
+                )
+                self.lines.append((Point(start_x, start_y), Point(end_x, end_y)))
                 return attrs
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
             elif "data" == name:
+
                 def parse_node_content(e):
                     if isinstance(e, XMLParser.ElementContext):
                         return self.visitElement(e)
@@ -158,9 +167,7 @@ class MyXMLVisitor(XMLParserVisitor):
                 )
             elif "inOutVariables" == name:
                 content = ctx.content()
-                vars = (
-                    None if content is None else self.ppx_parse_variables(content)
-                )
+                vars = None if content is None else self.ppx_parse_variables(content)
                 return ParamList(VariableParamType.InOutVar, vars)
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
