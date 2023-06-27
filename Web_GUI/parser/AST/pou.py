@@ -3,7 +3,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 
-from Web_GUI.parser.AST.fbdobject_base import Point
+from Web_GUI.parser.AST.fbdobject_base import Point, Rectangle
 from Web_GUI.parser.AST.position import GUIPosition
 from ast_typing import VariableParamType, DataflowDirection, SafeClass
 from blocks import VarBlock, FBD_Block
@@ -40,9 +40,10 @@ def indexOrNone(aList, elem, startIndex=0):
             return i
     return None
 
+
 @dataclass()
-class Comment:
-    position: GUIPosition
+class CommentBox:
+    bounding_box: Rectangle
     content: str
 
 
@@ -55,14 +56,15 @@ class Program:
     backward_flow: Dict[str, List[int]]
     forward_flow: Dict[str, List[int]]
     lines: List[Tuple[Point, Point]]
+    comments: List[CommentBox]
 
     def __init__(
-        self,
-        name,
-        varWorkSheet,
-        behaviourElementList=None,
-        behaviourIDMap=None,
-        lines=None,
+            self,
+            name,
+            varWorkSheet,
+            behaviourElementList=None,
+            behaviourIDMap=None,
+            lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -154,7 +156,7 @@ class Program:
         """
 
         def split_paths(
-            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+                paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 for subPath in computed_subpaths:
@@ -189,8 +191,8 @@ class Program:
                     )
 
                     if (
-                        current_entity
-                        and current_entity.getBlockType() == "FunctionBlock"
+                            current_entity
+                            and current_entity.getBlockType() == "FunctionBlock"
                     ):
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
@@ -200,7 +202,7 @@ class Program:
                             self.behaviour_id_map[e[0][0]]
                             for _, e in interface_vars_startIDs
                             if self.behaviour_id_map[e[0][0]].getBlockType()
-                            == "FunctionBlock"
+                               == "FunctionBlock"
                         ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
@@ -224,7 +226,7 @@ class Program:
                         split_point = indexOrNone(rem, rem[count], split_point)
                     _result.append(
                         PathDivide(
-                            [rem[count:last_split_point], rem[last_split_point + 1 :]]
+                            [rem[count:last_split_point], rem[last_split_point + 1:]]
                         )
                     )
                     return [_result]
@@ -399,7 +401,7 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                "name", "varType", "valueType", "initVal", "description"
+                    "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
@@ -421,7 +423,7 @@ class Program:
         metrics = self.getMetrics()
 
         def evaluate_rule(
-            ruleName, defaultVerdict, defaultJustification, evaluate_func
+                ruleName, defaultVerdict, defaultJustification, evaluate_func
         ):
             verdict = defaultVerdict
             justification = defaultJustification

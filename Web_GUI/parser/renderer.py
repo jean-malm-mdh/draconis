@@ -53,7 +53,7 @@ class DrawContext:
         r, b = r_b
         self.canvas.rectangle((l, t, r, b), outline=col, width=width)
 
-    def render_message_box(self, pos_upper_left, header_msg, message, color, maxWidth):
+    def render_message_box(self, pos_left_up:Tuple[int, int], header_msg, message, color, maxWidth):
         def isWS_Or_Punct(c):
             return not c.isalnum()
 
@@ -78,14 +78,14 @@ class DrawContext:
                 _msg_width, _msg_height = draw.textsize(_message, header_font)
             return _message, _msg_width, _msg_height
 
-        def position_message(self, font, header_font, header_msg, maxWidth, message, pos_upper_left):
+        def position_message(font, header_font, header_msg, maxWidth, message):
             message, message_width, message_height = trimMessageToWidth(
                 message, font, maxWidth
             )
             header_msg, header_width, header_height = trimMessageToWidth(
                 header_msg, header_font, maxWidth
             )
-            l, t = (pos_upper_left[0], pos_upper_left[1])
+            l, t = pos_left_up
             header_message_offset_height = 10
             message_max_width = max(header_width, message_width)
             r, b = (
@@ -97,13 +97,12 @@ class DrawContext:
         draw = self.canvas
         header_font = self.fonts["__HEADER__"]
         font = self.fonts["__DEFAULT__"]
-        b, header_height, header_message_offset_height, header_msg, l, message, r, t = self.position_message(font,
-                                                                                                             header_font,
-                                                                                                             header_msg,
-                                                                                                             maxWidth,
-                                                                                                             message,
-                                                                                                             pos_upper_left)
-        self.draw_rect_filled(pos_upper_left, (r, b), col=color)
+        b, header_height, header_message_offset_height, header_msg, l, message, r, t = position_message(font,
+                                                                                                        header_font,
+                                                                                                        header_msg,
+                                                                                                        maxWidth,
+                                                                                                        message)
+        self.draw_rect_filled(pos_left_up, (r, b), col=color)
         draw.text((l, t), header_msg, fill="black", font=header_font)
         draw.text(
             (l, t + header_height + header_message_offset_height),
@@ -205,6 +204,13 @@ def generate_image_of_program(
     render_blocks(program.behaviourElements, draw_context)
 
     render_lines(program.lines, draw_context)
+
+    # Render comment boxes
+    for comment in program.comments:
+        draw_context.render_message_box((comment.bounding_box.top_left.x, comment.bounding_box.top_left.y),
+                                        message=comment.content, color="lightblue", header_msg="",
+                                        maxWidth=scaler(comment.bounding_box.getSize().x))
+
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
     if generate_report_in_image:

@@ -2,7 +2,7 @@ from typing import List
 
 import antlr4.Parser
 
-from Web_GUI.parser.AST.pou import Comment
+from Web_GUI.parser.AST.pou import CommentBox
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
@@ -27,6 +27,7 @@ class MyXMLVisitor(XMLParserVisitor):
         self.elements = []
         self.local_id_map = {}
         self.lines = []
+        self.comments = []
 
     def ppx_parse_block(
         self, blockParams: dict[str, str], content: XMLParser.ContentContext
@@ -75,6 +76,13 @@ class MyXMLVisitor(XMLParserVisitor):
         assert (exprStr is not None) and (exprStr != "")
         return Expr(exprStr)
 
+    def ppx_parse_comment_content(self, ctx):
+        html_tag = ctx.content().element()[0]
+        head_node = html_tag.content().element()[0]
+        body_node = head_node.content().element()[1]
+        p_node = body_node.content().element()[0]
+        comment_content = p_node.content().getText()
+        return comment_content
     # Visit a parse tree produced by XMLParser#document.
     def visitDocument(self, ctx: XMLParser.DocumentContext):
         # For now, we do not care about other parts of the document than the element node
@@ -175,22 +183,19 @@ class MyXMLVisitor(XMLParserVisitor):
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
             elif "comment" == name:
                 cont = ctx.content()
-                elements = [self.visitElement(e) for e in cont.element()]
-                position = elements[0][0]
-                _comment_content = elements[1][0]
-                return Comment(position, _comment_content)
+                elements_attrib_pairs = [self.visitElement(e) for e in cont.element()]
+                position = elements_attrib_pairs[0][0]
+                _comment_content = elements_attrib_pairs[1][0]
+                bounding_box = Rectangle(Point(position.x, position.y), Point(position.x+int(attrs["width"]), position.y+int(attrs["height"])))
+                comment = CommentBox(bounding_box, _comment_content)
+                self.comments.append(comment)
             elif "content" == name:
-                html_tag = ctx.content().element()[0]
-                head_node = html_tag.content().element()[0]
-                body_node = head_node.content().element()[1]
-                p_node = body_node.content().element()[0]
-                comment_content = p_node.content().getText()
-                return comment_content
-
+                return self.ppx_parse_comment_content(ctx)
 
             else:
                 logging.warning(str(ctx) + " is not parsed - tag name:" + name)
             return result
+
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
