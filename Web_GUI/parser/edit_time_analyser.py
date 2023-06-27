@@ -4,6 +4,7 @@ import watchdog.events
 import watchdog.observers
 import time
 from helper_functions import parse_pou_file, change_pou_description
+from renderer import generate_image_of_program
 
 
 class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
@@ -24,6 +25,9 @@ class EditTimeAnalysisWatchDog(watchdog.events.PatternMatchingEventHandler):
             changes = old_version.compute_delta(program)
             print("Found previous version of analysed program. Printing changes:")
             print(changes)
+        generate_image_of_program(
+            program, f"testrender_{program.progName}.jpg", scale=4.0
+        )
 
 
 def getWatchDogHandler(source_path):

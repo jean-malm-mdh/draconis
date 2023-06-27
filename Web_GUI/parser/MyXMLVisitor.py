@@ -1,12 +1,15 @@
 from typing import List
 
+import antlr4.Parser
+
+from Web_GUI.parser.AST.pou import CommentBox
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
 from Web_GUI.parser.AST.ast_typing import VariableParamType
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData, GUIPosition, Rectangle, Point
 from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import (
     ConnectionDirection,
@@ -23,6 +26,8 @@ class MyXMLVisitor(XMLParserVisitor):
         self.connections = []
         self.elements = []
         self.local_id_map = {}
+        self.lines = []
+        self.comments = []
 
     def ppx_parse_block(
         self, blockParams: dict[str, str], content: XMLParser.ContentContext
@@ -33,8 +38,16 @@ class MyXMLVisitor(XMLParserVisitor):
         inVars = [e for e in varBlocks if e.varType == VariableParamType.InputVar]
         inOutVars = [e for e in varBlocks if e.varType == VariableParamType.InOutVar]
         outVars = [e for e in varBlocks if e.varType == VariableParamType.OutputVar]
+        GUI_position_top_left = [
+            e for e in blockElements if "GUIPosition" in str(e.__class__)
+        ][0]
+        position_top_left = Point(GUI_position_top_left.x, GUI_position_top_left.y)
+        size = Point(int(blockParams["width"]), int(blockParams["height"]))
+        bounding_box = Rectangle(position_top_left, position_top_left + size)
         result = FBD_Block(
-            FBDObjData(int(blockParams["localId"]), blockParams["typeName"]),
+            FBDObjData(
+                int(blockParams["localId"]), blockParams["typeName"], bounding_box
+            ),
             [inVars[0], inOutVars[0], outVars[0]],
         )
         self.local_id_map[int(blockParams["localId"])] = result
@@ -42,12 +55,19 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_VarBlock(self, outVarArgs, content, direction="in"):
         blockElements = [self.visitElement(e)[0] for e in content.element()]
+        GUI_position_top_left = [
+            e for e in blockElements if "GUIPosition" in str(e.__class__)
+        ][0]
         expr = [e for e in blockElements if isinstance(e, Expr)][0]
         connection_points = [
             e for e in blockElements if isinstance(e, ConnectionPoint)
         ][0]
         localId = int(outVarArgs["localId"])
-        blockData = FBDObjData(localId, direction + "Variable")
+        height, width = int(outVarArgs["height"]), int(outVarArgs["width"])
+        upper_left_point = Point(GUI_position_top_left.x, GUI_position_top_left.y)
+        lower_right_point = upper_left_point + Point(width, height)
+        boundingBox = Rectangle(upper_left_point, lower_right_point)
+        blockData = FBDObjData(localId, direction + "Variable", boundingBox)
         self.local_id_map[localId] = VarBlock(blockData, connection_points, expr)
         return self.local_id_map[localId]
 
@@ -56,6 +76,13 @@ class MyXMLVisitor(XMLParserVisitor):
         assert (exprStr is not None) and (exprStr != "")
         return Expr(exprStr)
 
+    def ppx_parse_comment_content(self, ctx):
+        html_tag = ctx.content().element()[0]
+        head_node = html_tag.content().element()[0]
+        body_node = head_node.content().element()[1]
+        p_node = body_node.content().element()[0]
+        comment_content = p_node.content().getText()
+        return comment_content
     # Visit a parse tree produced by XMLParser#document.
     def visitDocument(self, ctx: XMLParser.DocumentContext):
         # For now, we do not care about other parts of the document than the element node
@@ -92,12 +119,16 @@ class MyXMLVisitor(XMLParserVisitor):
             elif "expression" == name:
                 return self.ppx_parse_expression(ctx.content())
             elif "FBD" == name:
-                # We ignore signal lines locations for now
                 content = ctx.content()
                 elements = [e for e in content.element()]
-                for i in range(1, len(elements)):
-                    self.visitElement(elements[i])
+                for e in elements:
+                    self.visitElement(e)
             elif "line" == name:
+                start_x, start_y, end_x, end_y = map(
+                    int,
+                    (attrs["beginX"], attrs["beginY"], attrs["endX"], attrs["endY"]),
+                )
+                self.lines.append((Point(start_x, start_y), Point(end_x, end_y)))
                 return attrs
             elif "addData" == name:
                 return self.parse_addData_node(ctx)
@@ -146,15 +177,25 @@ class MyXMLVisitor(XMLParserVisitor):
                 )
             elif "inOutVariables" == name:
                 content = ctx.content()
-                vars = (
-                    None if content is None else self.ppx_parse_variables(ctx.content())
-                )
+                vars = None if content is None else self.ppx_parse_variables(content)
                 return ParamList(VariableParamType.InOutVar, vars)
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
+            elif "comment" == name:
+                cont = ctx.content()
+                elements_attrib_pairs = [self.visitElement(e) for e in cont.element()]
+                position = elements_attrib_pairs[0][0]
+                _comment_content = elements_attrib_pairs[1][0]
+                bounding_box = Rectangle(Point(position.x, position.y), Point(position.x+int(attrs["width"]), position.y+int(attrs["height"])))
+                comment = CommentBox(bounding_box, _comment_content)
+                self.comments.append(comment)
+            elif "content" == name:
+                return self.ppx_parse_comment_content(ctx)
+
             else:
                 logging.warning(str(ctx) + " is not parsed - tag name:" + name)
             return result
+
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
@@ -192,7 +233,11 @@ class MyXMLVisitor(XMLParserVisitor):
     def parse_addData_node(self, addDataNode: XMLParser.ElementContext):
         dataNodes = addDataNode.content().element()
         assert len(dataNodes) == 1
-        dataElements = dataNodes[0].content().element()
+        content = dataNodes[0].elementContent
+        # Some data-nodes do not have children
+        if content is None:
+            return []
+        dataElements = content.element()
         result = [self.visitElement(e) for e in dataElements]
         return result
 

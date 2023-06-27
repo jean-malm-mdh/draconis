@@ -372,7 +372,7 @@ def test_metrics_pipeline():
     """
     input_varWorkSheet, input_codeSheet = get_worksheets_from_input(inputProgram)
     program = parse_variable_worksheet(input_varWorkSheet)
-    program.behaviourElements, program.behaviour_id_map = parse_code_worksheet(
+    program.behaviourElements, program.behaviour_id_map, *_ = parse_code_worksheet(
         input_codeSheet
     )
     assert program.getMetrics()["NrOfVariables"] == 2
@@ -449,8 +449,6 @@ def test_given_programs_with_changed_variable_number_delta_shall_contain_additio
         "",
     )
     assert expected in prog.compute_delta(prog_removal)
-
-
 
 
 def main():
