@@ -1,15 +1,13 @@
-import itertools
 import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
-
-from Web_GUI.parser.AST.fbdobject_base import Point, Rectangle
-from Web_GUI.parser.AST.position import GUIPosition
+import sys
+import os
+from fbdobject_base import Point, Rectangle
+from path import PathDivide
+from variables import VariableLine, VariableWorkSheet
 from ast_typing import VariableParamType, DataflowDirection, SafeClass
-from blocks import VarBlock, FBD_Block
-from Web_GUI.parser.AST.connections import trace_connection_in_dataflow_direction
-from Web_GUI.parser.AST.path import PathDivide
-from Web_GUI.parser.AST.variables import VariableLine, VariableWorkSheet
+from blocks import FBD_Block
 
 
 def AllindexOrNone(aList, elem, startIndex=0):

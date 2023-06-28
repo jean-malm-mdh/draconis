@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from Web_GUI.parser.AST.ast_typing import VariableParamType, ValType
+from ast_typing import VariableParamType, ValType
 
 
 @dataclass
