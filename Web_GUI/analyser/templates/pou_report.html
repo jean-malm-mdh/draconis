@@ -100,7 +100,8 @@
 </table>
 
 {% if Image %}
-<img src="{{Image}}">
+{% load static %}
+<img src="{% static 'images/tmp.png' %}" alt="Image of FBD">
 {% else %}
 <-- No image file found -->
 {% endif %}
