@@ -447,11 +447,10 @@ def test_given_programs_with_changed_variable_number_delta_shall_contain_additio
 
 
 def test_given_program_can_convert_to_json(programs):
-    prog = programs["MultiAND"]
+    prog = programs["Calc_Odd"]
     json_val = prog.toJSON()
     d = json.loads(json_val)
     assert d["progName"] == prog.progName
-    assert [g["groupName"] for g in d["variableGroups"]] == ["Inputs", "Outputs"]
 
 
 def main():

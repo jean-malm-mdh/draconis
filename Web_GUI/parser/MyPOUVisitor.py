@@ -23,24 +23,24 @@ class MyPOUVisitor(POUVisitor):
     # Visit a parse tree produced by POUParser#variableHeader.
     def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):
         variableGroups = self.visitVarGroups(ctx.varGroups())
-        groups_no_IDs = list(variableGroups.values())
+        groups_no_IDs = list(variableGroups)
         return parser.AST.variables.VariableWorkSheet(groups_no_IDs)
 
     # Visit a parse tree produced by POUParser#varGroups.
     def visitVarGroups(self, ctx: POUParser.VarGroupsContext):
         res = dict()
         for groupDef in ctx.groupDefs().children:
-            _def = self.visitGroupDef(groupDef)
-            res[_def.groupID] = _def
+            groupID, _def = self.visitGroupDef(groupDef)
+            res[groupID] = _def
         for varDefGroup in ctx.varDefGroups().children:
             grpID, listOfVars = self.visitVarDefGroup(varDefGroup)
             res[grpID].varLines.extend(listOfVars)
-        return res
+        return res.values()
 
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
-        return parser.AST.variables.VariableGroup(
-            str(ctx.groupName.text), int(str(ctx.groupID.text)), []
+        return int(str(ctx.groupID.text)), parser.AST.variables.VariableGroup(
+            str(ctx.groupName.text), []
         )
 
     # Visit a parse tree produced by POUParser#vars.

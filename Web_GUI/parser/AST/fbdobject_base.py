@@ -23,6 +23,12 @@ class Point:
     def toJSON(self):
         return f'{{"x": {self.x}, "y": {self.y} }}'
 
+    @classmethod
+    def fromJSON(cls, param):
+        import json
+        d = json.loads(param)
+        return Point(d["x"], d["y"])
+
 
 @dataclass
 class Rectangle:
@@ -43,6 +49,13 @@ class Rectangle:
 
     def toJSON(self):
         return f'{{ "top_left": {self.top_left.toJSON()}, "bot_right": {self.bot_right.toJSON()} }}'
+    @classmethod
+    def fromJSON(cls, json_string):
+        import json
+        d = json.loads(json_string)
+        lt = Point.fromJSON(d["top_left"])
+        rb = Point.fromJSON(d["bot_right"])
+        return Rectangle(lt, rb)
 
     @classmethod
     def check_overlap(cls, rect1, rect2):
@@ -66,6 +79,7 @@ class Rectangle:
             Point(overlap_top_left_x, overlap_top_left_y),
             Point(overlap_bot_right_x, overlap_bot_right_y),
         )
+
 
 
 @dataclass

@@ -102,7 +102,6 @@ def test_some_variable_line_properties_are_optional():
 @dataclass
 class VariableGroup:
     groupName: str
-    groupID: int
     varLines: list[VariableLine]
 
     def toJSON(self):
@@ -115,11 +114,14 @@ class VariableGroup:
         """
         return json_result
 
+    @classmethod
+    def fromJSON(cls, vg):
+        import json
+        d = json.loads(vg)
+        pass
+
     def getName(self):
         return self.groupName
-
-    def getID(self):
-        return self.groupID
 
     def isOutputGroup(self):
         return "output" in self.getName().lower()
@@ -146,14 +148,20 @@ class VariableGroup:
         return f"Group Name: '{self.groupName}'\n{variables}"
 
 
+
 @dataclass
 class VariableWorkSheet:
     varGroups: list[VariableGroup]
 
-    def toJSON(self, indent=4):
+    def toJSON(self):
         groups_json_str = ",".join([g.toJSON() for g in self.varGroups])
         json_result = f"""[{groups_json_str}]"""
         return json_result
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        vgs = json.loads(json_string)
+        return [VariableGroup.fromJSON(vg) for vg in vgs]
     def getAllVariables(self):
         result = []
         for group in self.varGroups:
