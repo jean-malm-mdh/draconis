@@ -118,7 +118,8 @@ class VariableGroup:
     def fromJSON(cls, vg):
         import json
         d = json.loads(vg)
-        pass
+        lines = [VariableLine.fromJSON(line_json) for line_json in d["variables"]]
+        return VariableGroup(d["groupName"], lines)
 
     def getName(self):
         return self.groupName
@@ -210,3 +211,4 @@ class VariableWorkSheet:
         if not outputFound:
             result.append("The Output group has not been defined.")
         return result
+
