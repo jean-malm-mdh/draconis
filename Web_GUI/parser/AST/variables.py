@@ -15,7 +15,7 @@ class VariableLine:
     isFeedback: bool
 
     def toJSON(self):
-        return f"""{{ "name": "{self.name}", "paramType": "{self.paramType}", "valueType": "{self.valueType}", "initVal": "{self.initVal}", "description": "{self.description}", "lineNr": {self.lineNr}, "isFeedback": "{'true' if self.isFeedback else 'false'}" }}"""
+        return f"""{{ "name": "{self.name}", "paramType": "{self.paramType}", "valueType": "{self.valueType}", "initVal": "{self.initVal}", "description": "{self.description}", "isFeedback": "{'true' if self.isFeedback else 'false'}" }}"""
 
     @classmethod
     def fromJSON(cls, json_str):
@@ -110,7 +110,6 @@ class VariableGroup:
         json_result = f"""
         {{
             "groupName": "{self.groupName}",
-            "groupID": {self.groupID},
             "variables": [{varLines}]
         }}
         """
