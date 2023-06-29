@@ -32,7 +32,8 @@ def home_page(request):
         if form.is_valid():
             file_path = save_file_to_django_space(request.FILES["file"])
             program = parse_pou_file(file_path)
-            generate_image_of_program(program, f"{ANALYSER_DATA_STORE_PATH}/images/tmp.png", scale=7.0)
+            imageFile = f"{ANALYSER_DATA_STORE_PATH}/images/tmp.png"
+            generate_image_of_program(program, imageFile, scale=7.0)
             reports = program.check_rules()
             metrics = program.getMetrics()
             variable_info = program.getVarDataColumns(
@@ -53,10 +54,7 @@ def home_page(request):
                 "backward_trace": backward_trace,
                 "variable_info": variable_info,
             }
-            imgFile = f"{ANALYSER_DATA_STORE_PATH}/images/tmp.png"
-            hasImageFile = os.path.exists(imgFile)
-            print(imgFile)
-            print(hasImageFile)
+            hasImageFile = os.path.exists(imageFile)
             if hasImageFile:
                 renderData["Image"] = "images/tmp.png"
             return render(request, "pou_report.html", renderData)

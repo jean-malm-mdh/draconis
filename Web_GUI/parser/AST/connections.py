@@ -20,11 +20,16 @@ class ConnectionData:
     connectionIndex = Optional[int]
 
     def __init__(self, pos=None, connIndex=None):
-        self.position = make_absolute_position(-1, -1) if not pos else pos
+        self.position = pos or make_absolute_position(-1, -1)
+        if not isinstance(self.position, GUIPosition):
+            raise ValueError(f"Not a valid position: {pos}")
         self.connectionIndex = connIndex
 
     def __str__(self):
         return f"Conn - {self.position} - {self.connectionIndex}"
+
+    def toJSON(self):
+        return f"""{{ "position": {self.position.toJSON()}, "connectionIndex": "{self.connectionIndex}" }}"""
 
 
 @dataclass
@@ -32,6 +37,9 @@ class Connection:
     startPoint: ConnectionData
     endPoint: ConnectionData
     formalName: str
+
+    def toJSON(self):
+        return f'{{ "startPoint": {self.startPoint.toJSON()}, "endPoint": {self.endPoint.toJSON()}, "formalName": "{self.formalName}" }}'
 
 
 def trace_connection_in_dataflow_direction(
@@ -64,3 +72,7 @@ class ConnectionPoint:
 
     def __str__(self):
         return f"{self.connectionDir} -> {self.data}"
+
+    def toJSON(self):
+        connections_json = ", ".join([c.toJSON() for c in self.connections])
+        return f'{{ "data": {self.data.toJSON()}, "connectionDir": "{self.connectionDir.name}", "connections": [{connections_json}] }}'

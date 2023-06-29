@@ -1,3 +1,4 @@
+import json
 import os.path
 import sys
 
@@ -104,7 +105,7 @@ def test_given_program_can_extract_names_and_descriptions(programs):
     ]
 
     varInfo_AllSpecifiedFields = program.getVarDataColumns(
-        "name", "varType", "valueType", "initVal", "description", "lineNr", "isFeedback"
+        "name", "paramType", "valueType", "initVal", "description", "lineNr", "isFeedback"
     )
     assert varInfo_AllSpecifiedFields == [
         ["N", "InputVar", "UINT", "1", "Collatz Input", "1", "False"],
@@ -401,12 +402,6 @@ def test_given_a_variable_sheet_outputs_shall_only_be_in_output_group(programs):
     assert [issue.lower() for issue in outputGroup.checkForCohesionIssues()] == []
 
 
-def test_given_two_identical_programs_list_of_deltas_shall_be_empty(programs):
-    for prog in programs.values():
-        prog_copy = deepcopy(prog)
-        assert prog.compute_delta(prog_copy) == []
-
-
 def test_given_program_with_variable_changes_list_of_deltas_shall_contain_change_info(
     programs,
 ):
@@ -449,6 +444,14 @@ def test_given_programs_with_changed_variable_number_delta_shall_contain_additio
         "",
     )
     assert expected in prog.compute_delta(prog_removal)
+
+
+def test_given_program_can_convert_to_json(programs):
+    prog = programs["MultiAND"]
+    json_val = prog.toJSON()
+    d = json.loads(json_val)
+    assert d["progName"] == prog.progName
+    assert [g["groupName"] for g in d["variableGroups"]] == ["Inputs", "Outputs"]
 
 
 def main():

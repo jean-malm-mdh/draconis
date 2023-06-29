@@ -300,8 +300,8 @@ class MyXMLVisitor(XMLParserVisitor):
 
         startID = None
         if hasOnlyPositionData(elements):
-            toPosition = self.visitElement(elements[0])
-            fromPosition = self.visitElement(elements[1])
+            toPosition = self.visitElement(elements[0])[0]
+            fromPosition = self.visitElement(elements[1])[0]
         elif hasOnlyAdditionalData(elements):
             toPosition = make_absolute_position(-1, -1)
             fromPosition = make_absolute_position(-1, -1)
@@ -309,8 +309,8 @@ class MyXMLVisitor(XMLParserVisitor):
             parsedDataElements = self.parse_addData_node(addDataNode)
             startID, _, _ = parsedDataElements[0]
         else:
-            toPosition = self.visitElement(elements[1])
-            fromPosition = self.visitElement(elements[2])
+            toPosition = self.visitElement(elements[1])[0]
+            fromPosition = self.visitElement(elements[2])[0]
             addDataNode = elements[0]
             parsedDataElements = self.parse_addData_node(addDataNode)
             startID, _, _ = parsedDataElements[0]

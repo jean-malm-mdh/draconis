@@ -1,8 +1,10 @@
+import json
 import logging
 from dataclasses import dataclass
 from typing import List, Tuple, Dict
 import sys
 import os
+
 from fbdobject_base import Point, Rectangle
 from path import PathDivide
 from variables import VariableLine, VariableWorkSheet
@@ -44,6 +46,9 @@ class CommentBox:
     bounding_box: Rectangle
     content: str
 
+    def toJSON(self):
+        return f'{{ "bounding_box": {self.bounding_box.toJSON()}, "comment_content": "{self.content}" }}'
+
 
 @dataclass()
 class Program:
@@ -55,6 +60,31 @@ class Program:
     forward_flow: Dict[str, List[int]]
     lines: List[Tuple[Point, Point]]
     comments: List[CommentBox]
+
+    def toJSON(self):
+        import json
+        var_group_dict = self.varHeader.toJSON()
+        behaviour_id_elements = ", ".join([e.toJSON() for e in self.behaviourElements])
+        lines = ", ".join([f'[{p1.toJSON()}, {p2.toJSON()}]' for p1, p2 in self.lines])
+        comments = ", ".join([com.toJSON() for com in self.comments])
+        json_result = f"""
+        {{
+            "progName": "{self.progName}",
+            "variableGroups": {var_group_dict},
+            "behaviourElements": [
+                {behaviour_id_elements}
+            ],
+            "lines": [{lines}],
+            "comments": [{comments}]
+        }}
+        """
+        return json.dumps(json.loads(json_result), indent=2).replace('"true"', 'true').replace('"false"', 'false')
+
+    @classmethod
+    def fromJSON(cls, json_s):
+        d = json.loads(json_s)
+        pass
+        
 
     def __init__(
             self,
@@ -83,7 +113,7 @@ class Program:
         self.getTrace(direction=DataflowDirection.Forward)
 
     def getVarGroups(self):
-        return self.varHeader.varGroups.values()
+        return self.varHeader.varGroups
 
     def getVarInfo(self):
         """

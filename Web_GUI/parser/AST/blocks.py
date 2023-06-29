@@ -22,6 +22,18 @@ class VarBlock:
     data: FBDObjData
     outConnection: ConnectionPoint
     expr: Expr
+    def toJSON(self):
+        data_json = self.data.toJSON()
+        conn_json = self.outConnection.toJSON()
+        json_res = f"""
+        {{
+            "Type": "{self.getBlockType()}",
+            "data": {data_json},
+            "expr": "{self.getVarExpr()}",
+            "outConnection": {conn_json}
+        }}
+        """
+        return json_res
 
     def getID(self):
         return self.data.localID
@@ -61,6 +73,17 @@ class VarBlock:
 class FBD_Block:
     data: FBDObjData
     varLists: list[ParamList]
+    def toJSON(self):
+        data_json = self.data.toJSON()
+        param_list_json = ", ".join([plist.toJSON() for plist in self.varLists])
+        json_res = f"""
+        {{
+            "Type": "{self.getBlockType()}",
+            "data": {data_json},
+            "varLists": [{param_list_json}]
+        }}
+        """
+        return json_res
 
     def getVariablesOfGivenType(self, queriedType):
         result = []
@@ -144,3 +167,4 @@ class FBD_Block:
 
     def getBlockType(self):
         return "FunctionBlock"
+

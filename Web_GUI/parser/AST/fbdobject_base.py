@@ -20,6 +20,9 @@ class Point:
     def getAsTuple(self):
         return self.x, self.y
 
+    def toJSON(self):
+        return f'{{"x": {self.x}, "y": {self.y} }}'
+
 
 @dataclass
 class Rectangle:
@@ -37,6 +40,9 @@ class Rectangle:
 
     def getAsTuple(self):
         return self.top_left.x, self.top_left.y, self.bot_right.x, self.bot_right.y
+
+    def toJSON(self):
+        return f'{{ "top_left": {self.top_left.toJSON()}, "bot_right": {self.bot_right.toJSON()} }}'
 
     @classmethod
     def check_overlap(cls, rect1, rect2):
@@ -74,3 +80,7 @@ class FBDObjData:
         self.boundary_box = (
             Rectangle(Point(-1, -1), Point(-1, -1)) if graphData is None else graphData
         )
+
+    def toJSON(self):
+        rect_json = self.boundary_box.toJSON()
+        return f'{{ "localID": {self.localID}, "type": "{self.type}", "boundary_box": {rect_json} }}'

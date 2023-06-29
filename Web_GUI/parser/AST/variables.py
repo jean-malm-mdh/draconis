@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 
 from ast_typing import VariableParamType, ValType
@@ -6,17 +7,32 @@ from ast_typing import VariableParamType, ValType
 @dataclass
 class VariableLine:
     name: str
-    varType: VariableParamType
+    paramType: VariableParamType
     valueType: ValType
     initVal: str
     description: str
     lineNr: int
     isFeedback: bool
 
+    def toJSON(self):
+        return f"""{{ "name": "{self.name}", "paramType": "{self.paramType}", "valueType": "{self.valueType}", "initVal": "{self.initVal}", "description": "{self.description}", "lineNr": {self.lineNr}, "isFeedback": "{'true' if self.isFeedback else 'false'}" }}"""
+
+    @classmethod
+    def fromJSON(cls, json_str):
+        import json
+        data = json.loads(json_str)
+        
+        variable_line = cls(name=data["name"], value_type=data["valueType"], var_type=data["paramType"])
+        variable_line.initVal = data["initVal"]
+        variable_line.description = data["description"]
+        variable_line.lineNr = data["lineNr"]
+        variable_line.isFeedback = data["isFeedback"] == "True"
+        return variable_line
+
     def __str__(self):
         _init = "" if self.initVal is None else f" = {self.initVal}"
         _desc = "" if self.description is None else f"Description: '{self.description}'"
-        return f"Var({self.valueType.name} {self.name}: {str(self.varType.name)}{_init}; {_desc})"
+        return f"Var({self.valueType.name} {self.name}: {str(self.paramType.name)}{_init}; {_desc})"
 
     def __init__(
         self,
@@ -29,7 +45,7 @@ class VariableLine:
         isFeedback=False,
     ):
         self.name = name
-        self.varType = var_type
+        self.paramType = var_type
         self.valueType = value_type
         self.initVal = "UNINIT" if init_val is None else init_val
         self.description = description
@@ -42,7 +58,7 @@ class VariableLine:
         same_name = self.name == other.name
         same_feedback = self.isFeedback == other.isFeedback
         same_description = self.description == other.description
-        same_varType = self.varType == other.varType
+        same_varType = self.paramType == other.paramType
         same_initVal = self.initVal == other.initVal
         same_value_type = self.valueType == other.valueType
         return (
@@ -66,7 +82,7 @@ def test_can_create_variable_line_and_get_properties():
         "aVar", VariableParamType.InputVar, ValType.INT, 5, "This is a variable", 3
     )
     assert v.name == "aVar"
-    assert v.varType == VariableParamType.InputVar
+    assert v.paramType == VariableParamType.InputVar
     assert v.valueType == ValType.INT
     assert v.initVal == 5
     assert v.description == "This is a variable"
@@ -76,7 +92,7 @@ def test_can_create_variable_line_and_get_properties():
 def test_some_variable_line_properties_are_optional():
     v = VariableLine("optVar", VariableParamType.InputVar, ValType.UINT)
     assert v.name == "optVar"
-    assert v.varType == VariableParamType.InputVar
+    assert v.paramType == VariableParamType.InputVar
     assert v.valueType == ValType.UINT
     assert v.initVal == 0
     assert v.description is None
@@ -88,6 +104,17 @@ class VariableGroup:
     groupName: str
     groupID: int
     varLines: list[VariableLine]
+
+    def toJSON(self):
+        varLines = ", ".join([v.toJSON() for v in self.varLines])
+        json_result = f"""
+        {{
+            "groupName": "{self.groupName}",
+            "groupID": {self.groupID},
+            "variables": [{varLines}]
+        }}
+        """
+        return json_result
 
     def getName(self):
         return self.groupName
@@ -105,13 +132,13 @@ class VariableGroup:
         result = []
         if self.isOutputGroup():
             for var in self.varLines:
-                if var.varType != VariableParamType.OutputVar:
+                if var.paramType != VariableParamType.OutputVar:
                     result.append(
                         f"Non-output detected in Output group: {var.getName()}"
                     )
         elif self.isInputGroup():
             for var in self.varLines:
-                if var.varType != VariableParamType.InputVar:
+                if var.paramType != VariableParamType.InputVar:
                     result.append(f"Non-input detected in Input group: {var.getName()}")
         return result
 
@@ -122,11 +149,15 @@ class VariableGroup:
 
 @dataclass
 class VariableWorkSheet:
-    varGroups: dict[int, VariableGroup]
+    varGroups: list[VariableGroup]
 
+    def toJSON(self, indent=4):
+        groups_json_str = ",".join([g.toJSON() for g in self.varGroups])
+        json_result = f"""[{groups_json_str}]"""
+        return json_result
     def getAllVariables(self):
         result = []
-        for _, group in self.varGroups.items():
+        for group in self.varGroups:
             result.extend(group.varLines)
         return result
 
@@ -138,19 +169,19 @@ class VariableWorkSheet:
         return None
 
     def getVarsByType(self, vType: VariableParamType):
-        return list((filter(lambda e: e.varType == vType, self.getAllVariables())))
+        return list((filter(lambda e: e.paramType == vType, self.getAllVariables())))
 
     def __str__(self):
         return "\n".join(
             [
-                f"Group {groupNr}:\n{groupContent}"
-                for groupNr, groupContent in self.varGroups.items()
+                f"{groupContent}"
+                for groupContent in self.varGroups
             ]
         )
 
     def evaluate_cohesion_of_sheet(self):
         result = []
-        for groupNr, groupContent in self.varGroups.items():
+        for groupContent in self.varGroups:
             groupCheck = groupContent.checkForCohesionIssues()
             if groupCheck:
                 result.extend(groupCheck)
@@ -160,7 +191,7 @@ class VariableWorkSheet:
         result = []
         # Check if inputs and output groups actually exist
         inputFound, outputFound = False, False
-        for group in self.varGroups.values():
+        for group in self.varGroups:
             inputFound = inputFound or group.isInputGroup()
             outputFound = outputFound or group.isOutputGroup()
         if not self.getVarsByType(VariableParamType.InputVar):

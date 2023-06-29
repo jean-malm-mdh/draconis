@@ -101,9 +101,7 @@
 
 {% if Image %}
 {% load static %}
-<img src="{% static 'images/tmp.png' %}" alt="Image of FBD">
-{% else %}
-<-- No image file found -->
+<img src="{% static 'images/tmp.png' %}" alt="Image of {{file_name}} not found">
 {% endif %}
 </body>
 
