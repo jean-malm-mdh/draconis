@@ -77,7 +77,6 @@ class MyPOUVisitor(POUVisitor):
             self.visitVal_Type(ctx.valueType),
             initVal,
             desc,
-            int(str(ctx.lineNr.text)),
             isFeedback,
         )
 

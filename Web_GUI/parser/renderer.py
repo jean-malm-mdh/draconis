@@ -34,7 +34,7 @@ class DrawContext:
         self.image.save(path)
 
     def draw_text_centered(
-            self, msg, position: Tuple[int, int], font_name, col="black"
+        self, msg, position: Tuple[int, int], font_name, col="black"
     ):
         font = self.fonts.get(font_name, None) or self.fonts["__DEFAULT__"]
         text_width, text_height = self.canvas.textsize(msg, font)
@@ -53,7 +53,9 @@ class DrawContext:
         r, b = r_b
         self.canvas.rectangle((l, t, r, b), outline=col, width=width)
 
-    def render_message_box(self, pos_left_up:Tuple[int, int], header_msg, message, color, maxWidth):
+    def render_message_box(
+        self, pos_left_up: Tuple[int, int], header_msg, message, color, maxWidth
+    ):
         def isWS_Or_Punct(c):
             return not c.isalnum()
 
@@ -63,17 +65,17 @@ class DrawContext:
                 message_len = len(_message)
                 msg_split_point = message_len // 2
                 while msg_split_point < message_len and not isWS_Or_Punct(
-                        _message[msg_split_point]
+                    _message[msg_split_point]
                 ):
                     msg_split_point += 1
                 if msg_split_point == message_len:
                     msg_split_point = message_len // 2
                     while msg_split_point >= 0 and not isWS_Or_Punct(
-                            _message[msg_split_point]
+                        _message[msg_split_point]
                     ):
                         msg_split_point -= 1
                 _message = (
-                        _message[:msg_split_point] + "\n" + _message[msg_split_point:]
+                    _message[:msg_split_point] + "\n" + _message[msg_split_point:]
                 )
                 _msg_width, _msg_height = draw.textsize(_message, header_font)
             return _message, _msg_width, _msg_height
@@ -92,16 +94,30 @@ class DrawContext:
                 l + message_max_width,
                 t + header_height + message_height + header_message_offset_height,
             )
-            return b, header_height, header_message_offset_height, header_msg, l, message, r, t
+            return (
+                b,
+                header_height,
+                header_message_offset_height,
+                header_msg,
+                l,
+                message,
+                r,
+                t,
+            )
 
         draw = self.canvas
         header_font = self.fonts["__HEADER__"]
         font = self.fonts["__DEFAULT__"]
-        b, header_height, header_message_offset_height, header_msg, l, message, r, t = position_message(font,
-                                                                                                        header_font,
-                                                                                                        header_msg,
-                                                                                                        maxWidth,
-                                                                                                        message)
+        (
+            b,
+            header_height,
+            header_message_offset_height,
+            header_msg,
+            l,
+            message,
+            r,
+            t,
+        ) = position_message(font, header_font, header_msg, maxWidth, message)
         self.draw_rect_filled(pos_left_up, (r, b), col=color)
         draw.text((l, t), header_msg, fill="black", font=header_font)
         draw.text(
@@ -166,7 +182,7 @@ def render_blocks(blocks, draw_context):
 
 
 def generate_image_of_program(
-        program: Program, img_result_path: str, scale=1.0, generate_report_in_image=False
+    program: Program, img_result_path: str, scale=1.0, generate_report_in_image=False
 ):
     """
     Generate an image of the program
@@ -207,9 +223,13 @@ def generate_image_of_program(
 
     # Render comment boxes
     for comment in program.comments:
-        draw_context.render_message_box((comment.bounding_box.top_left.x, comment.bounding_box.top_left.y),
-                                        message=comment.content, color="lightblue", header_msg="",
-                                        maxWidth=scaler(comment.bounding_box.getSize().x))
+        draw_context.render_message_box(
+            (comment.bounding_box.top_left.x, comment.bounding_box.top_left.y),
+            message=comment.content,
+            color="lightblue",
+            header_msg="",
+            maxWidth=scaler(comment.bounding_box.getSize().x),
+        )
 
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
@@ -251,9 +271,7 @@ def get_program_width_height(program, min_size=100):
 
 def render_block(aBlock, scalerFunc, font: ImageFont, canvas: ImageDraw):
     def render_fbd_block(block):
-        def draw_port_box(
-                port_coord, block_left_coord, block_top_coord, color
-        ):
+        def draw_port_box(port_coord, block_left_coord, block_top_coord, color):
             port_box_width, port_box_height = map(scalerFunc, (4, 2))
             offset_x, offset_y = map(
                 scalerFunc, (port_coord.data.position.x, port_coord.data.position.y)

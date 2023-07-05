@@ -11,6 +11,20 @@ class VariableParamType(IntEnum):
     def __str__(self):
         return self.name
 
+    @classmethod
+    def fromString(cls, aString):
+        match aString:
+            case "UNSET":
+                return VariableParamType.UNSET
+            case "InternalVar":
+                return VariableParamType.InternalVar
+            case "InputVar":
+                return VariableParamType.InputVar
+            case "OutputVar":
+                return VariableParamType.OutputVar
+            case "InOutVar":
+                return VariableParamType.InOutVar
+
 
 class ValType(IntEnum):
     BOOL = 1
@@ -60,6 +74,78 @@ class ValType(IntEnum):
 
     def isSafeValueType(self):
         return "SAFE" in self.name
+
+    @classmethod
+    def fromString(cls, aString):
+        match aString:
+            case "BOOL":
+                return ValType.BOOL
+            case "BYTE":
+                return ValType.BYTE
+            case "WORD":
+                return ValType.WORD
+            case "DWORD":
+                return ValType.DWORD
+            case "LWORD":
+                return ValType.LWORD
+            case "SINT":
+                return ValType.SINT
+            case "INT":
+                return ValType.INT
+            case "DINT":
+                return ValType.DINT
+            case "LINT":
+                return ValType.LINT
+            case "USINT":
+                return ValType.USINT
+            case "UINT":
+                return ValType.UINT
+            case "UDINT":
+                return ValType.UDINT
+            case "ULINT":
+                return ValType.ULINT
+            case "REAL":
+                return ValType.REAL
+            case "LREAL":
+                return ValType.LREAL
+            case "TIME":
+                return ValType.TIME
+            case "DATE":
+                return ValType.DATE
+            case "DT":
+                return ValType.DT
+            case "TOD":
+                return ValType.TOD
+            case "STRING":
+                return ValType.STRING
+            case "WSTRING":
+                return ValType.WSTRING
+            case "SAFEANALOG":
+                return ValType.SAFEANALOG
+            case "SAFEBOOL":
+                return ValType.SAFEBOOL
+            case "SAFEBYTE":
+                return ValType.SAFEBYTE
+            case "SAFEDWORD":
+                return ValType.SAFEDWORD
+            case "SAFEWORD":
+                return ValType.SAFEWORD
+            case "SAFEINT":
+                return ValType.SAFEINT
+            case "SAFESINT":
+                return ValType.SAFESINT
+            case "SAFEDINT":
+                return ValType.SAFEDINT
+            case "SAFEUSINT":
+                return ValType.SAFEUSINT
+            case "SAFEUINT":
+                return ValType.SAFEUINT
+            case "SAFEUDINT":
+                return ValType.SAFEUDINT
+            case "SAFETIME":
+                return ValType.SAFETIME
+            case "CUSTOM_FBD":
+                return ValType.CUSTOM_FBD
 
 
 class DataflowDirection(IntEnum):

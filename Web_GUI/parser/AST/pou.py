@@ -52,6 +52,7 @@ class CommentBox:
     @classmethod
     def fromJSON(cls, json_string):
         import json
+
         d = json.loads(json_string)
         cont = d["comment_content"]
         rect = Rectangle.fromJSON(d["bounding_box"])
@@ -71,9 +72,10 @@ class Program:
 
     def toJSON(self):
         import json
+
         var_group_dict = self.varHeader.toJSON()
         behaviour_id_elements = ", ".join([e.toJSON() for e in self.behaviourElements])
-        lines = ", ".join([f'[{p1.toJSON()}, {p2.toJSON()}]' for p1, p2 in self.lines])
+        lines = ", ".join([f"[{p1.toJSON()}, {p2.toJSON()}]" for p1, p2 in self.lines])
         comments = ", ".join([com.toJSON() for com in self.comments])
         json_result = f"""
         {{
@@ -86,21 +88,24 @@ class Program:
             "comments": [{comments}]
         }}
         """
-        return json.dumps(json.loads(json_result), indent=2).replace('"true"', 'true').replace('"false"', 'false')
+        return (
+            json.dumps(json.loads(json_result), indent=2)
+            .replace('"true"', "true")
+            .replace('"false"', "false")
+        )
 
     @classmethod
     def fromJSON(cls, json_s):
         d = json.loads(json_s)
         pass
-        
 
     def __init__(
-            self,
-            name,
-            varWorkSheet,
-            behaviourElementList=None,
-            behaviourIDMap=None,
-            lines=None,
+        self,
+        name,
+        varWorkSheet,
+        behaviourElementList=None,
+        behaviourIDMap=None,
+        lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -192,7 +197,7 @@ class Program:
         """
 
         def split_paths(
-                paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 for subPath in computed_subpaths:
@@ -227,8 +232,8 @@ class Program:
                     )
 
                     if (
-                            current_entity
-                            and current_entity.getBlockType() == "FunctionBlock"
+                        current_entity
+                        and current_entity.getBlockType() == "FunctionBlock"
                     ):
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
@@ -238,7 +243,7 @@ class Program:
                             self.behaviour_id_map[e[0][0]]
                             for _, e in interface_vars_startIDs
                             if self.behaviour_id_map[e[0][0]].getBlockType()
-                               == "FunctionBlock"
+                            == "FunctionBlock"
                         ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
@@ -262,7 +267,7 @@ class Program:
                         split_point = indexOrNone(rem, rem[count], split_point)
                     _result.append(
                         PathDivide(
-                            [rem[count:last_split_point], rem[last_split_point + 1:]]
+                            [rem[count:last_split_point], rem[last_split_point + 1 :]]
                         )
                     )
                     return [_result]
@@ -437,7 +442,7 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                    "name", "varType", "valueType", "initVal", "description"
+                "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
@@ -459,7 +464,7 @@ class Program:
         metrics = self.getMetrics()
 
         def evaluate_rule(
-                ruleName, defaultVerdict, defaultJustification, evaluate_func
+            ruleName, defaultVerdict, defaultJustification, evaluate_func
         ):
             verdict = defaultVerdict
             justification = defaultJustification

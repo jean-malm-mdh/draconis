@@ -22,6 +22,7 @@ class VarBlock:
     data: FBDObjData
     outConnection: ConnectionPoint
     expr: Expr
+
     def toJSON(self):
         data_json = self.data.toJSON()
         conn_json = self.outConnection.toJSON()
@@ -73,6 +74,7 @@ class VarBlock:
 class FBD_Block:
     data: FBDObjData
     varLists: list[ParamList]
+
     def toJSON(self):
         data_json = self.data.toJSON()
         param_list_json = ", ".join([plist.toJSON() for plist in self.varLists])
@@ -167,4 +169,3 @@ class FBD_Block:
 
     def getBlockType(self):
         return "FunctionBlock"
-

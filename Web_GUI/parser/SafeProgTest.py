@@ -92,30 +92,28 @@ def test_given_program_can_extract_names_and_descriptions(programs):
     """Boundary Values"""
     varInfo_noSpecifiedFields = program.getVarDataColumns()
     assert varInfo_noSpecifiedFields == [
-        ["N", "InputVar", "UINT", "1", "Collatz Input", "1", "False"],
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "False"],
         [
             "Result_Even",
             "OutputVar",
             "UINT",
             "0",
             "Result if the input is an even number",
-            "3",
             "False",
         ],
     ]
 
     varInfo_AllSpecifiedFields = program.getVarDataColumns(
-        "name", "paramType", "valueType", "initVal", "description", "lineNr", "isFeedback"
+        "name", "paramType", "valueType", "initVal", "description", "isFeedback"
     )
     assert varInfo_AllSpecifiedFields == [
-        ["N", "InputVar", "UINT", "1", "Collatz Input", "1", "False"],
+        ["N", "InputVar", "UINT", "1", "Collatz Input", "False"],
         [
             "Result_Even",
             "OutputVar",
             "UINT",
             "0",
             "Result if the input is an even number",
-            "3",
             "False",
         ],
     ]

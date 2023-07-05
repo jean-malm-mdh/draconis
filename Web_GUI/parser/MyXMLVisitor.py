@@ -83,6 +83,7 @@ class MyXMLVisitor(XMLParserVisitor):
         p_node = body_node.content().element()[0]
         comment_content = p_node.content().getText()
         return comment_content
+
     # Visit a parse tree produced by XMLParser#document.
     def visitDocument(self, ctx: XMLParser.DocumentContext):
         # For now, we do not care about other parts of the document than the element node
@@ -186,7 +187,13 @@ class MyXMLVisitor(XMLParserVisitor):
                 elements_attrib_pairs = [self.visitElement(e) for e in cont.element()]
                 position = elements_attrib_pairs[0][0]
                 _comment_content = elements_attrib_pairs[1][0]
-                bounding_box = Rectangle(Point(position.x, position.y), Point(position.x+int(attrs["width"]), position.y+int(attrs["height"])))
+                bounding_box = Rectangle(
+                    Point(position.x, position.y),
+                    Point(
+                        position.x + int(attrs["width"]),
+                        position.y + int(attrs["height"]),
+                    ),
+                )
                 comment = CommentBox(bounding_box, _comment_content)
                 self.comments.append(comment)
             elif "content" == name:
@@ -195,7 +202,6 @@ class MyXMLVisitor(XMLParserVisitor):
             else:
                 logging.warning(str(ctx) + " is not parsed - tag name:" + name)
             return result
-
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
