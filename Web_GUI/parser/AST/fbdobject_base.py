@@ -1,3 +1,4 @@
+import random
 from dataclasses import dataclass
 from position import GUIPosition, make_relative_position
 
@@ -98,3 +99,28 @@ class FBDObjData:
     def toJSON(self):
         rect_json = self.boundary_box.toJSON()
         return f'{{ "localID": {self.localID}, "type": "{self.type}", "boundary_box": {rect_json} }}'
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        import json
+        data = json.loads(json_string)
+        return FBDObjData(data["localID"], data["type"], Rectangle.fromJSON(data["boundary_box"]))
+
+def test_PointToJSON():
+    import json
+    rand = random.Random()
+    for i in range(1000):
+        p = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
+        p_json = json.loads(p.toJSON())
+        assert p_json["x"] == p.x
+        assert p_json["y"] == p.y
+def test_RectToJSON():
+    import json
+    rand = random.Random()
+    for i in range(1000):
+        p_lefttop = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
+        p_rightbot = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
+        rect = Rectangle(p_lefttop, p_rightbot)
+        r_json = json.loads(rect.toJSON())
+        assert r_json["top_left"] == json.loads(rect.top_left.toJSON())
+        assert r_json["bot_right"] == json.loads(rect.bot_right.toJSON())
