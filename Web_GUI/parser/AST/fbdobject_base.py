@@ -1,6 +1,11 @@
 import random
 from dataclasses import dataclass
+
+import pytest
+
 from position import GUIPosition, make_relative_position
+import json
+
 
 
 @dataclass
@@ -52,7 +57,6 @@ class Rectangle:
         return f'{{ "top_left": {self.top_left.toJSON()}, "bot_right": {self.bot_right.toJSON()} }}'
     @classmethod
     def fromJSON(cls, json_string):
-        import json
         d = json.loads(json_string)
         lt = Point.fromJSON(d["top_left"])
         rb = Point.fromJSON(d["bot_right"])
@@ -102,25 +106,45 @@ class FBDObjData:
 
     @classmethod
     def fromJSON(cls, json_string):
-        import json
         data = json.loads(json_string)
         return FBDObjData(data["localID"], data["type"], Rectangle.fromJSON(data["boundary_box"]))
 
-def test_PointToJSON():
-    import json
+
+@pytest.fixture(scope="session", autouse=True)
+def rand_tc():
     rand = random.Random()
+    rand.seed(1337)
+    return rand
+
+
+TC_INT_BOUND = 10000
+def test_PointToJSONAndBack(rand_tc):
     for i in range(1000):
-        p = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
+        p = Point(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND))
         p_json = json.loads(p.toJSON())
         assert p_json["x"] == p.x
         assert p_json["y"] == p.y
-def test_RectToJSON():
-    import json
-    rand = random.Random()
+def test_RectToJSONAndBack(rand_tc):
     for i in range(1000):
-        p_lefttop = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
-        p_rightbot = Point(rand.randint(-10000, 10000), rand.randint(-10000, 10000))
+        p_lefttop = Point(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND))
+        p_rightbot = Point(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND))
         rect = Rectangle(p_lefttop, p_rightbot)
         r_json = json.loads(rect.toJSON())
-        assert r_json["top_left"] == json.loads(rect.top_left.toJSON())
-        assert r_json["bot_right"] == json.loads(rect.bot_right.toJSON())
+        assert r_json["top_left"] == {"x": rect.top_left.x, "y": rect.top_left.y}
+        assert r_json["bot_right"] == {"x": rect.bot_right.x, "y": rect.bot_right.y}
+
+def test_objDataToJSONAndBack(rand_tc):
+    for i in range(1000):
+        rect = Rectangle(Point(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND)),
+                Point(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND)))
+        obj = FBDObjData(
+            rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
+            "test",
+            rect
+        )
+        res = json.loads(obj.toJSON())
+        assert res["localID"] == obj.localID
+        assert res["type"] == obj.type
+        assert res["boundary_box"] == json.loads(obj.boundary_box.toJSON())
+
+
