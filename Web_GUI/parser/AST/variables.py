@@ -1,5 +1,8 @@
 import json
 from dataclasses import dataclass
+from random import Random
+
+import pytest
 
 from ast_typing import VariableParamType, ValType
 
@@ -11,7 +14,6 @@ class VariableLine:
     valueType: ValType
     initVal: str
     description: str
-    lineNr: int
     isFeedback: bool
 
     def toJSON(self):
@@ -22,10 +24,9 @@ class VariableLine:
         import json
         data = json.loads(json_str)
         
-        variable_line = cls(name=data["name"], value_type=data["valueType"], var_type=data["paramType"])
+        variable_line = cls(name=data["name"], value_type=ValType.fromString(data["valueType"]), var_type=VariableParamType.fromString(data["paramType"]))
         variable_line.initVal = data["initVal"]
         variable_line.description = data["description"]
-        variable_line.lineNr = data["lineNr"]
         variable_line.isFeedback = data["isFeedback"] == "True"
         return variable_line
 
@@ -41,7 +42,6 @@ class VariableLine:
         value_type,
         init_val=None,
         description=None,
-        line_nr=None,
         isFeedback=False,
     ):
         self.name = name
@@ -49,7 +49,6 @@ class VariableLine:
         self.valueType = value_type
         self.initVal = "UNINIT" if init_val is None else init_val
         self.description = description
-        self.lineNr = line_nr
         self.isFeedback = isFeedback
 
     def __eq__(self, other):
@@ -79,14 +78,13 @@ class VariableLine:
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
-        "aVar", VariableParamType.InputVar, ValType.INT, 5, "This is a variable", 3
+        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable", 3
     )
     assert v.name == "aVar"
     assert v.paramType == VariableParamType.InputVar
     assert v.valueType == ValType.INT
-    assert v.initVal == 5
+    assert v.initVal == "5"
     assert v.description == "This is a variable"
-    assert v.lineNr == 3
 
 
 def test_some_variable_line_properties_are_optional():
@@ -94,9 +92,21 @@ def test_some_variable_line_properties_are_optional():
     assert v.name == "optVar"
     assert v.paramType == VariableParamType.InputVar
     assert v.valueType == ValType.UINT
-    assert v.initVal == 0
+    assert v.initVal == "UNINIT"
     assert v.description is None
-    assert v.lineNr is None
+
+@pytest.fixture(scope="session", autouse=True)
+def rand_tc():
+    rand = Random()
+    rand.seed(1337)
+    return rand
+def test_from_variable_to_JSON_and_back():
+    aVar = VariableLine(
+        "aVar", VariableParamType.InputVar, ValType.INT, 5, "This is a variable"
+    )
+    actual = VariableLine.fromJSON(aVar.toJSON())
+    assert actual == aVar
+
 
 
 @dataclass
