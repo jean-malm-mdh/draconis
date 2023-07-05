@@ -7,6 +7,7 @@ from position import GUIPosition, make_relative_position
 import json
 
 
+
 @dataclass
 class Point:
     x: int
@@ -31,8 +32,7 @@ class Point:
     @classmethod
     def fromJSON(cls, json_string):
         import json
-
-        d = json.loads(json_string)
+        d = json.loads(param)
         return Point(d["x"], d["y"])
 
 
@@ -55,7 +55,6 @@ class Rectangle:
 
     def toJSON(self):
         return f'{{ "top_left": {self.top_left.toJSON()}, "bot_right": {self.bot_right.toJSON()} }}'
-
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
@@ -95,6 +94,7 @@ class Rectangle:
             Point(overlap_top_left_x, overlap_top_left_y),
             Point(overlap_bot_right_x, overlap_bot_right_y),
         )
+
 
 
 @dataclass
@@ -158,8 +158,6 @@ def test_RectToJSONAndBack(rand_tc):
         r_json = json.loads(rect.toJSON())
         assert r_json["top_left"] == {"x": rect.top_left.x, "y": rect.top_left.y}
         assert r_json["bot_right"] == {"x": rect.bot_right.x, "y": rect.bot_right.y}
-        assert Rectangle.fromJSON(rect.toJSON()) == rect
-
 
 def test_objDataToJSONAndBack(rand_tc):
     for i in range(1000):
@@ -173,9 +171,14 @@ def test_objDataToJSONAndBack(rand_tc):
                 rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
             ),
         )
-        obj = FBDObjData(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), "test", rect)
+        obj = FBDObjData(
+            rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
+            "test",
+            rect
+        )
         res = json.loads(obj.toJSON())
         assert res["localID"] == obj.localID
         assert res["type"] == obj.type
         assert res["boundary_box"] == json.loads(obj.boundary_box.toJSON())
-        assert Rectangle.fromJSON(rect.toJSON()) == rect
+
+

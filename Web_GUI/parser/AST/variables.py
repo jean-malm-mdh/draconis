@@ -198,7 +198,12 @@ class VariableWorkSheet:
         return list((filter(lambda e: e.paramType == vType, self.getAllVariables())))
 
     def __str__(self):
-        return "\n".join([f"{groupContent}" for groupContent in self.varGroups])
+        return "\n".join(
+            [
+                f"{groupContent}"
+                for groupContent in self.varGroups
+            ]
+        )
 
     def evaluate_cohesion_of_sheet(self):
         result = []
