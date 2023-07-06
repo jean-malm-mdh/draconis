@@ -9,7 +9,7 @@ from antlr_generated.python.XMLParser import XMLParser
 import logging
 
 from Web_GUI.parser.AST.ast_typing import VariableParamType
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData, GUIPosition, Rectangle, Point
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData, Rectangle, Point
 from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import (
     ConnectionDirection,

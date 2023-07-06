@@ -1,16 +1,15 @@
 import json
 from dataclasses import dataclass
 import sys
-
-sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser")
-from Web_GUI.parser.AST.ast_typing import VariableParamType, DataflowDirection
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData, Point, Rectangle
-from Web_GUI.parser.AST.connections import (
+import os
+from ast_typing import VariableParamType, DataflowDirection
+from fbdobject_base import FBDObjData, Point, Rectangle
+from connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
     trace_connection_in_dataflow_direction_list_version, ConnectionDirection,
 )
-from Web_GUI.parser.AST.formalparam import ParamList
+from formalparam import ParamList
 
 
 @dataclass
