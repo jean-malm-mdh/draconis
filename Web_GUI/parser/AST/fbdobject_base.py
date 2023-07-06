@@ -4,13 +4,9 @@ from dataclasses import dataclass
 
 import pytest
 
-from position import GUIPosition, make_relative_position
+from Web_GUI.parser.AST.utilities import swap_in_string
 import json
 
-
-def swap_in_string(s, s1, s2):
-    dummyString = "€€€&&ASDFGHJK"
-    return s.replace(f"{s1}", dummyString).replace(f'{s2}', f"{s1}").replace(dummyString, f'{s2}')
 
 @dataclass
 class Point:

@@ -39,7 +39,26 @@ class ConnectionData:
         return f"Conn - {self.position} - {self.connectionIndex}"
 
     def toJSON(self):
-        return f"""{{ "position": {self.position.toJSON()}, "connectionIndex": "{self.connectionIndex}" }}"""
+        import json
+
+        return f"""{{ "position": {self.position.toJSON()}, "connectionIndex": "{json.dumps(self.connectionIndex)}" }}"""
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        import json
+        d = json.loads(json_string)
+        pos = GUIPosition.fromJSON(d["position"])
+        connIndex = d["connectionIndex"]
+
+def test_fromConnectionData_to_json_and_back():
+    from random import Random
+    r = Random()
+    for i in range(1000):
+        gui_p = GUIPosition(bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000))
+        ind = r.randint(-10, 100)
+        connIndex = None if ind < 0 else ind
+        cd = ConnectionData(gui_p, connIndex)
+        assert ConnectionData.fromJSON(cd.toJSON()) == cd
 
 
 @dataclass
@@ -90,4 +109,4 @@ class ConnectionPoint:
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
-        return ConnectionPoint(connectionDir=ConnectionDirection.FromString(d["connectionDir"]))
+        return ConnectionPoint(connectionDir=ConnectionDirection.FromString(d["connectionDir"]), connections=[], data=ConnectionData.fromJSON(d["data"]))

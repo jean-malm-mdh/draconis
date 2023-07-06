@@ -2,8 +2,6 @@ import sys
 
 from antlr4 import InputStream, CommonTokenStream
 
-print(sys.path)
-sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser/Web_GUI/parser")
 import MyPOUVisitor
 import MyXMLVisitor
 from antlr_generated.python import POULexer, POUParser
