@@ -18,7 +18,8 @@ class GUIPosition:
 
     @classmethod
     def fromJSON(cls, json_string):
-        d = json.loads(json_string)
+        json_string_booleanfixed = json_string.replace("True,", "true,").replace("False,", "false,")
+        d = json.loads(json_string_booleanfixed)
         return GUIPosition(d["isRelativePosition"], d["x"], d["y"])
 
 

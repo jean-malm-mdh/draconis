@@ -29,6 +29,12 @@ class FormalParam:
     def getID(self):
         return self.ID
 
+    @classmethod
+    def fromJSON(cls, pm_json):
+        import json
+        d = json.loads(pm_json)
+        return FormalParam(d["name"], ConnectionPoint.fromJSON(d["connectionPoint"]), d["ID"], d["data"])
+
 
 @dataclass
 class ParamList:
@@ -47,3 +53,11 @@ class ParamList:
             "list": [{paramlist_json}]
         }}
         """
+
+    @classmethod
+    def FromJSON(cls, p_json):
+        import json
+        d = json.loads(p_json)
+        parList = [FormalParam.fromJSON(pm_json) for pm_json in d["list"]]
+        return ParamList(varType=VariableParamType.fromString(d["varType"]), list=parList)
+        pass

@@ -1,7 +1,5 @@
 import json
 from dataclasses import dataclass
-import sys
-import os
 from ast_typing import VariableParamType, DataflowDirection
 from fbdobject_base import FBDObjData, Point, Rectangle
 from connections import (
