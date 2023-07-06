@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from enum import IntEnum
 from typing import Optional
@@ -12,6 +13,15 @@ class ConnectionDirection(IntEnum):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def FromString(cls, param):
+        match param:
+            case "Input":
+                return ConnectionDirection.Input
+            case "Output":
+                return ConnectionDirection.Output
+        raise ValueError(f"String {param} not matched for ConnectionDirection Conversion")
 
 
 @dataclass
@@ -76,3 +86,8 @@ class ConnectionPoint:
     def toJSON(self):
         connections_json = ", ".join([c.toJSON() for c in self.connections])
         return f'{{ "data": {self.data.toJSON()}, "connectionDir": "{self.connectionDir.name}", "connections": [{connections_json}] }}'
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        d = json.loads(json_string)
+        return ConnectionPoint(connectionDir=ConnectionDirection.FromString(d["connectionDir"]))

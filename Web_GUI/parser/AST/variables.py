@@ -56,24 +56,6 @@ class VariableLine:
         self.description = description
         self.isFeedback = isFeedback
 
-    def __eq__(self, other):
-        if not isinstance(other, VariableLine):
-            return False
-        same_name = self.name == other.name
-        same_feedback = self.isFeedback == other.isFeedback
-        same_description = self.description == other.description
-        same_varType = self.paramType == other.paramType
-        same_initVal = self.initVal == other.initVal
-        same_value_type = self.valueType == other.valueType
-        return (
-            same_name
-            and same_feedback
-            and same_description
-            and same_varType
-            and same_value_type
-            and same_initVal
-        )
-
     def __hash__(self):
         return hash(self.name)
 
@@ -83,13 +65,14 @@ class VariableLine:
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
-        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable", 3
+        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable", isFeedback=True
     )
     assert v.name == "aVar"
     assert v.paramType == VariableParamType.InputVar
     assert v.valueType == ValType.INT
     assert v.initVal == "5"
     assert v.description == "This is a variable"
+    assert v.isFeedback == True
 
 
 def test_some_variable_line_properties_are_optional():
@@ -110,7 +93,7 @@ def rand_tc():
 
 def test_from_variable_to_JSON_and_back():
     aVar = VariableLine(
-        "aVar", VariableParamType.InputVar, ValType.INT, 5, "This is a variable"
+        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable"
     )
     actual = VariableLine.fromJSON(aVar.toJSON())
     assert actual == aVar

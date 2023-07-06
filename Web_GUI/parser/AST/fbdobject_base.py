@@ -1,3 +1,4 @@
+import dataclasses
 import random
 from dataclasses import dataclass
 
@@ -7,6 +8,9 @@ from position import GUIPosition, make_relative_position
 import json
 
 
+def swap_in_string(s, s1, s2):
+    dummyString = "€€€&&ASDFGHJK"
+    return s.replace(f"{s1}", dummyString).replace(f'{s2}', f"{s1}").replace(dummyString, f'{s2}')
 
 @dataclass
 class Point:
@@ -27,12 +31,12 @@ class Point:
         return self.x, self.y
 
     def toJSON(self):
-        return f'{{"x": {self.x}, "y": {self.y} }}'
+        return json.dumps(dataclasses.asdict(self))
 
     @classmethod
     def fromJSON(cls, json_string):
         import json
-        d = json.loads(param)
+        d = json.loads(json_string)
         return Point(d["x"], d["y"])
 
 
@@ -54,21 +58,15 @@ class Rectangle:
         return self.top_left.x, self.top_left.y, self.bot_right.x, self.bot_right.y
 
     def toJSON(self):
-        return f'{{ "top_left": {self.top_left.toJSON()}, "bot_right": {self.bot_right.toJSON()} }}'
+        return json.dumps(dataclasses.asdict(self))
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
+        string = swap_in_string(str(d["top_left"]), "'", '"')
         lt = Point.fromJSON(
-            str(d["top_left"])
-            .replace("'", "€€€&&")
-            .replace('"', "'")
-            .replace("€€€&&", '"')
-        )
+            string)
         rb = Point.fromJSON(
-            str(d["bot_right"])
-            .replace("'", "€€€&&")
-            .replace('"', "'")
-            .replace("€€€&&", '"')
+            swap_in_string(str(d["bot_right"]), "'", '"')
         )
         return Rectangle(lt, rb)
 
@@ -111,14 +109,14 @@ class FBDObjData:
         )
 
     def toJSON(self):
-        rect_json = self.boundary_box.toJSON()
-        return f'{{ "localID": {self.localID}, "type": "{self.type}", "boundary_box": {rect_json} }}'
+        return json.dumps(dataclasses.asdict(self))
 
     @classmethod
     def fromJSON(cls, json_string):
         data = json.loads(json_string)
+        rectData = str(data["boundary_box"]).replace("'", "€€€&&").replace('"', "'").replace("€€€&&", '"')
         return FBDObjData(
-            data["localID"], data["type"], Rectangle.fromJSON(data["boundary_box"])
+            data["localID"], data["type"], Rectangle.fromJSON(rectData)
         )
 
 
@@ -139,8 +137,6 @@ def test_PointToJSONAndBack(rand_tc):
             rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
         )
         p_json = json.loads(p.toJSON())
-        assert p_json["x"] == p.x
-        assert p_json["y"] == p.y
         assert Point.fromJSON(p.toJSON()) == p
 
 
@@ -155,9 +151,7 @@ def test_RectToJSONAndBack(rand_tc):
             rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
         )
         rect = Rectangle(p_lefttop, p_rightbot)
-        r_json = json.loads(rect.toJSON())
-        assert r_json["top_left"] == {"x": rect.top_left.x, "y": rect.top_left.y}
-        assert r_json["bot_right"] == {"x": rect.bot_right.x, "y": rect.bot_right.y}
+        assert Rectangle.fromJSON(rect.toJSON()) == rect
 
 def test_objDataToJSONAndBack(rand_tc):
     for i in range(1000):
@@ -180,5 +174,6 @@ def test_objDataToJSONAndBack(rand_tc):
         assert res["localID"] == obj.localID
         assert res["type"] == obj.type
         assert res["boundary_box"] == json.loads(obj.boundary_box.toJSON())
+        assert FBDObjData.fromJSON(obj.toJSON()) == obj
 
 

@@ -1,13 +1,14 @@
+import json
 from dataclasses import dataclass
 import sys
 
 sys.path.append("/Users/jmm01/Documents/SmartDelta/safeprogparser")
 from Web_GUI.parser.AST.ast_typing import VariableParamType, DataflowDirection
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from Web_GUI.parser.AST.fbdobject_base import FBDObjData, Point, Rectangle
 from Web_GUI.parser.AST.connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
-    trace_connection_in_dataflow_direction_list_version,
+    trace_connection_in_dataflow_direction_list_version, ConnectionDirection,
 )
 from Web_GUI.parser.AST.formalparam import ParamList
 
@@ -16,10 +17,27 @@ from Web_GUI.parser.AST.formalparam import ParamList
 class Expr:
     expr: str
 
+@dataclass
+class Block:
+    data: FBDObjData
+
+    def getBlockType(self):
+        raise NotImplementedError("Implement in Child classes")
+
+    def getID(self):
+        return self.data.localID
+
+    def getFlow(self, data_flow_dir: DataflowDirection):
+        raise NotImplementedError("Implement in Child classes")
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        raise NotImplementedError("Implement in Child classes")
+
+
 
 @dataclass
-class VarBlock:
-    data: FBDObjData
+class VarBlock(Block):
     outConnection: ConnectionPoint
     expr: Expr
 
@@ -35,9 +53,6 @@ class VarBlock:
         }}
         """
         return json_res
-
-    def getID(self):
-        return self.data.localID
 
     def getVarExpr(self):
         return self.expr.expr
@@ -69,10 +84,19 @@ class VarBlock:
     def getBlockType(self):
         return "Port"
 
+    @classmethod
+    def fromJSON(cls, json_string):
+        d = json.loads(json_string)
+        vb = VarBlock(FBDObjData.fromJSON(d["data"]), outConnection=ConnectionPoint.fromJSON(d["outConnection"]), expr=d["expr"])
+        return vb
+
+def test_varBlockFromJSON_AndBack():
+    vb = VarBlock(FBDObjData(14, "test", Rectangle(Point(42,42), Point(57,57))),
+                  expr=Expr("TEST_EXPR"),
+                  outConnection=ConnectionPoint(connectionDir=ConnectionDirection.Input, connections=[ConnectionPoint]))
 
 @dataclass
-class FBD_Block:
-    data: FBDObjData
+class FBD_Block(Block):
     varLists: list[ParamList]
 
     def toJSON(self):
@@ -86,6 +110,11 @@ class FBD_Block:
         }}
         """
         return json_res
+
+    @classmethod
+    def fromJSON(cls, json_string):
+        d = json.loads(json_string)
+        return FBD_Block(data=FBDObjData.fromJSON(d["data"]), varLists=[ParamList.FromJSON(p_json) for p_json in d["varLists"]])
 
     def getVariablesOfGivenType(self, queriedType):
         result = []
@@ -163,9 +192,6 @@ class FBD_Block:
             f"Outputs:\n{stringify(self.getOutputVars())}\n"
             f"In-Outs:\n{stringify(self.getInOutVars())}"
         )
-
-    def getID(self):
-        return self.data.localID
 
     def getBlockType(self):
         return "FunctionBlock"

@@ -27,26 +27,27 @@ from helper_functions import (
 
 @pytest.fixture(scope="session", autouse=True)
 def programs():
+    testDir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test")
     programs = dict(
         [
             (n, parse_pou_file(p))
             for n, p in [
-                ("Calc_Odd", "test/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
+                ("Calc_Odd", f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
                 (
                     "Calc_Even",
-                    "test/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
+                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
                 ),
                 (
                     "Calc_Even_SafeVer",
-                    "test/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
                 ),
-                ("MultiAND", "test/MultiANDer.pou"),
-                ("MultiANDAddedVariable", "test/MultiANDAddedVariables.pou"),
-                ("MultiANDRemovedVariable", "test/MultiANDRemovedVariable.pou"),
-                ("SingleIn_MultiOut", "test/TestPOU_SingleInput_MultipleOutput.pou"),
-                ("output_has_non_outputs", "test/output_has_non_output_vars.pou"),
-                ("input_has_non_inputs", "test/input_has_non_input_vars.pou"),
-                ("empty_no_proper_groups", "test/empty_prog_no_groups.pou"),
+                ("MultiAND", f"{testDir}/MultiANDer.pou"),
+                ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
+                ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
+                ("SingleIn_MultiOut", f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou"),
+                ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
+                ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
+                ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
             ]
         ]
     )

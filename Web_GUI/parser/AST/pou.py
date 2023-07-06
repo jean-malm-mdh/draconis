@@ -97,6 +97,10 @@ class Program:
     @classmethod
     def fromJSON(cls, json_s):
         d = json.loads(json_s)
+
+        varSheet_fromjson = VariableWorkSheet.fromJSON(d["variableGroups"])
+        behaviour_elements_json = [e for e in d["behaviourElements"]]
+        # prog = Program(d["progName"], varSheet_fromjson, )
         pass
 
     def __init__(
