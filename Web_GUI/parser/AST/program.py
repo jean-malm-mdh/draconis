@@ -1,62 +1,15 @@
 import json
 import logging
 from dataclasses import dataclass
-from typing import List, Tuple, Dict
-import sys
-import os
+from typing import List, Dict, Tuple, Optional
 
-from fbdobject_base import Point, Rectangle
-from path import PathDivide
-from variables import VariableLine, VariableWorkSheet
-from ast_typing import VariableParamType, DataflowDirection, SafeClass
-from blocks import FBD_Block
-
-
-def AllindexOrNone(aList, elem, startIndex=0):
-    """
-
-    Args:
-        aList: enumerable to search through
-        elem: element to search for
-
-    Returns: A list of all indices matching element. If elem cannot be found, returns None
-
-    """
-    return [i for i, val in enumerate(aList[startIndex:]) if val == elem] or None
-
-
-def indexOrNone(aList, elem, startIndex=0):
-    """
-
-    Args:
-        aList: enumerable to search through
-        elem: element to search for
-
-    Returns: Index of element elem in list aList. If elem cannot be found, returns None
-
-    """
-    for i in range(startIndex, len(aList)):
-        if aList[i] == elem:
-            return i
-    return None
-
-
-@dataclass()
-class CommentBox:
-    bounding_box: Rectangle
-    content: str
-
-    def toJSON(self):
-        return f'{{ "bounding_box": {self.bounding_box.toJSON()}, "comment_content": "{self.content}" }}'
-
-    @classmethod
-    def fromJSON(cls, json_string):
-        import json
-
-        d = json.loads(json_string)
-        cont = d["comment_content"]
-        rect = Rectangle.fromJSON(d["bounding_box"])
-        return CommentBox(rect, cont)
+from Web_GUI import Point
+from Web_GUI.parser.AST.ast_typing import DataflowDirection, ParameterType, SafeClass
+from Web_GUI.parser.AST.blocks import FBD_Block
+from Web_GUI.parser.AST.path import PathDivide
+from Web_GUI.parser.AST.comment_box import CommentBox
+from Web_GUI.parser.AST.utilities import indexOrNone
+from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
 
 
 @dataclass()
@@ -65,8 +18,8 @@ class Program:
     varHeader: VariableWorkSheet
     behaviourElements: List[FBD_Block]
     behaviour_id_map: Dict[int, FBD_Block]
-    backward_flow: Dict[str, List[int]]
-    forward_flow: Dict[str, List[int]]
+    backward_flow: Optional[Dict[str, List[int]]]
+    forward_flow: Optional[Dict[str, List[int]]]
     lines: List[Tuple[Point, Point]]
     comments: List[CommentBox]
 
@@ -90,6 +43,7 @@ class Program:
         """
         return (
             json.dumps(json.loads(json_result), indent=2)
+            # The JSON parser does not like quoted strings
             .replace('"true"', "true")
             .replace('"false"', "false")
         )
@@ -116,10 +70,12 @@ class Program:
         self.behaviourElements = behaviourElementList or []
         self.lines = lines or []
         self.behaviour_id_map = behaviourIDMap or {}
-        self.backward_flow = {}
-        self.forward_flow = {}
 
-    def post_parse_analysis(self):
+        # These values are computed after construction
+        self.backward_flow = None
+        self.forward_flow = None
+
+    def post_parsing_analysis(self):
         """
         Performs some necessary pre-steps for other analyses.
         Returns:
@@ -151,13 +107,13 @@ class Program:
 
         res = dict()
         res["OutputVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableParamType.OutputVar)
+            self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
         res["InputVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableParamType.InputVar)
+            self.varHeader.getVarsByType(ParameterType.InputVar)
         )
         res["InternalVariables"] = list_to_name_dict(
-            self.varHeader.getVarsByType(VariableParamType.InternalVar)
+            self.varHeader.getVarsByType(ParameterType.InternalVar)
         )
         res["Safeness"] = dict(
             [
@@ -279,8 +235,9 @@ class Program:
             return result
 
         # Check if value is memoized, if so - return memoized version
-        if {} != self.backward_flow:
+        if self.backward_flow is not None:
             return self.backward_flow
+
         outport_blocks = [
             e
             for e in self.behaviourElements
@@ -355,18 +312,19 @@ class Program:
         ]
         res["NrOfFuncBlocks"] = len(blocks)
         res["NrInputVariables"] = len(
-            self.varHeader.getVarsByType(VariableParamType.InputVar)
+            self.varHeader.getVarsByType(ParameterType.InputVar)
         )
         res["NrOutputVariables"] = len(
-            self.varHeader.getVarsByType(VariableParamType.OutputVar)
+            self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
 
         return res
 
     def checkSafeDataFlow(self):
         def exprIsConsideredSafe(safenessProperties, expr):
+
+            # it is a constant
             if "#" in expr:
-                # it is a constant
                 return "SAFE" in expr
             else:
                 res = safenessProperties.get(expr, None)

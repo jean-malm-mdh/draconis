@@ -3,7 +3,7 @@ import sys
 from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
-from AST.pou import Program
+from Web_GUI.parser.AST.program import Program
 from Web_GUI.parser.AST.connections import ConnectionDirection
 from Web_GUI.parser.AST.fbdobject_base import Point
 

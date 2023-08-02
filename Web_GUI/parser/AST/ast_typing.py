@@ -1,7 +1,10 @@
 from enum import IntEnum
 
 
-class VariableParamType(IntEnum):
+class ParameterType(IntEnum):
+    """
+    Enumerable for different classes of parameters in the software.
+    """
     UNSET = 0
     InternalVar = 1
     InputVar = 2
@@ -15,18 +18,18 @@ class VariableParamType(IntEnum):
     def fromString(cls, aString):
         match aString:
             case "UNSET":
-                return VariableParamType.UNSET
+                return ParameterType.UNSET
             case "InternalVar":
-                return VariableParamType.InternalVar
+                return ParameterType.InternalVar
             case "InputVar":
-                return VariableParamType.InputVar
+                return ParameterType.InputVar
             case "OutputVar":
-                return VariableParamType.OutputVar
+                return ParameterType.OutputVar
             case "InOutVar":
-                return VariableParamType.InOutVar
+                return ParameterType.InOutVar
 
 
-class ValType(IntEnum):
+class ValueType(IntEnum):
     BOOL = 1
     BYTE = 2
     WORD = 3
@@ -79,73 +82,73 @@ class ValType(IntEnum):
     def fromString(cls, aString):
         match aString:
             case "BOOL":
-                return ValType.BOOL
+                return ValueType.BOOL
             case "BYTE":
-                return ValType.BYTE
+                return ValueType.BYTE
             case "WORD":
-                return ValType.WORD
+                return ValueType.WORD
             case "DWORD":
-                return ValType.DWORD
+                return ValueType.DWORD
             case "LWORD":
-                return ValType.LWORD
+                return ValueType.LWORD
             case "SINT":
-                return ValType.SINT
+                return ValueType.SINT
             case "INT":
-                return ValType.INT
+                return ValueType.INT
             case "DINT":
-                return ValType.DINT
+                return ValueType.DINT
             case "LINT":
-                return ValType.LINT
+                return ValueType.LINT
             case "USINT":
-                return ValType.USINT
+                return ValueType.USINT
             case "UINT":
-                return ValType.UINT
+                return ValueType.UINT
             case "UDINT":
-                return ValType.UDINT
+                return ValueType.UDINT
             case "ULINT":
-                return ValType.ULINT
+                return ValueType.ULINT
             case "REAL":
-                return ValType.REAL
+                return ValueType.REAL
             case "LREAL":
-                return ValType.LREAL
+                return ValueType.LREAL
             case "TIME":
-                return ValType.TIME
+                return ValueType.TIME
             case "DATE":
-                return ValType.DATE
+                return ValueType.DATE
             case "DT":
-                return ValType.DT
+                return ValueType.DT
             case "TOD":
-                return ValType.TOD
+                return ValueType.TOD
             case "STRING":
-                return ValType.STRING
+                return ValueType.STRING
             case "WSTRING":
-                return ValType.WSTRING
+                return ValueType.WSTRING
             case "SAFEANALOG":
-                return ValType.SAFEANALOG
+                return ValueType.SAFEANALOG
             case "SAFEBOOL":
-                return ValType.SAFEBOOL
+                return ValueType.SAFEBOOL
             case "SAFEBYTE":
-                return ValType.SAFEBYTE
+                return ValueType.SAFEBYTE
             case "SAFEDWORD":
-                return ValType.SAFEDWORD
+                return ValueType.SAFEDWORD
             case "SAFEWORD":
-                return ValType.SAFEWORD
+                return ValueType.SAFEWORD
             case "SAFEINT":
-                return ValType.SAFEINT
+                return ValueType.SAFEINT
             case "SAFESINT":
-                return ValType.SAFESINT
+                return ValueType.SAFESINT
             case "SAFEDINT":
-                return ValType.SAFEDINT
+                return ValueType.SAFEDINT
             case "SAFEUSINT":
-                return ValType.SAFEUSINT
+                return ValueType.SAFEUSINT
             case "SAFEUINT":
-                return ValType.SAFEUINT
+                return ValueType.SAFEUINT
             case "SAFEUDINT":
-                return ValType.SAFEUDINT
+                return ValueType.SAFEUDINT
             case "SAFETIME":
-                return ValType.SAFETIME
+                return ValueType.SAFETIME
             case "CUSTOM_FBD":
-                return ValType.CUSTOM_FBD
+                return ValueType.CUSTOM_FBD
 
 
 class DataflowDirection(IntEnum):
@@ -169,9 +172,9 @@ def strToVariableType(s: str):
         The Enumerable type, or None if the parameter is not found.
     """
     lookup = {
-        "VAR": VariableParamType.InternalVar,
-        "VAR_INPUT": VariableParamType.InputVar,
-        "VAR_OUTPUT": VariableParamType.OutputVar,
+        "VAR": ParameterType.InternalVar,
+        "VAR_INPUT": ParameterType.InputVar,
+        "VAR_OUTPUT": ParameterType.OutputVar,
     }
     return lookup.get(s, None)
 
@@ -185,4 +188,4 @@ def strToValType(s: str):
     Returns:
         The corresponding Enum. if the value is not recognized, assumes it is a custom FBD instance.
     """
-    return ValType.__dict__.get(s, ValType.CUSTOM_FBD)
+    return ValueType.__dict__.get(s, ValueType.CUSTOM_FBD)

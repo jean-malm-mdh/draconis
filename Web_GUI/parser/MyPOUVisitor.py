@@ -1,13 +1,13 @@
 import logging
 
-from AST.pou import Program
+from Web_GUI.parser.AST.program import Program
 from Web_GUI import parser
-from Web_GUI.parser.AST.ast_typing import VariableParamType
+from Web_GUI.parser.AST.ast_typing import ParameterType
 from Web_GUI.parser.AST.variables import (
     VariableWorkSheet,
     VariableGroup,
     VariableLine,
-    VariableParamType,
+    ParameterType,
 )
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
@@ -63,7 +63,7 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#varLine.
     def visitVarLine(self, ctx: POUParser.VarLineContext):
-        dummy = VariableParamType.UNSET  # property is set for the whole group
+        dummy = ParameterType.UNSET  # property is set for the whole group
         initVal = None if ctx.initVal is None else self.visitValTypeRule(ctx.initVal)
         desc = (
             None

@@ -1,6 +1,5 @@
 import unittest
 
-from position import GUIPosition
 from fbdobject_base import Rectangle, Point
 
 

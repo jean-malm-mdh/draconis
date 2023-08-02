@@ -2,13 +2,13 @@ from typing import List
 
 import antlr4.Parser
 
-from Web_GUI.parser.AST.pou import CommentBox
+from Web_GUI.parser.AST.comment_box import CommentBox
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
-from Web_GUI.parser.AST.ast_typing import VariableParamType
+from Web_GUI.parser.AST.ast_typing import ParameterType
 from Web_GUI.parser.AST.fbdobject_base import FBDObjData, Rectangle, Point
 from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
 from Web_GUI.parser.AST.connections import (
@@ -35,9 +35,9 @@ class MyXMLVisitor(XMLParserVisitor):
         elements = content.element()
         blockElements = [self.visitElement(e)[0] for e in elements]
         varBlocks = [e for e in blockElements if isinstance(e, ParamList)]
-        inVars = [e for e in varBlocks if e.varType == VariableParamType.InputVar]
-        inOutVars = [e for e in varBlocks if e.varType == VariableParamType.InOutVar]
-        outVars = [e for e in varBlocks if e.varType == VariableParamType.OutputVar]
+        inVars = [e for e in varBlocks if e.varType == ParameterType.InputVar]
+        inOutVars = [e for e in varBlocks if e.varType == ParameterType.InOutVar]
+        outVars = [e for e in varBlocks if e.varType == ParameterType.OutputVar]
         GUI_position_top_left = [
             e for e in blockElements if "GUIPosition" in str(e.__class__)
         ][0]
@@ -170,16 +170,16 @@ class MyXMLVisitor(XMLParserVisitor):
                     return self.ppx_parse_Connection(None, attrs)
             elif "inputVariables" == name:
                 return ParamList(
-                    VariableParamType.InputVar, self.ppx_parse_variables(ctx.content())
+                    ParameterType.InputVar, self.ppx_parse_variables(ctx.content())
                 )
             elif "outputVariables" == name:
                 return ParamList(
-                    VariableParamType.OutputVar, self.ppx_parse_variables(ctx.content())
+                    ParameterType.OutputVar, self.ppx_parse_variables(ctx.content())
                 )
             elif "inOutVariables" == name:
                 content = ctx.content()
                 vars = None if content is None else self.ppx_parse_variables(content)
-                return ParamList(VariableParamType.InOutVar, vars)
+                return ParamList(ParameterType.InOutVar, vars)
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
             elif "comment" == name:

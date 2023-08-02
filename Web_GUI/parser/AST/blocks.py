@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from ast_typing import VariableParamType, DataflowDirection
+from ast_typing import ParameterType, DataflowDirection
 from fbdobject_base import FBDObjData, Point, Rectangle
 from connections import (
     ConnectionPoint,
@@ -171,13 +171,13 @@ class FBD_Block(Block):
         return result
 
     def getInputVars(self):
-        return self.getVariablesOfGivenType(VariableParamType.InputVar)
+        return self.getVariablesOfGivenType(ParameterType.InputVar)
 
     def getOutputVars(self):
-        return self.getVariablesOfGivenType(VariableParamType.OutputVar)
+        return self.getVariablesOfGivenType(ParameterType.OutputVar)
 
     def getInOutVars(self):
-        return self.getVariablesOfGivenType(VariableParamType.InOutVar)
+        return self.getVariablesOfGivenType(ParameterType.InOutVar)
 
     def __str__(self):
         def stringify(lst):

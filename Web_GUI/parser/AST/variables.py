@@ -4,14 +4,14 @@ from random import Random
 
 import pytest
 
-from ast_typing import VariableParamType, ValType
+from ast_typing import ParameterType, ValueType
 
 
 @dataclass
 class VariableLine:
     name: str
-    paramType: VariableParamType
-    valueType: ValType
+    paramType: ParameterType
+    valueType: ValueType
     initVal: str
     description: str
     isFeedback: bool
@@ -27,8 +27,8 @@ class VariableLine:
 
         variable_line = cls(
             name=data["name"],
-            value_type=ValType.fromString(data["valueType"]),
-            var_type=VariableParamType.fromString(data["paramType"]),
+            value_type=ValueType.fromString(data["valueType"]),
+            var_type=ParameterType.fromString(data["paramType"]),
         )
         variable_line.initVal = data["initVal"]
         variable_line.description = data["description"]
@@ -65,21 +65,21 @@ class VariableLine:
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
-        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable", isFeedback=True
+        "aVar", ParameterType.InputVar, ValueType.INT, "5", "This is a variable", isFeedback=True
     )
     assert v.name == "aVar"
-    assert v.paramType == VariableParamType.InputVar
-    assert v.valueType == ValType.INT
+    assert v.paramType == ParameterType.InputVar
+    assert v.valueType == ValueType.INT
     assert v.initVal == "5"
     assert v.description == "This is a variable"
     assert v.isFeedback == True
 
 
 def test_some_variable_line_properties_are_optional():
-    v = VariableLine("optVar", VariableParamType.InputVar, ValType.UINT)
+    v = VariableLine("optVar", ParameterType.InputVar, ValueType.UINT)
     assert v.name == "optVar"
-    assert v.paramType == VariableParamType.InputVar
-    assert v.valueType == ValType.UINT
+    assert v.paramType == ParameterType.InputVar
+    assert v.valueType == ValueType.UINT
     assert v.initVal == "UNINIT"
     assert v.description is None
 
@@ -93,7 +93,7 @@ def rand_tc():
 
 def test_from_variable_to_JSON_and_back():
     aVar = VariableLine(
-        "aVar", VariableParamType.InputVar, ValType.INT, "5", "This is a variable"
+        "aVar", ParameterType.InputVar, ValueType.INT, "5", "This is a variable"
     )
     actual = VariableLine.fromJSON(aVar.toJSON())
     assert actual == aVar
@@ -135,13 +135,13 @@ class VariableGroup:
         result = []
         if self.isOutputGroup():
             for var in self.varLines:
-                if var.paramType != VariableParamType.OutputVar:
+                if var.paramType != ParameterType.OutputVar:
                     result.append(
                         f"Non-output detected in Output group: {var.getName()}"
                     )
         elif self.isInputGroup():
             for var in self.varLines:
-                if var.paramType != VariableParamType.InputVar:
+                if var.paramType != ParameterType.InputVar:
                     result.append(f"Non-input detected in Input group: {var.getName()}")
         return result
 
@@ -177,7 +177,7 @@ class VariableWorkSheet:
                 return v
         return None
 
-    def getVarsByType(self, vType: VariableParamType):
+    def getVarsByType(self, vType: ParameterType):
         return list((filter(lambda e: e.paramType == vType, self.getAllVariables())))
 
     def __str__(self):
@@ -203,11 +203,11 @@ class VariableWorkSheet:
         for group in self.varGroups:
             inputFound = inputFound or group.isInputGroup()
             outputFound = outputFound or group.isOutputGroup()
-        if not self.getVarsByType(VariableParamType.InputVar):
+        if not self.getVarsByType(ParameterType.InputVar):
             result.append("No input variables defined.")
         if not inputFound:
             result.append("The Input group has not been defined.")
-        if not self.getVarsByType(VariableParamType.OutputVar):
+        if not self.getVarsByType(ParameterType.OutputVar):
             result.append("No output variables defined.")
         if not outputFound:
             result.append("The Output group has not been defined.")
