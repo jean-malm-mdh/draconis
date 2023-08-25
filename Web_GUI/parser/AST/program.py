@@ -259,7 +259,7 @@ class Program:
             Returns: From each inport, provides the dataflow paths to the outports
 
             """
-            if {} != self.forward_flow:
+            if self.forward_flow is not None:
                 return self.forward_flow
 
             flattened_flow = [
@@ -376,6 +376,13 @@ class Program:
             _res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
 
             return _res
+
+        def find_changes_in_blocks():
+            """
+
+            Returns:
+
+            """
 
         if not isinstance(other_program, Program):
             raise ValueError(
