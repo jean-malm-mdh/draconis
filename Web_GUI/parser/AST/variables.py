@@ -212,3 +212,10 @@ class VariableWorkSheet:
         if not outputFound:
             result.append("The Output group has not been defined.")
         return result
+
+    def transform_to_ST(self):
+        def var_to_ST_declaration(variable: VariableLine):
+            param_ST_string = "Var_Input" if variable.paramType == ParameterType.InputVar else "Var_Output"
+            initstr = "" if not variable.initVal else f" := {variable.initVal}"
+            return f"\t{param_ST_string} {variable.name} : {variable.valueType}{initstr}; (*{variable.description}*) End_Var"
+        return "\n".join(map(var_to_ST_declaration, self.getAllVariables()))

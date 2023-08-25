@@ -1,0 +1,32 @@
+PROGRAM Main
+{ VariableWorksheet := 'Variables' }
+﻿{GroupDefinition(0,'Input')}
+{GroupDefinition(2,'Output')}
+
+VAR_INPUT {Group(0)}
+    {LINE(1)}
+    N : UINT := 1; (*Collatz Input*)
+END_VAR
+
+VAR_OUTPUT {Group(0)}
+END_VAR
+
+VAR {Group(0)}
+END_VAR
+
+VAR_INPUT {Group(2)}
+END_VAR
+
+VAR_OUTPUT {Group(2)}
+    {LINE(3)}
+    Result_Even : UINT := 0; (*Result if the input is an even number*)
+END_VAR
+
+VAR {Group(2)}
+END_VAR
+
+{ CodeWorksheet := 'Main', Type := '.fbd' }
+<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<FBD>
+</FBD>
+END_PROGRAM

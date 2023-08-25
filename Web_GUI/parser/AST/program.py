@@ -5,12 +5,17 @@ from typing import List, Dict, Tuple, Optional
 
 from Web_GUI import Point
 from Web_GUI.parser.AST.ast_typing import DataflowDirection, ParameterType, SafeClass
-from Web_GUI.parser.AST.blocks import FBD_Block
+from Web_GUI.parser.AST.blocks import FBD_Block, Block
 from Web_GUI.parser.AST.path import PathDivide
 from Web_GUI.parser.AST.comment_box import CommentBox
 from Web_GUI.parser.AST.utilities import indexOrNone
 from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
 
+def dropWhile(l: list, p):
+    for i in range(0, len(l)):
+        if not(p(l[i])):
+            return l[i:]
+    return []
 
 @dataclass()
 class Program:
@@ -493,3 +498,42 @@ class Program:
         result.append(evaluate_var_group_structure_rules())
 
         return result
+
+    def transform_to_ST(self):
+        def path_to_ST_statements(path):
+            result = ""
+            potential_block = self.behaviour_id_map[path[0]]
+            if potential_block.getBlockType() == "FunctionBlock":
+                arglist = ""
+                # Remove everything that is not a pathDivide
+                _path = dropWhile(path[1:], lambda e: not("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
+                if "PathDivide" in str(_path[0].__class__):
+                    pathdivide_paths = _path[0].paths
+                    arglist = ", ".join(map(lambda p: path_to_ST_statements(p[1:]), pathdivide_paths))
+                else:
+                    arglist = path_to_ST_statements(_path)
+                result += f"{potential_block.data.type}({arglist})"
+
+            else:
+                result += potential_block.getVarExpr()
+            return result
+
+        def outputs_to_ST_statements():
+            out_dataflow = self.getBackwardTrace()
+            if not(out_dataflow):
+                return ""
+            result = ""
+            print(out_dataflow)
+            for outVar, path in out_dataflow.items():
+                result += "\t" + f"{outVar} := "
+                # Remove output variable from path list
+                _path = path[1:]
+                result += f"{path_to_ST_statements(_path)};\n"
+
+            return result
+
+        return \
+f"""
+Function_Block {self.progName}
+{self.varHeader.transform_to_ST()}{outputs_to_ST_statements()}
+End_Function_Block"""

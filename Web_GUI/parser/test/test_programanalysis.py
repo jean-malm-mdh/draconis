@@ -6,9 +6,8 @@ import pytest
 
 from Web_GUI.parser.AST.ast_typing import SafeClass, DataflowDirection
 from Web_GUI.parser.AST.path import PathDivide
-from copy import deepcopy
 
-sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from helper_functions import (
     parse_pou_file,
     parse_code_worksheet,
@@ -27,7 +26,7 @@ from helper_functions import (
 
 @pytest.fixture(scope="session", autouse=True)
 def programs():
-    testDir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test")
+    testDir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "")
     programs = dict(
         [
             (n, parse_pou_file(p))
