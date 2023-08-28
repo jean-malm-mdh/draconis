@@ -1,7 +1,8 @@
 import json
 from dataclasses import dataclass
 from ast_typing import ParameterType, DataflowDirection
-from fbdobject_base import FBDObjData, Point, Rectangle
+from fbdobject_base import FBDObjData
+from Web_GUI import Point, Rectangle
 from connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
@@ -24,6 +25,14 @@ class Block:
     def getID(self):
         return self.data.localID
 
+    def __hash__(self):
+        return hash(self.data)
+    
+    def __eq__(self, other):
+        if not isinstance(other, Block):
+            raise ValueError("Checking equality between block and " + str(other.__class__))
+        return self.data == other.data
+
     def getFlow(self, data_flow_dir: DataflowDirection):
         raise NotImplementedError("Implement in Child classes")
 
@@ -37,6 +46,14 @@ class Block:
 class VarBlock(Block):
     outConnection: ConnectionPoint
     expr: Expr
+
+    def __hash__(self):
+        return Block.__hash__(self) + hash(self.expr.expr)
+
+    def __eq__(self, other):
+        if not isinstance(other, Block):
+            raise ValueError("Checking equality between block and " + str(other.__class__))
+        return self.data == other.data
 
     def toJSON(self):
         data_json = self.data.toJSON()
@@ -95,6 +112,9 @@ def test_varBlockFromJSON_AndBack():
 @dataclass
 class FBD_Block(Block):
     varLists: list[ParamList]
+
+    def __hash__(self):
+        return Block.__hash__(self) + sum(map(lambda vl: hash(vl), self.varLists))
 
     def toJSON(self):
         data_json = self.data.toJSON()

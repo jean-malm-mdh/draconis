@@ -388,6 +388,26 @@ class Program:
             Returns:
 
             """
+            result = []
+            blocks1 = set(self.behaviourElements)
+            blocks2 = set(other_program.behaviourElements)
+            differences = {b.getID() for b in blocks1.difference(blocks2)}
+            for diff_id in differences:
+                # if the ID exists in both programs, it's likely a change
+                pot_block1 = self.behaviour_id_map.get(diff_id, None)
+                pot_block2 = other_program.behaviour_id_map.get(diff_id, None)
+
+                isABlockChange = pot_block1 is not None and pot_block2 is not None
+                if isABlockChange:
+                    if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
+                        result.append(f"Block '{pot_block1.data.type}' moved. Re-run graphical checks")
+                    if pot_block1.data.type != pot_block2.data.type:
+                        result.append(f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks")
+
+
+
+
+            return result
 
         if not isinstance(other_program, Program):
             raise ValueError(
@@ -406,6 +426,7 @@ class Program:
             ]
         res = []
         res.extend(find_variable_changes())
+        res.extend(find_changes_in_blocks())
 
         return res
 
@@ -505,7 +526,7 @@ class Program:
             potential_block = self.behaviour_id_map[path[0]]
             if potential_block.getBlockType() == "FunctionBlock":
                 arglist = ""
-                # Remove everything that is not a pathDivide
+
                 _path = dropWhile(path[1:], lambda e: not("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
                 if "PathDivide" in str(_path[0].__class__):
                     pathdivide_paths = _path[0].paths
@@ -520,10 +541,9 @@ class Program:
 
         def outputs_to_ST_statements():
             out_dataflow = self.getBackwardTrace()
-            if not(out_dataflow):
+            if not out_dataflow:
                 return ""
             result = ""
-            print(out_dataflow)
             for outVar, path in out_dataflow.items():
                 result += "\t" + f"{outVar} := "
                 # Remove output variable from path list

@@ -1,6 +1,6 @@
 import unittest
 
-from fbdobject_base import Rectangle, Point
+from Web_GUI import Point, Rectangle
 
 
 class GraphicalTests(unittest.TestCase):

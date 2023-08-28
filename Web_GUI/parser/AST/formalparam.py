@@ -45,6 +45,9 @@ class ParamList:
         self.varType = varType
         self.list = list or []
 
+    def __hash__(self):
+        return self.varType.value * sum(map(lambda fp: fp.getID(), self.list))
+
     def toJSON(self):
         paramlist_json = ", ".join(p.toJSON() for p in self.list)
         return f"""

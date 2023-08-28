@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from fbdobject_base import Rectangle
+from Web_GUI import Rectangle
+
 
 @dataclass()
 class CommentBox:
