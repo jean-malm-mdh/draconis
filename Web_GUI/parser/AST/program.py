@@ -5,17 +5,20 @@ from typing import List, Dict, Tuple, Optional
 
 from Web_GUI import Point
 from Web_GUI.parser.AST.ast_typing import DataflowDirection, ParameterType, SafeClass
-from Web_GUI.parser.AST.blocks import FBD_Block, Block
+from Web_GUI.parser.AST.blocks import FBD_Block, Block, VarBlock
+from Web_GUI.parser.AST.connections import ConnectionDirection
 from Web_GUI.parser.AST.path import PathDivide
 from Web_GUI.parser.AST.comment_box import CommentBox
 from Web_GUI.parser.AST.utilities import indexOrNone
 from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
+from block_port import Port
 
 def dropWhile(l: list, p):
     for i in range(0, len(l)):
-        if not(p(l[i])):
+        if not (p(l[i])):
             return l[i:]
     return []
+
 
 @dataclass()
 class Program:
@@ -63,12 +66,12 @@ class Program:
         pass
 
     def __init__(
-        self,
-        name,
-        varWorkSheet,
-        behaviourElementList=None,
-        behaviourIDMap=None,
-        lines=None,
+            self,
+            name,
+            varWorkSheet,
+            behaviourElementList=None,
+            behaviourIDMap=None,
+            lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -80,15 +83,51 @@ class Program:
         self.backward_flow = None
         self.forward_flow = None
 
+        self.ports = {}
     def post_parsing_analysis(self):
         """
         Performs some necessary pre-steps for other analyses.
         Returns:
             No return value - will mutate the instance object
         """
+        def make_ADT_consistent():
+
+            def addPortConnectionToBlock(blockID, portID, connection):
+                targetPort = self.ports.get(portID, None)
+                if targetPort is None:
+                    targetPort = Port(portID=portID,
+                                      blockID=blockID,
+                                      rel_connection_direction=connection.connectionDir,
+                                      rel_position=Point(connection.data.position.x, connection.data.position.y),
+                                      connections=set())
+                    self.ports[portID] = targetPort
+                    self.behaviour_id_map[blockID].ports[portID] = targetPort
+                for conn in connection.connections:
+                    otherPoint = conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
+                    targetPort.connections.add(otherPoint)
+            # First, fill all forwards connections
+            fbd_blocks = [block for block in self.behaviourElements if isinstance(block, FBD_Block)]
+            for block in fbd_blocks:
+                for id, conn in [(c.ID, c.connectionPoint) for c in block.getInputVars()]:
+                    addPortConnectionToBlock(block.getID(), id, conn)
+                for id, conn in [(c.ID, c.connectionPoint) for c in block.getOutputVars()]:
+                    addPortConnectionToBlock(block.getID(), id, conn)
+            output_blocks = [block for block in self.behaviourElements if isinstance(block, VarBlock)]
+            for block in output_blocks:
+                addPortConnectionToBlock(block.getID(), block.getID(), block.outConnection)
+
+            ports = list(self.ports.items())
+            for p_id, p_data in ports:
+                for conn in p_data.connections:
+                    startPort = self.ports.get(conn, None)
+                    startPort.connections.add(p_id)
+        make_ADT_consistent()
 
         # Fill up the memoised elements
+        # Forward analysis is run as it runs backwards analysis as a pre-step
         self.getTrace(direction=DataflowDirection.Forward)
+        assert self.forward_flow is not None
+        assert self.backward_flow is not None
 
     def getVarGroups(self):
         return self.varHeader.varGroups
@@ -162,7 +201,7 @@ class Program:
         """
 
         def split_paths(
-            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+                paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 for subPath in computed_subpaths:
@@ -197,8 +236,8 @@ class Program:
                     )
 
                     if (
-                        current_entity
-                        and current_entity.getBlockType() == "FunctionBlock"
+                            current_entity
+                            and current_entity.getBlockType() == "FunctionBlock"
                     ):
                         interface_vars_startIDs = [
                             fp.get_connections(DataflowDirection.Backward)
@@ -208,7 +247,7 @@ class Program:
                             self.behaviour_id_map[e[0][0]]
                             for _, e in interface_vars_startIDs
                             if self.behaviour_id_map[e[0][0]].getBlockType()
-                            == "FunctionBlock"
+                               == "FunctionBlock"
                         ]
                         computed_subpaths = performTrace(next_blocks)
                         if len(interface_vars_startIDs) > 1:
@@ -232,7 +271,7 @@ class Program:
                         split_point = indexOrNone(rem, rem[count], split_point)
                     _result.append(
                         PathDivide(
-                            [rem[count:last_split_point], rem[last_split_point + 1 :]]
+                            [rem[count:last_split_point], rem[last_split_point + 1:]]
                         )
                     )
                     return [_result]
@@ -402,10 +441,8 @@ class Program:
                     if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
                         result.append(f"Block '{pot_block1.data.type}' moved. Re-run graphical checks")
                     if pot_block1.data.type != pot_block2.data.type:
-                        result.append(f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks")
-
-
-
+                        result.append(
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks")
 
             return result
 
@@ -437,7 +474,7 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                "name", "varType", "valueType", "initVal", "description"
+                    "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
@@ -459,7 +496,7 @@ class Program:
         metrics = self.getMetrics()
 
         def evaluate_rule(
-            ruleName, defaultVerdict, defaultJustification, evaluate_func
+                ruleName, defaultVerdict, defaultJustification, evaluate_func
         ):
             verdict = defaultVerdict
             justification = defaultJustification
@@ -527,7 +564,8 @@ class Program:
             if potential_block.getBlockType() == "FunctionBlock":
                 arglist = ""
 
-                _path = dropWhile(path[1:], lambda e: not("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
+                _path = dropWhile(path[1:],
+                                  lambda e: not ("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
                 if "PathDivide" in str(_path[0].__class__):
                     pathdivide_paths = _path[0].paths
                     arglist = ", ".join(map(lambda p: path_to_ST_statements(p[1:]), pathdivide_paths))
@@ -553,7 +591,7 @@ class Program:
             return result
 
         return \
-f"""
+            f"""
 Function_Block {self.progName}
 {self.varHeader.transform_to_ST()}{outputs_to_ST_statements()}
 End_Function_Block"""

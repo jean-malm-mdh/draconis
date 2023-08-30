@@ -66,6 +66,7 @@ def parse_pou_file(pou_file_path: str):
         resultProgram.lines,
         resultProgram.comments,
     ) = parse_code_worksheet(codeSheet)
+    resultProgram.post_parsing_analysis()
     return resultProgram
 
 

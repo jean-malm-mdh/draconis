@@ -45,10 +45,12 @@ class MyXMLVisitor(XMLParserVisitor):
         position_top_left = Point(GUI_position_top_left.x, GUI_position_top_left.y)
         size = Point(int(blockParams["width"]), int(blockParams["height"]))
         bounding_box = Rectangle(position_top_left, position_top_left + size)
+        ports = {}
         result = FBD_Block(
             FBDObjData(
                 int(blockParams["localId"]), blockParams["typeName"], bounding_box
             ),
+            ports,
             [inVars[0], inOutVars[0], outVars[0]],
         )
         self.local_id_map[int(blockParams["localId"])] = result
@@ -69,7 +71,8 @@ class MyXMLVisitor(XMLParserVisitor):
         lower_right_point = upper_left_point + Point(width, height)
         boundingBox = Rectangle(upper_left_point, lower_right_point)
         blockData = FBDObjData(localId, direction + "Variable", boundingBox)
-        self.local_id_map[localId] = VarBlock(blockData, connection_points, expr)
+        ports = {}
+        self.local_id_map[localId] = VarBlock(blockData, ports, connection_points, expr)
         return self.local_id_map[localId]
 
     def ppx_parse_expression(self, content):

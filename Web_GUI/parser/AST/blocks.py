@@ -8,8 +8,9 @@ from connections import (
     trace_connection_in_dataflow_direction,
     trace_connection_in_dataflow_direction_list_version, ConnectionDirection,
 )
+from typing import List, Dict
 from formalparam import ParamList
-
+from block_port import Port
 
 @dataclass
 class Expr:
@@ -18,9 +19,16 @@ class Expr:
 @dataclass
 class Block:
     data: FBDObjData
+    ports: Dict[int, Port]
 
     def getBlockType(self):
         raise NotImplementedError("Implement in Child classes")
+
+    def getInPorts(self):
+        return [p for p in self.ports.values() if p.rel_connection_direction == ConnectionDirection.Input]
+
+    def getOutPorts(self):
+        return [p for p in self.ports.values() if p.rel_connection_direction == ConnectionDirection.Output]
 
     def getID(self):
         return self.data.localID
@@ -73,16 +81,16 @@ class VarBlock(Block):
 
     def getFlow(self, data_flow_dir: DataflowDirection):
         if DataflowDirection.Forward == data_flow_dir:
-            return (
-                []
-                if self.data.type == "outVariable"
-                else [
-                    trace_connection_in_dataflow_direction_list_version(
-                        c, data_flow_dir
-                    )
-                    for c in self.outConnection.connections
-                ]
-            )
+            if self.data.type == "outVariable":
+                # By definition, outVariables do not have a forward flow inside the POU block
+                return []
+            else:
+                result = []
+                ID = self.getID()
+                for p in self.getOutPorts():
+                    result.extend(p.connections)
+                return [(ID, c) for c in result]
+
         if DataflowDirection.Backward == data_flow_dir:
             return (
                 []

@@ -173,14 +173,13 @@ def test_can_get_dataflow_from_func_block(programs):
     pytest.skip("Higher priority tests came up")
     assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
         DataflowDirection.Backward
-    ) == [(8, 6), (8, 7)]
+    ) == [[8, 6, 3], [8, 7, 4]]
     assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
         DataflowDirection.Forward
-    ) == [(6, 8), (6, 7)]
+    ) == [[8, 9, 5]]
 
 
 def test_can_get_dataflow_from_var_block(programs):
-    pytest.skip("Higher priority tests came up")
     inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
     assert inVarBlock.getFlow(DataflowDirection.Backward) == []
     assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, 6)]
@@ -227,20 +226,6 @@ def test_can_check_cohesiveness_and_structure_of_variable_header(programs):
 
 def test_multi_sequence_FBD_block_dataflow_trace(programs):
     program = programs["Calc_Odd"]
-    # ID 0-5: line segments
-    # ID 6: Input Port (constant UINT#1)
-    # ID 7: Input Port (N)
-    # ID 8: Input Port (constant UINT#3)
-    # ID 9: Output Port (Result_Odd)
-    # ID 10: Param Input 1 ADD
-    # ID 11: Param Input 2 ADD
-    # ID 12: Param Output ADD
-    # ID 13: Param Input 1 MULT
-    # ID 14: Param Input 2 MULT
-    # ID 15: Param Output MULT
-    # ID 16: ADD Block
-    # ID 17: MULT Block
-    # TODO: Problem seems to be when connecting from one block to another
     backtrace = program.getBackwardTrace()
     flattened_trace = PathDivide.unpack_pathlist([backtrace["Result_Odd"]])
     assert flattened_trace == [
@@ -401,10 +386,10 @@ def test_given_a_variable_sheet_outputs_shall_only_be_in_output_group(programs):
 
 
 def test_given_program_can_convert_to_json(programs):
-    prog = programs["Calc_Odd"]
-    json_val = prog.toJSON()
-    d = json.loads(json_val)
-    assert d["progName"] == prog.progName
+    for prog in programs.values():
+        json_val = prog.toJSON()
+        d = json.loads(json_val)
+        assert d["progName"] == prog.progName
 
 
 def main():
