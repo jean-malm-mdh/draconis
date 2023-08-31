@@ -91,7 +91,6 @@ class Program:
             No return value - will mutate the instance object
         """
         def make_ADT_consistent():
-
             def addPortConnectionToBlock(blockID, portID, connection):
                 targetPort = self.ports.get(portID, None)
                 if targetPort is None:
@@ -122,12 +121,6 @@ class Program:
                     startPort = self.ports.get(conn, None)
                     startPort.connections.add(p_id)
         make_ADT_consistent()
-
-        # Fill up the memoised elements
-        # Forward analysis is run as it runs backwards analysis as a pre-step
-        self.getTrace(direction=DataflowDirection.Forward)
-        assert self.forward_flow is not None
-        assert self.backward_flow is not None
 
     def getVarGroups(self):
         return self.varHeader.varGroups
@@ -192,7 +185,45 @@ class Program:
             VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
         )
         return [getFieldContent(_fields, e) for e in self.varHeader.getAllVariables()]
+    def performBackTraceFromBlock(self, bID, trace_from_portID=None):
+        def appendIfNotInListEnd(l, elem):
+            if not l or l[-1] != elem:
+                l.append(elem)
 
+        def extendIfFirstIsSame(acc, l):
+            if len(acc) == 0:
+                return []
+            if l[0] == acc[-1]:
+                acc.extend(l[1:])
+        b = self.behaviour_id_map.get(bID, None) or self.behaviour_id_map[self.ports[bID].blockID]
+        result = []
+        # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
+        flow = b.getFlow(DataflowDirection.Backward, trace_from_portID)
+        if flow == []:
+            return [bID]
+        elif len(flow) == 1: # The number of output ports is one
+            startPort, connectionPorts = flow[0]
+            appendIfNotInListEnd(result, startPort)
+
+            if len(connectionPorts) == 1: #The number of input ports is one
+                appendIfNotInListEnd(result, connectionPorts[0][0])
+                appendIfNotInListEnd(result, connectionPorts[0][1])
+                recurse = self.performBackTraceFromBlock(connectionPorts[0][1], connectionPorts[0][1])
+                for r in recurse:
+                    appendIfNotInListEnd(result, r)
+            else:
+                recurse = [(toPort, self.performBackTraceFromBlock(connectingPort, connectingPort)) for toPort, connectingPort in connectionPorts]
+                dividing_paths = []
+                for toPort, r in recurse:
+                    _recurse = []
+                    appendIfNotInListEnd(_recurse, toPort)
+                    for _r in r:
+                        appendIfNotInListEnd(_recurse, _r)
+                    dividing_paths.append(_recurse)
+                result.append(PathDivide(dividing_paths))
+            return result
+
+        return result
     def getBackwardTrace(self):
         """
 
@@ -216,66 +247,11 @@ class Program:
             ]
             return PathDivide(result)
 
+
         def performTrace(start_blocks):
             result = dict()
             for b in start_blocks:
-                b_Result = [b.data.localID]
-                flow = b.getFlow(DataflowDirection.Backward)
-                worklist = flow
-                # Worklist assumption is that start elements are unique
-                while worklist:
-                    start, *end, postEnd = worklist[0]
-                    worklist = worklist[1:]
-                    b_Result.append(start)
-                    if end is None or postEnd is None:
-                        break
-                    b_Result.extend(end)
-                    b_Result.append(postEnd)
-                    current_entity = self.behaviour_id_map.get(
-                        postEnd, self.behaviour_id_map.get(start, None)
-                    )
-
-                    if (
-                            current_entity
-                            and current_entity.getBlockType() == "FunctionBlock"
-                    ):
-                        interface_vars_startIDs = [
-                            fp.get_connections(DataflowDirection.Backward)
-                            for fp in (current_entity.getInputVars())
-                        ]
-                        next_blocks = [
-                            self.behaviour_id_map[e[0][0]]
-                            for _, e in interface_vars_startIDs
-                            if self.behaviour_id_map[e[0][0]].getBlockType()
-                               == "FunctionBlock"
-                        ]
-                        computed_subpaths = performTrace(next_blocks)
-                        if len(interface_vars_startIDs) > 1:
-                            b_Result.append(
-                                split_paths(interface_vars_startIDs, computed_subpaths)
-                            )
-                        else:
-                            b_Result.append(interface_vars_startIDs[0][0])
-                            worklist.append(interface_vars_startIDs[0][1][0])
-                if b.getBlockType() == "FunctionBlock":
-                    _result = [b_Result[0]]
-                    rem = b_Result[1:]
-                    count = 0
-                    split_point = indexOrNone(rem, rem[count], 1)
-                    last_split_point = split_point
-                    # Found a common start element in subpaths
-                    while split_point is not None:
-                        _result.append(rem[count])
-                        count += 1
-                        last_split_point = split_point
-                        split_point = indexOrNone(rem, rem[count], split_point)
-                    _result.append(
-                        PathDivide(
-                            [rem[count:last_split_point], rem[last_split_point + 1:]]
-                        )
-                    )
-                    return [_result]
-                result[b.getVarExpr()] = b_Result
+                result[b.getVarExpr()] = self.performBackTraceFromBlock(b.getID())
             return result
 
         # Check if value is memoized, if so - return memoized version

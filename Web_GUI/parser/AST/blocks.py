@@ -41,7 +41,7 @@ class Block:
             raise ValueError("Checking equality between block and " + str(other.__class__))
         return self.data == other.data
 
-    def getFlow(self, data_flow_dir: DataflowDirection):
+    def getFlow(self, data_flow_dir: DataflowDirection, which_port):
         raise NotImplementedError("Implement in Child classes")
 
     @classmethod
@@ -79,29 +79,20 @@ class VarBlock(Block):
     def getVarExpr(self):
         return self.expr.expr
 
-    def getFlow(self, data_flow_dir: DataflowDirection):
-        if DataflowDirection.Forward == data_flow_dir:
-            if self.data.type == "outVariable":
-                # By definition, outVariables do not have a forward flow inside the POU block
-                return []
-            else:
-                result = []
-                ID = self.getID()
-                for p in self.getOutPorts():
-                    result.extend(p.connections)
-                return [(ID, c) for c in result]
-
-        if DataflowDirection.Backward == data_flow_dir:
-            return (
-                []
-                if self.data.type == "inVariable"
-                else [
-                    trace_connection_in_dataflow_direction_list_version(
-                        c, data_flow_dir
-                    )
-                    for c in self.outConnection.connections
-                ]
-            )
+    def getFlow(self, data_flow_dir: DataflowDirection, _unused_=None):
+        ID = self.getID()
+        toPorts = self.getInPorts() if self.data.type == "outVariable" else self.getOutPorts()
+        if DataflowDirection.Forward == data_flow_dir and self.data.type == "outVariable":
+            # By definition, outVariables do not have a forward flow inside the POU block
+            return []
+        if DataflowDirection.Backward == data_flow_dir and self.data.type == "inVariable":
+            # By definition, outVariables do not have a forward flow inside the POU block
+            return []
+        result = []
+        for p in toPorts:
+            for conn in p.connections:
+                result.append((p.portID, conn))
+        return [(ID, result)]
 
     def getBlockType(self):
         return "Port"
@@ -148,7 +139,7 @@ class FBD_Block(Block):
             result.extend([] if vL.list is None else vL.list)
         return result
 
-    def getFlow(self, data_flow_dir: DataflowDirection):
+    def getFlow(self, data_flow_dir: DataflowDirection, restrictToPortID=None):
         """
 
         Args:
@@ -157,46 +148,25 @@ class FBD_Block(Block):
         Returns: [(startportID, endportID, outsideConnID) | startID in portDir(inportDirection) and endID in portDir(outportDirection)]
 
         """
-        in_params = self.getInputVars()
-        out_params = self.getOutputVars()
+        def intra_block_tracing(fromPorts, toPorts):
+            result = []
+            _fromPorts = [p for p in fromPorts if p.portID == restrictToPortID] if restrictToPortID else fromPorts
+            for fP in _fromPorts:
+                tmpRes = []
+                for tP in toPorts:
+                    for conn in tP.connections:
+                        tmpRes.append((tP.portID, conn))
+                result.append((fP.portID, tmpRes))
+            return result
+        in_ports = self.getInPorts()
+        out_ports = self.getOutPorts()
         result = []
         # Basic fully-connected calculation
         # Todo: Connect to outside
         if DataflowDirection.Forward == data_flow_dir:
-            for inP in in_params:
-                _res = [
-                    (oP.connectionPoint.connections[0], oP.getID()) for oP in out_params
-                ]
-                result.extend(
-                    [
-                        [
-                            inP.getID(),
-                            oPort,
-                            trace_connection_in_dataflow_direction(conn, data_flow_dir)[
-                                0
-                            ],
-                        ]
-                        for conn, oPort in _res
-                    ]
-                )
+            return intra_block_tracing(in_ports, out_ports)
         else:
-            for inP in out_params:
-                _res = [
-                    (oP.connectionPoint.connections[0], oP.getID()) for oP in in_params
-                ]
-                result.extend(
-                    [
-                        [
-                            inP.getID(),
-                            oPort,
-                            trace_connection_in_dataflow_direction(conn, data_flow_dir)[
-                                0
-                            ],
-                        ]
-                        for conn, oPort in _res
-                    ]
-                )
-        return result
+            return intra_block_tracing(out_ports, in_ports)
 
     def getInputVars(self):
         return self.getVariablesOfGivenType(ParameterType.InputVar)

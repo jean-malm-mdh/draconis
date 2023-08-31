@@ -2,6 +2,30 @@ import pytest
 
 from Web_GUI.parser.AST.ast_typing import DataflowDirection, SafeClass
 from Web_GUI.parser.AST.path import PathDivide
+from .test_programanalysis import programs
+
+
+def test_can_get_dataflow_from_var_block(programs):
+    inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
+    assert inVarBlock.getFlow(DataflowDirection.Backward) == []
+    assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, [(3, 6)])]
+
+    outVarBlock = programs["Calc_Even"].behaviour_id_map[5]
+    assert outVarBlock.getFlow(DataflowDirection.Forward) == []
+    assert outVarBlock.getFlow(DataflowDirection.Backward) == [(5, [(5, 8)])]
+
+
+def test_can_get_dataflow_from_FBD(programs):
+    fbd_block = programs["Calc_Even"].behaviour_id_map[9]
+    assert fbd_block.getFlow(DataflowDirection.Backward) == [(8, [(6, 3), (7, 4)])]
+    assert fbd_block.getFlow(DataflowDirection.Forward) == [(6, [(8, 5)]),
+                                                            (7, [(8, 5)])]
+
+
+def test_can_perform_backward_trace_from_block(programs):
+    expected = [8, PathDivide([[6, 3], [7, 4]])]
+    actual = programs["Calc_Even"].performBackTraceFromBlock(9)
+    assert actual == expected
 
 
 def test_from_output_can_perform_simple_backward_traces(programs):
@@ -10,7 +34,7 @@ def test_from_output_can_perform_simple_backward_traces(programs):
     Resulting operation is dependent on both operands
     Resulting operation goes directly into outport
     """
-    expected = [5, 9, 8, PathDivide([[6, 3], [7, 4]])]
+    expected = [5, 8, PathDivide([[6, 3], [7, 4]])]
     actual = programs["Calc_Even"].getTrace(DataflowDirection.Backward)["Result_Even"]
     assert actual == expected
 
@@ -21,7 +45,7 @@ def test_backward_trace_can_handle_multi_in_single_out_blocks(programs):
     Resulting operation is dependent on both operands
     Resulting operation goes directly into outport
     """
-    expected = [9, 3, 2, PathDivide([[0, 5], [1, 7], [4, 8]])]
+    expected = [9, 2, PathDivide([[0, 5], [1, 7], [4, 8]])]
     actual = programs["MultiAND"].getTrace(DataflowDirection.Backward)["CanDoWork_ST"]
     assert actual == expected
 
@@ -35,7 +59,7 @@ def test_backward_trace_can_handle_single_in_multiple_out_blocks(programs):
     # ID(4) - FBD block ID
     # ID(6) - Outport #1
     # ID(7) - Outport #2
-    expected = {"OutputByte1": [6, 4, 2, 1, 5], "OutputByte2": [7, 4, 3, 1, 5]}
+    expected = {"OutputByte1": [6, 2, 1, 5], "OutputByte2": [7, 3, 1, 5]}
     actual = program.getBackwardTrace()
     assert actual == expected
 
@@ -49,7 +73,7 @@ def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
     # ID(4) - FBD block ID
     # ID(6) - Outport #1
     # ID(7) - Outport #2
-    expected = {"InputWord": [[5, 1, 2, 4, 6], [5, 1, 3, 4, 7]]}
+    expected = {"InputWord": [[5, 1, 2, 6], [5, 1, 3, 7]]}
     actual = program.getTrace(DataflowDirection.Forward)
     assert actual == expected
 
@@ -64,26 +88,16 @@ def test_can_get_dataflow_from_func_block(programs):
     ) == [[8, 9, 5]]
 
 
-def test_can_get_dataflow_from_var_block(programs):
-    inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
-    assert inVarBlock.getFlow(DataflowDirection.Backward) == []
-    assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, 6)]
-
-    outVarBlock = programs["Calc_Even"].behaviour_id_map[5]
-    assert outVarBlock.getFlow(DataflowDirection.Forward) == []
-    assert outVarBlock.getFlow(DataflowDirection.Backward) == [(5, 8)]
-
-
 def test_from_input_can_perform_simple_forward_traces(programs):
-    expected = [[3, 6, 8, 9, 5]]
+    expected = [[3, 6, 8, 5]]
     actual = programs["Calc_Even"].getTrace(DataflowDirection.Forward)["N"]
     assert actual == expected
 
 
 def test_can_classify_expression_safeness_by_name(programs):
     assert (
-        programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
-        == SafeClass.Unsafe
+            programs["Calc_Even"].getVarInfo()["Safeness"]["Result_Even"]
+            == SafeClass.Unsafe
     )
     assert programs["Calc_Even"].getVarInfo()["Safeness"]["N"] == SafeClass.Unsafe
 
@@ -93,7 +107,7 @@ def test_multi_sequence_FBD_block_dataflow_trace(programs):
     backtrace = program.getBackwardTrace()
     flattened_trace = PathDivide.unpack_pathlist([backtrace["Result_Odd"]])
     assert flattened_trace == [
-        [9, 16, 12, 10, 17, 15, 13, 7],
-        [9, 16, 12, 10, 17, 15, 14, 8],
-        [9, 16, 12, 11, 6],
+        [9, 12, 10, 15, 13, 7],
+        [9, 12, 10, 15, 14, 8],
+        [9, 12, 11, 6],
     ]
