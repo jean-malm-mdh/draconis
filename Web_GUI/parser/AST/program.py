@@ -534,9 +534,17 @@ class Program:
         return result
 
     def transform_to_ST(self):
-        def path_to_ST_statements(path):
+        def path_to_ST_expression(path):
+            """
+
+            Args:
+                path: The path to generate expression for
+
+            Returns:
+                ST representation of the path
+            """
             result = ""
-            potential_block = self.behaviour_id_map[path[0]]
+            potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
             if potential_block.getBlockType() == "FunctionBlock":
                 arglist = ""
 
@@ -544,9 +552,12 @@ class Program:
                                   lambda e: not ("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
                 if "PathDivide" in str(_path[0].__class__):
                     pathdivide_paths = _path[0].paths
-                    arglist = ", ".join(map(lambda p: path_to_ST_statements(p[1:]), pathdivide_paths))
+                    # Recursive call for each path
+                    # first element of the PathDivide paths is the input port, which needs to be removed
+                    continue_from_input_path = lambda p: path_to_ST_expression(p[1:])
+                    arglist = ", ".join(map(continue_from_input_path, pathdivide_paths))
                 else:
-                    arglist = path_to_ST_statements(_path)
+                    arglist = path_to_ST_expression(_path)
                 result += f"{potential_block.data.type}({arglist})"
 
             else:
@@ -562,12 +573,14 @@ class Program:
                 result += "\t" + f"{outVar} := "
                 # Remove output variable from path list
                 _path = path[1:]
-                result += f"{path_to_ST_statements(_path)};\n"
+                result += f"{path_to_ST_expression(_path)};\n"
 
             return result
 
+        varheader_transform_to_st = self.varHeader.transform_to_ST()
+        outputs_to_st_statements = outputs_to_ST_statements()
         return \
             f"""
 Function_Block {self.progName}
-{self.varHeader.transform_to_ST()}{outputs_to_ST_statements()}
+{varheader_transform_to_st}{outputs_to_st_statements}
 End_Function_Block"""
