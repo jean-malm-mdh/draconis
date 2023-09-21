@@ -552,28 +552,33 @@ class Program:
                 ST representation of the path
             """
             def consume_path_within_block(block, _path):
+                """
+
+                Args:
+                    block: The related block
+                    _path: The path to remove from
+
+                Returns:
+                    The path starting from the first element not connected to the block
+                """
                 blockID = block.getID()
                 return dropWhile(_path, lambda portID: self.ports[portID].blockID == blockID)
-            result = ""
             potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
             if potential_block.getBlockType() == "FunctionBlock":
-                arglist = ""
-
                 _path = dropWhile(path[1:],
                                   lambda e: not ("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
                 if "PathDivide" in str(_path[0].__class__):
                     pathdivide_paths = _path[0].paths
                     # Recursive call for each path
-                    # first element of the PathDivide paths is the input port, which needs to be removed
-                    arglist = ", ".join(map(lambda p: path_to_ST_expression(
-                        consume_path_within_block(potential_block, p)), pathdivide_paths))
+                    args_in_ST_form = map(lambda p: path_to_ST_expression(consume_path_within_block(potential_block, p)),
+                            pathdivide_paths)
+                    arglist = ", ".join(args_in_ST_form)
                 else:
                     arglist = path_to_ST_expression(_path)
-                result += f"{potential_block.data.type}({arglist})"
+                return f"{potential_block.data.type}({arglist})"
 
             else:
-                result += potential_block.getVarExpr()
-            return result
+                return potential_block.getVarExpr()
 
         def outputs_to_ST_statements():
             out_dataflow = self.getBackwardTrace()
