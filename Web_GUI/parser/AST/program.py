@@ -13,6 +13,7 @@ from Web_GUI.parser.AST.utilities import indexOrNone
 from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
 from block_port import Port
 
+
 def dropWhile(l: list, p):
     for i in range(0, len(l)):
         if not (p(l[i])):
@@ -84,12 +85,14 @@ class Program:
         self.forward_flow = None
 
         self.ports = {}
+
     def post_parsing_analysis(self):
         """
         Performs some necessary pre-steps for other analyses.
         Returns:
             No return value - will mutate the instance object
         """
+
         def make_ADT_consistent():
             def addPortConnectionToBlock(blockID, portID, connection):
                 targetPort = self.ports.get(portID, None)
@@ -104,6 +107,7 @@ class Program:
                 for conn in connection.connections:
                     otherPoint = conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
                     targetPort.connections.add(otherPoint)
+
             # First, fill all forwards connections
             fbd_blocks = [block for block in self.behaviourElements if isinstance(block, FBD_Block)]
             for block in fbd_blocks:
@@ -120,6 +124,7 @@ class Program:
                 for conn in p_data.connections:
                     startPort = self.ports.get(conn, None)
                     startPort.connections.add(p_id)
+
         make_ADT_consistent()
 
     def getVarGroups(self):
@@ -185,6 +190,7 @@ class Program:
             VariableLine.__dict__["__annotations__"].keys() if len(args) == 0 else args
         )
         return [getFieldContent(_fields, e) for e in self.varHeader.getAllVariables()]
+
     def performBackTraceFromBlock(self, bID, trace_from_portID=None):
         def appendIfNotInListEnd(l, elem):
             if not l or l[-1] != elem:
@@ -195,24 +201,26 @@ class Program:
                 return []
             if l[0] == acc[-1]:
                 acc.extend(l[1:])
+
         b = self.behaviour_id_map.get(bID, None) or self.behaviour_id_map[self.ports[bID].blockID]
         result = []
         # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
         flow = b.getFlow(DataflowDirection.Backward, trace_from_portID)
         if flow == []:
             return [bID]
-        elif len(flow) == 1: # The number of output ports is one
+        elif len(flow) == 1:  # The number of output ports is one
             startPort, connectionPorts = flow[0]
             appendIfNotInListEnd(result, startPort)
 
-            if len(connectionPorts) == 1: #The number of input ports is one
+            if len(connectionPorts) == 1:  # The number of input ports is one
                 appendIfNotInListEnd(result, connectionPorts[0][0])
                 appendIfNotInListEnd(result, connectionPorts[0][1])
                 recurse = self.performBackTraceFromBlock(connectionPorts[0][1], connectionPorts[0][1])
                 for r in recurse:
                     appendIfNotInListEnd(result, r)
             else:
-                recurse = [(toPort, self.performBackTraceFromBlock(connectingPort, connectingPort)) for toPort, connectingPort in connectionPorts]
+                recurse = [(toPort, self.performBackTraceFromBlock(connectingPort, connectingPort)) for
+                           toPort, connectingPort in connectionPorts]
                 dividing_paths = []
                 for toPort, r in recurse:
                     _recurse = []
@@ -224,6 +232,7 @@ class Program:
             return result
 
         return result
+
     def getBackwardTrace(self):
         """
 
@@ -246,7 +255,6 @@ class Program:
                 for p in paths
             ]
             return PathDivide(result)
-
 
         def performTrace(start_blocks):
             result = dict()
@@ -543,6 +551,9 @@ class Program:
             Returns:
                 ST representation of the path
             """
+            def consume_path_within_block(block, _path):
+                blockID = block.getID()
+                return dropWhile(_path, lambda portID: self.ports[portID].blockID == blockID)
             result = ""
             potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
             if potential_block.getBlockType() == "FunctionBlock":
@@ -554,8 +565,8 @@ class Program:
                     pathdivide_paths = _path[0].paths
                     # Recursive call for each path
                     # first element of the PathDivide paths is the input port, which needs to be removed
-                    continue_from_input_path = lambda p: path_to_ST_expression(p[1:])
-                    arglist = ", ".join(map(continue_from_input_path, pathdivide_paths))
+                    arglist = ", ".join(map(lambda p: path_to_ST_expression(
+                        consume_path_within_block(potential_block, p)), pathdivide_paths))
                 else:
                     arglist = path_to_ST_expression(_path)
                 result += f"{potential_block.data.type}({arglist})"
