@@ -14,10 +14,10 @@ from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
 from block_port import Port
 
 
-def dropWhile(l: list, p):
-    for i in range(0, len(l)):
-        if not (p(l[i])):
-            return l[i:]
+def dropWhile(aList: list, p):
+    for i in range(len(aList)):
+        if not (p(aList[i])):
+            return aList[i:]
     return []
 
 
@@ -94,6 +94,11 @@ class Program:
         """
 
         def make_ADT_consistent():
+            """
+            Sets up and connects all the ports mapping
+            Returns:
+
+            """
             def addPortConnectionToBlock(blockID, portID, connection):
                 targetPort = self.ports.get(portID, None)
                 if targetPort is None:
@@ -111,10 +116,10 @@ class Program:
             # First, fill all forwards connections
             fbd_blocks = [block for block in self.behaviourElements if isinstance(block, FBD_Block)]
             for block in fbd_blocks:
-                for id, conn in [(c.ID, c.connectionPoint) for c in block.getInputVars()]:
-                    addPortConnectionToBlock(block.getID(), id, conn)
-                for id, conn in [(c.ID, c.connectionPoint) for c in block.getOutputVars()]:
-                    addPortConnectionToBlock(block.getID(), id, conn)
+                for ID, conn in [(c.ID, c.connectionPoint) for c in block.getInputVars()]:
+                    addPortConnectionToBlock(block.getID(), ID, conn)
+                for ID, conn in [(c.ID, c.connectionPoint) for c in block.getOutputVars()]:
+                    addPortConnectionToBlock(block.getID(), ID, conn)
             output_blocks = [block for block in self.behaviourElements if isinstance(block, VarBlock)]
             for block in output_blocks:
                 addPortConnectionToBlock(block.getID(), block.getID(), block.outConnection)
@@ -565,6 +570,7 @@ class Program:
                 return dropWhile(_path, lambda portID: self.ports[portID].blockID == blockID)
             potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
             if potential_block.getBlockType() == "FunctionBlock":
+                # Recursive case
                 _path = dropWhile(path[1:],
                                   lambda e: not ("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
                 if "PathDivide" in str(_path[0].__class__):
@@ -576,7 +582,6 @@ class Program:
                 else:
                     arglist = path_to_ST_expression(_path)
                 return f"{potential_block.data.type}({arglist})"
-
             else:
                 return potential_block.getVarExpr()
 
