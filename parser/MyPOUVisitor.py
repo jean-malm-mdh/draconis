@@ -1,14 +1,7 @@
 import logging
 
-from Web_GUI.parser.AST.program import Program
-from Web_GUI import parser
-from Web_GUI.parser.AST.ast_typing import ParameterType
-from Web_GUI.parser.AST.variables import (
-    VariableWorkSheet,
-    VariableGroup,
-    VariableLine,
-    ParameterType,
-)
+from AST import strToValType, strToVariableType
+from parser import Program, ParameterType, VariableWorkSheet, VariableLine, VariableGroup
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 
@@ -24,7 +17,7 @@ class MyPOUVisitor(POUVisitor):
     def visitVariableWorkSheet(self, ctx: POUParser.VariableWorkSheetContext):
         variableGroups = self.visitVarGroups(ctx.varGroups())
         groups_no_IDs = list(variableGroups)
-        return parser.AST.variables.VariableWorkSheet(groups_no_IDs)
+        return VariableWorkSheet(groups_no_IDs)
 
     # Visit a parse tree produced by POUParser#varGroups.
     def visitVarGroups(self, ctx: POUParser.VarGroupsContext):
@@ -39,7 +32,7 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
-        return int(str(ctx.groupID.text)), parser.AST.variables.VariableGroup(
+        return int(str(ctx.groupID.text)), VariableGroup(
             str(ctx.groupName.text), []
         )
 
@@ -71,7 +64,7 @@ class MyPOUVisitor(POUVisitor):
             else str(ctx.varDesc.text).lstrip("(*").rstrip("*)").strip()
         )
         isFeedback = self.visitFeedbackRule(ctx.isFeedback)
-        return parser.AST.variables.VariableLine(
+        return VariableLine(
             ctx.varName.text,
             dummy,
             self.visitVal_Type(ctx.valueType),
@@ -82,14 +75,14 @@ class MyPOUVisitor(POUVisitor):
 
     # Visit a parse tree produced by POUParser#val_Type.
     def visitVal_Type(self, ctx: POUParser.Val_TypeContext):
-        result = parser.AST.ast_typing.strToValType(str(ctx.start.text))
+        result = strToValType(str(ctx.start.text))
         if result is None:
             logging.warning(f"Type{str(ctx.children[0])} could not be found in lookup")
         return result
 
     # Visit a parse tree produced by POUParser#var_type.
     def visitVar_type(self, ctx: POUParser.Var_typeContext):
-        return parser.AST.ast_typing.strToVariableType(str(ctx.children[0]))
+        return strToVariableType(str(ctx.children[0]))
 
     # Visit a parse tree produced by POUParser#codeWorkSheet.
     def visitCodeWorkSheet(self, ctx: POUParser.CodeWorkSheetContext):

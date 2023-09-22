@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 # Java
-Web_GUI/parser/gen/
+parser/gen/
 
 # Distribution / packaging
 .Python
@@ -170,4 +170,4 @@ DATASTORE/
 .DS_Store
 db.sqlite3
 geckodriver.log
-/Web_GUI/parser/test/DEMO/
+/parser/test/DEMO/

@@ -4,7 +4,7 @@ from random import Random
 
 import pytest
 
-from ast_typing import ParameterType, ValueType
+from .ast_typing import ParameterType, ValueType
 
 
 @dataclass

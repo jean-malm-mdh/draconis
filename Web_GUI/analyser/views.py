@@ -2,13 +2,16 @@ import os.path
 
 from django.core.files.uploadedfile import UploadedFile
 from django.shortcuts import render
+import os
+import sys
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from parser.helper_functions import parse_pou_file
 
 # Create your views here.
 from django import forms
 
-from Web_GUI.parser.AST.path import PathDivide
-from Web_GUI.parser.renderer import generate_image_of_program
+from AST import PathDivide
+from parser.renderer import generate_image_of_program
 
 
 class UploadFileForm(forms.Form):

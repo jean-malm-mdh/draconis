@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from Web_GUI.parser.AST.ast_typing import SafeClass
+from parser import SafeClass
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from helper_functions import (

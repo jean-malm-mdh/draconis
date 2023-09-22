@@ -3,15 +3,14 @@ import logging
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
 
-from Web_GUI import Point
-from Web_GUI.parser.AST.ast_typing import DataflowDirection, ParameterType, SafeClass
-from Web_GUI.parser.AST.blocks import FBD_Block, Block, VarBlock
-from Web_GUI.parser.AST.connections import ConnectionDirection
-from Web_GUI.parser.AST.path import PathDivide
-from Web_GUI.parser.AST.comment_box import CommentBox
-from Web_GUI.parser.AST.utilities import indexOrNone
-from Web_GUI.parser.AST.variables import VariableWorkSheet, VariableLine
-from block_port import Port
+from .point import Point
+from .ast_typing import DataflowDirection, ParameterType, SafeClass
+from .blocks import FBD_Block, VarBlock
+from .path import PathDivide
+from .comment_box import CommentBox
+from .utilities import indexOrNone
+from .variables import VariableWorkSheet, VariableLine
+from .block_port import Port
 
 
 def dropWhile(aList: list, p):

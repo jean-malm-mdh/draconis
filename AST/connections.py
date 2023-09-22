@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from enum import IntEnum
 from typing import Optional
 
-from Web_GUI.parser.AST.ast_typing import DataflowDirection
-from Web_GUI.parser.AST.position import GUIPosition, make_absolute_position
+from .ast_typing import DataflowDirection
+from .position import GUIPosition, make_absolute_position
 
-from utilities import swap_in_string
+from .utilities import swap_in_string
 
 class ConnectionDirection(IntEnum):
     Input = 1

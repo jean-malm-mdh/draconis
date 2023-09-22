@@ -1,25 +1,23 @@
 from typing import List
 
-import antlr4.Parser
-
-from Web_GUI.parser.AST.comment_box import CommentBox
+from parser import CommentBox
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
-from Web_GUI.parser.AST.ast_typing import ParameterType
-from Web_GUI.parser.AST.fbdobject_base import FBDObjData
+from parser import ParameterType
+from parser import FBDObjData
 from Web_GUI import Point, Rectangle
-from Web_GUI.parser.AST.blocks import Expr, VarBlock, FBD_Block
-from Web_GUI.parser.AST.connections import (
+from AST.blocks import Expr, VarBlock, FBD_Block
+from parser import (
     ConnectionDirection,
     ConnectionData,
     Connection,
     ConnectionPoint,
 )
-from Web_GUI.parser.AST.formalparam import FormalParam, ParamList
-from Web_GUI.parser.AST.position import make_absolute_position, make_relative_position
+from parser import FormalParam, ParamList
+from parser import make_absolute_position, make_relative_position
 
 
 class MyXMLVisitor(XMLParserVisitor):

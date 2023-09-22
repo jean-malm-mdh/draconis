@@ -4,7 +4,8 @@ from dataclasses import dataclass
 
 import pytest
 
-from Web_GUI import Point, Rectangle
+from .point import Point
+from .rectangle import Rectangle
 import json
 
 

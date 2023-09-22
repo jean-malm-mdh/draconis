@@ -1,5 +1,3 @@
-import sys
-
 from antlr4 import InputStream, CommonTokenStream
 
 import MyPOUVisitor

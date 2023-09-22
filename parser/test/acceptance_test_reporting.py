@@ -1,8 +1,6 @@
-import os
-import pathlib
 import unittest
 
-from Web_GUI.parser.helper_functions import (
+from parser import (
     parse_pou_file,
     get_pou_description,
     change_pou_description,

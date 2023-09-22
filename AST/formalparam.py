@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from Web_GUI.parser.AST.ast_typing import DataflowDirection, ParameterType
-from Web_GUI.parser.AST.connections import (
+from .ast_typing import DataflowDirection, ParameterType
+from .connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
 )

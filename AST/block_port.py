@@ -1,10 +1,9 @@
-from Web_GUI import Point
-from connections import (
-    ConnectionPoint, ConnectionDirection
+from .point import Point
+from .connections import (
+    ConnectionDirection
 )
 from typing import Set
 from dataclasses import dataclass
-from formalparam import FormalParam
 
 
 @dataclass

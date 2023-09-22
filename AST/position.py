@@ -1,9 +1,8 @@
 import dataclasses
 import json
-from dataclasses import dataclass
 
 
-@dataclass
+@dataclasses.dataclass
 class GUIPosition:
     isRelativePosition: bool
     x: int

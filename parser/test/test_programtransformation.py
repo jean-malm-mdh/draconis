@@ -3,8 +3,6 @@ import sys
 
 import pytest
 
-from Web_GUI.parser.AST.ast_typing import SafeClass, DataflowDirection
-
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 import re

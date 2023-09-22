@@ -1,16 +1,17 @@
 import json
 from dataclasses import dataclass
-from ast_typing import ParameterType, DataflowDirection
-from fbdobject_base import FBDObjData
-from Web_GUI import Point, Rectangle
-from connections import (
+from .ast_typing import ParameterType, DataflowDirection
+from .fbdobject_base import FBDObjData
+from .point import Point
+from .rectangle import Rectangle
+from .connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
     trace_connection_in_dataflow_direction_list_version, ConnectionDirection,
 )
 from typing import List, Dict
-from formalparam import ParamList
-from block_port import Port
+from .formalparam import ParamList
+from .block_port import Port
 
 @dataclass
 class Expr:

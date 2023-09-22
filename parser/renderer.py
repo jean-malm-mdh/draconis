@@ -3,8 +3,8 @@ import sys
 from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
-from Web_GUI.parser.AST.program import Program
-from Web_GUI.parser.AST.connections import ConnectionDirection
+from parser import Program
+from parser import ConnectionDirection
 from Web_GUI import Point
 
 

@@ -1,7 +1,7 @@
 import pytest
 
-from Web_GUI.parser.AST.ast_typing import DataflowDirection, SafeClass
-from Web_GUI.parser.AST.path import PathDivide
+from parser import DataflowDirection, SafeClass
+from parser import PathDivide
 from .test_programanalysis import programs
 
 

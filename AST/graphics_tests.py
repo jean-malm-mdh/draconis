@@ -1,6 +1,7 @@
 import unittest
 
-from Web_GUI import Point, Rectangle
+from .point import Point
+from .rectangle import Rectangle
 
 
 class GraphicalTests(unittest.TestCase):

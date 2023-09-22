@@ -80,75 +80,7 @@ class ValueType(IntEnum):
 
     @classmethod
     def fromString(cls, aString):
-        match aString:
-            case "BOOL":
-                return ValueType.BOOL
-            case "BYTE":
-                return ValueType.BYTE
-            case "WORD":
-                return ValueType.WORD
-            case "DWORD":
-                return ValueType.DWORD
-            case "LWORD":
-                return ValueType.LWORD
-            case "SINT":
-                return ValueType.SINT
-            case "INT":
-                return ValueType.INT
-            case "DINT":
-                return ValueType.DINT
-            case "LINT":
-                return ValueType.LINT
-            case "USINT":
-                return ValueType.USINT
-            case "UINT":
-                return ValueType.UINT
-            case "UDINT":
-                return ValueType.UDINT
-            case "ULINT":
-                return ValueType.ULINT
-            case "REAL":
-                return ValueType.REAL
-            case "LREAL":
-                return ValueType.LREAL
-            case "TIME":
-                return ValueType.TIME
-            case "DATE":
-                return ValueType.DATE
-            case "DT":
-                return ValueType.DT
-            case "TOD":
-                return ValueType.TOD
-            case "STRING":
-                return ValueType.STRING
-            case "WSTRING":
-                return ValueType.WSTRING
-            case "SAFEANALOG":
-                return ValueType.SAFEANALOG
-            case "SAFEBOOL":
-                return ValueType.SAFEBOOL
-            case "SAFEBYTE":
-                return ValueType.SAFEBYTE
-            case "SAFEDWORD":
-                return ValueType.SAFEDWORD
-            case "SAFEWORD":
-                return ValueType.SAFEWORD
-            case "SAFEINT":
-                return ValueType.SAFEINT
-            case "SAFESINT":
-                return ValueType.SAFESINT
-            case "SAFEDINT":
-                return ValueType.SAFEDINT
-            case "SAFEUSINT":
-                return ValueType.SAFEUSINT
-            case "SAFEUINT":
-                return ValueType.SAFEUINT
-            case "SAFEUDINT":
-                return ValueType.SAFEUDINT
-            case "SAFETIME":
-                return ValueType.SAFETIME
-            case "CUSTOM_FBD":
-                return ValueType.CUSTOM_FBD
+        return ValueType.__dict__.get(aString, ValueType.CUSTOM_FBD)
 
 
 class DataflowDirection(IntEnum):

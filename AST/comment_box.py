@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from Web_GUI import Rectangle
+from .rectangle import Rectangle
 
 
 @dataclass()

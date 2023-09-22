@@ -2,8 +2,8 @@ import dataclasses
 import json
 from dataclasses import dataclass
 
-from Web_GUI.parser.AST.point import Point
-from Web_GUI.parser.AST.utilities import swap_in_string
+from .point import Point
+from .utilities import swap_in_string
 
 
 @dataclass(unsafe_hash=True)
