@@ -4,7 +4,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 
-from reqcheck import complies
+from nlp_reqcheck import complies
 
 
 # Todo:
@@ -33,7 +33,9 @@ class ComplianceCheckGenerator(unittest.TestCase):
         metrics = {"variable": 55}
         self.assertTrue(complies(metrics, req_text), "positive test")
         metrics = {"variable": 125}
-        self.assertTrue(complies(metrics, req_text), "positive test - upper boundary value")
+        self.assertTrue(
+            complies(metrics, req_text), "positive test - upper boundary value"
+        )
         metrics = {"variable": 0}
         self.assertFalse(complies(metrics, req_text), "negative test")
         metrics = {"variable": 126}
@@ -44,5 +46,6 @@ class ComplianceCheckGenerator(unittest.TestCase):
         metrics = {"inputVariable": 2, "outputVariable": 1}
         self.assertTrue(complies(metrics, req_text), "Positive test")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
