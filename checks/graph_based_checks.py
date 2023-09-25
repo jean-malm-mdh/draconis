@@ -1,20 +1,32 @@
+from typing import List, Set
 import networkx as nx
 
-from AST.program import Program
-from AST.path import PathDivide
-def program_to_graph(prog: Program):
-    resultGraph = nx.Graph()
-    traces = prog.getBackwardTrace()
+from AST import PathDivide
+from parser import Program
+
+
+def path_list_to_graph_edges(path_list: List[List[List[int]]]):
     edges = set()
-    for _, trace in traces.items():
-        trace_unpacked = PathDivide.unpack_pathlist(trace)
-        for path in trace_unpacked:
-            for tLIndex in range(len(trace_unpacked)-1):
-                edges.add((path[tLIndex], path[tLIndex+1]))
-            #assert edges == [
-             #   [9, 12, 10, 15, 13, 7],
-             #   [9, 12, 10, 15, 14, 8],
-             #   [9, 12, 11, 6],]
-            # [(9, 12), (12,10), (10,15), (15,13), (13, 7)]
-    for eF, eT in edges:
-        resultGraph.add_edge(eF, eT)
+    for trace in path_list:
+        for path in trace:
+            for tLIndex in range(len(path) - 1):
+                edges.add((path[tLIndex], path[tLIndex + 1]))
+    return edges
+
+
+def graph_from_program(prog: Program):
+    resultGraph = nx.Graph()
+    all_edges = set()
+    traces = prog.getBackwardTrace()
+    for out_var_name, path in traces.items():
+        flat_paths = PathDivide.unpack_pathlist([path])
+        curr_edges = path_list_to_graph_edges([flat_paths])
+        all_edges = all_edges.union(curr_edges)
+
+    for edgeF, edgeT in all_edges:
+        resultGraph.add_edge(edgeF, edgeT)
+    return resultGraph
+
+
+def islands_from_graph(graph: nx.Graph):
+    return {i + 1: island for i, island in enumerate(nx.connected_components(graph))}
