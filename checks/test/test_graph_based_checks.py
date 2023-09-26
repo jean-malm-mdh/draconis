@@ -2,6 +2,7 @@ from checks.graph_based_checks import (
     path_list_to_graph_edges,
     graph_from_program,
     islands_from_graph,
+    islands_from_program
 )
 import os
 import pytest
@@ -54,6 +55,7 @@ def programs():
                 ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
                 ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
                 ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
+                ("feedback_example", f"{testDir}/Feedback_Exampple.pou"),
             ]
         ]
     )
@@ -85,3 +87,11 @@ def test_given_multiple_islands_can_identify_each():
     expected = {1: {1, 2, 3, 4}, 2: {10, 20, 30, 40}}
     actual = islands_from_graph(graph)
     assert expected == actual
+
+def test_given_program_with_multiple_networks_can_identify_each(programs):
+    prog = programs["feedback_example"]
+    expected_with_names = {1: {"Output_Feedback", "ADD_S_3", "Input_A", "Input_B"}, 2: {"Output_asd", "ADD_15", "Input_In1", "Input_hello"},
+                3: {"Output_B", "Input_Feedback"}}
+    expected_with_IDs = {1: {0, 1, 2, 4, 5, 6}, 2: {12, 13, 14, 16, 17, 18}, 3: {8, 7}}
+    assert expected_with_IDs == islands_from_program(prog)
+    assert expected_with_names == islands_from_program(prog, display="Names")

@@ -1,7 +1,7 @@
 from typing import List, Set
 import networkx as nx
 
-from AST import PathDivide
+from AST import PathDivide, Port
 from parser import Program
 
 
@@ -30,3 +30,19 @@ def graph_from_program(prog: Program):
 
 def islands_from_graph(graph: nx.Graph):
     return {i + 1: island for i, island in enumerate(nx.connected_components(graph))}
+
+
+def islands_from_program(prog: Program, display="IDs"):
+    def blockID_to_display_name(ID):
+        port = prog.ports.get(ID, None)
+        if port is None:
+            return ID
+        assert isinstance(port, Port)
+        block = prog.behaviour_id_map[port.blockID]
+        name = block.getName()
+        return f"{name}_{port.blockID}"
+    islands = islands_from_graph(graph_from_program(prog))
+    if display == "Names":
+        return {i: set(map(blockID_to_display_name, v)) for i, v in islands.items()}
+    else:
+        return islands

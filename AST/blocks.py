@@ -49,6 +49,9 @@ class Block:
     def fromJSON(cls, json_string):
         raise NotImplementedError("Implement in Child classes")
 
+    def getName(self):
+        raise NotImplementedError("Implement in child classes")
+
 
 
 @dataclass
@@ -103,6 +106,11 @@ class VarBlock(Block):
         d = json.loads(json_string)
         vb = VarBlock(FBDObjData.fromJSON(d["data"]), outConnection=ConnectionPoint.fromJSON(d["outConnection"]), expr=d["expr"])
         return vb
+
+    def getName(self):
+        block_direction = "Input" if self.outConnection.connectionDir == ConnectionDirection.Output else "Output"
+        return f"{block_direction}_{self.getVarExpr()}"
+
 
 def test_varBlockFromJSON_AndBack():
     vb = VarBlock(FBDObjData(14, "test", Rectangle(Point(42,42), Point(57,57))),
@@ -191,3 +199,6 @@ class FBD_Block(Block):
 
     def getBlockType(self):
         return "FunctionBlock"
+
+    def getName(self):
+        return self.data.type

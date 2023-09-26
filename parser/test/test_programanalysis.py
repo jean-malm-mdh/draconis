@@ -46,6 +46,7 @@ def programs():
                 ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
                 ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
                 ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
+                ("feedback_example", f"{testDir}/Feedback_Exampple.pou")
             ]
         ]
     )
