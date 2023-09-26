@@ -33,30 +33,30 @@ def programs():
         [
             (n, parse_pou_file(p))
             for n, p in [
-                (
-                    "Calc_Odd",
-                    f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou",
-                ),
-                (
-                    "Calc_Even",
-                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
-                ),
-                (
-                    "Calc_Even_SafeVer",
-                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
-                ),
-                ("MultiAND", f"{testDir}/MultiANDer.pou"),
-                ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
-                ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
-                (
-                    "SingleIn_MultiOut",
-                    f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou",
-                ),
-                ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
-                ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
-                ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
-                ("feedback_example", f"{testDir}/Feedback_Exampple.pou"),
-            ]
+            (
+                "Calc_Odd",
+                f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou",
+            ),
+            (
+                "Calc_Even",
+                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
+            ),
+            (
+                "Calc_Even_SafeVer",
+                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+            ),
+            ("MultiAND", f"{testDir}/MultiANDer.pou"),
+            ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
+            ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
+            (
+                "SingleIn_MultiOut",
+                f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou",
+            ),
+            ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
+            ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
+            ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
+            ("feedback_example", f"{testDir}/Feedback_Exampple.pou"),
+        ]
         ]
     )
     return programs
@@ -88,10 +88,14 @@ def test_given_multiple_islands_can_identify_each():
     actual = islands_from_graph(graph)
     assert expected == actual
 
+
 def test_given_program_with_multiple_networks_can_identify_each(programs):
     prog = programs["feedback_example"]
-    expected_with_names = {1: {"Output_Feedback", "ADD_S_3", "Input_A", "Input_B"}, 2: {"Output_asd", "ADD_15", "Input_In1", "Input_hello"},
-                3: {"Output_B", "Input_Feedback"}}
-    expected_with_IDs = {1: {0, 1, 2, 4, 5, 6}, 2: {12, 13, 14, 16, 17, 18}, 3: {8, 7}}
+    expected_with_qualified_names = {1: {"Output_Feedback_6", "ADD_S_3", "Input_A_4", "Input_B_5"},
+                           2: {"Output_asd_18", "ADD_15", "Input_In1_16", "Input_hello_17"},
+                           3: {"Output_B_8", "Input_Feedback_7"}}
+    expected_with_IDs = {1: {0, 1, 2, 4, 5, 6},
+                         2: {12, 13, 14, 16, 17, 18},
+                         3: {8, 7}}
     assert expected_with_IDs == islands_from_program(prog)
-    assert expected_with_names == islands_from_program(prog, display="Names")
+    assert expected_with_qualified_names == islands_from_program(prog, display="Names")
