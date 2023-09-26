@@ -52,6 +52,9 @@ class Block:
     def getName(self):
         raise NotImplementedError("Implement in child classes")
 
+    def getBoundingBox(self):
+        return self.data.boundary_box
+
 
 
 @dataclass
@@ -202,3 +205,4 @@ class FBD_Block(Block):
 
     def getName(self):
         return self.data.type
+

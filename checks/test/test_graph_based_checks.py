@@ -1,4 +1,4 @@
-from checks.graph_based_checks import (
+from checks.graph_utilities import (
     path_list_to_graph_edges,
     graph_from_program,
     islands_from_graph,
@@ -9,7 +9,10 @@ import pytest
 import networkx as nx
 from matplotlib import pyplot as plt
 
+from checks.graphical_checks import check_position_of_networks
 from parser.helper_functions import parse_pou_file
+
+from parser.test import programs
 
 
 def test_path_list_to_graph():
@@ -24,42 +27,6 @@ def test_path_list_to_graph_duplicate_edges_are_ignored():
     assert {(9, 12), (12, 10), (10, 15), (15, 13), (13, 7)} == actual
 
 
-@pytest.fixture(scope="session", autouse=True)
-def programs():
-    testDir = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), "../../parser/test"
-    )
-    programs = dict(
-        [
-            (n, parse_pou_file(p))
-            for n, p in [
-            (
-                "Calc_Odd",
-                f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou",
-            ),
-            (
-                "Calc_Even",
-                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
-            ),
-            (
-                "Calc_Even_SafeVer",
-                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
-            ),
-            ("MultiAND", f"{testDir}/MultiANDer.pou"),
-            ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
-            ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
-            (
-                "SingleIn_MultiOut",
-                f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou",
-            ),
-            ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
-            ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
-            ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
-            ("feedback_example", f"{testDir}/Feedback_Exampple.pou"),
-        ]
-        ]
-    )
-    return programs
 
 
 def test_graph_from_empty_program_is_empty_graph(programs):
@@ -89,7 +56,7 @@ def test_given_multiple_islands_can_identify_each():
     assert expected == actual
 
 
-def test_given_program_with_multiple_networks_can_identify_each(programs):
+def test_given_program_with_multiple_networks_can_identify_each_with_element_names_and_ids(programs):
     prog = programs["feedback_example"]
     expected_with_qualified_names = {1: {"Output_Feedback_6", "ADD_S_3", "Input_A_4", "Input_B_5"},
                            2: {"Output_asd_18", "ADD_15", "Input_In1_16", "Input_hello_17"},
@@ -99,3 +66,16 @@ def test_given_program_with_multiple_networks_can_identify_each(programs):
                          3: {8, 7}}
     assert expected_with_IDs == islands_from_program(prog)
     assert expected_with_qualified_names == islands_from_program(prog, display="Names")
+
+def test_check_can_identify_graphically_misaligned_networks(programs):
+    conforming_single_network_program = programs["MultiAND"]
+    conforming_multi_network_program = programs["feedback_example"]
+    nonconforming_multi_network = programs["feedback_example_misaligned_networks"]
+
+    # Positive Cases
+    assert [] == check_position_of_networks(conforming_single_network_program)
+    assert [] == check_position_of_networks(conforming_multi_network_program)
+
+    # Negative Cases
+    assert ["Network 2 is misaligned. Networks shall be positioned top-to-bottom and left-to-right"] == \
+           check_position_of_networks(nonconforming_multi_network)

@@ -171,3 +171,4 @@ DATASTORE/
 db.sqlite3
 geckodriver.log
 /parser/test/DEMO/
+*test*.jpg

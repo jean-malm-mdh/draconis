@@ -1,4 +1,4 @@
-﻿FUNCTION_BLOCK Feedback_Exampple
+﻿FUNCTION_BLOCK Feedback_Exampple_Misaligned
 { VariableWorksheet := 'Variables' }
 ﻿{GroupDefinition(0,'Input')}
 {GroupDefinition(6,'Internals')}
@@ -140,7 +140,7 @@ END_VAR
     </connectionPointIn>
   </outVariable>
   <block localId="15" height="24" width="16" typeName="ADD">
-    <position x="40" y="2" />
+    <position x="160" y="2" />
     <addData>
       <data name="http://redacted.com" handleUnknown="preserve">
         <fbData fbFuType="1" />
@@ -185,21 +185,21 @@ END_VAR
     </outputVariables>
   </block>
   <inVariable localId="16" height="4" width="12">
-    <position x="24" y="8" />
+    <position x="144" y="8" />
     <expression>In1</expression>
     <connectionPointOut>
       <relPosition x="12" y="2" />
     </connectionPointOut>
   </inVariable>
   <inVariable localId="17" height="4" width="14">
-    <position x="22" y="16" />
+    <position x="142" y="16" />
     <expression>hello</expression>
     <connectionPointOut>
       <relPosition x="14" y="2" />
     </connectionPointOut>
   </inVariable>
   <outVariable localId="18" height="4" width="12">
-    <position x="60" y="8" />
+    <position x="180" y="8" />
     <expression>asd</expression>
     <connectionPointIn>
       <relPosition x="0" y="2" />

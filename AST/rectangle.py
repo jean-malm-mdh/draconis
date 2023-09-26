@@ -36,6 +36,12 @@ class Rectangle:
         )
         return Rectangle(lt, rb)
 
+    @classmethod
+    def fromTuple(cls, l, t, r, b):
+        lt = Point(l, t)
+        rb = Point(r, b)
+        return Rectangle(lt, rb)
+
     def move_by_delta(self, delta: Point):
         """
         in-memory update of a rectangle by moving its position by the delta
