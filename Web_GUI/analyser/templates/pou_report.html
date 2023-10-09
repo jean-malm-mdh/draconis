@@ -6,7 +6,8 @@
 </head>
 <body>
 {{form}}
-<h1>Report for Analysed POU File: {{file_name}}</h1>
+<h1>Analysed file: {{file_name}}</h1>
+<h2>Analysis Check Results</h2>
 <table id="id_reports_table">
     <thead>
     <tr>
@@ -27,49 +28,53 @@
         {% endfor %}
     </tbody>
 </table>
-<hline/>
-<h2>Metrics</h2>
-<table id="id_metrics_table">
-    <thead>
-    <tr>
-        <th>Metric Name</th>
-        <th>Value</th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for key, value in metrics.items  %}
+<h2>Additional Data</h2>
+<div style="display: inline-block; vertical-align: top;">
+    <h3>Variable Info</h3>
+    <table id="id_var_table">
+        <thead>
         <tr>
-            <td>{{key}}</td>
-            <td>{{value}}</td>
+            <th>Variable name</th>
+            <th>Variable Type</th>
+            <th>Data Type</th>
+            <th>Default Value</th>
+            <th>Description</th>
         </tr>
-        {% endfor %}
-    </tbody>
-</table>
-<h2>Variable Info</h2>
-<table id="id_var_table">
-    <thead>
-    <tr>
-        <th>Variable name</th>
-        <th>Variable Type</th>
-        <th>Data Type</th>
-        <th>Default Value</th>
-        <th>Description</th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for value in variable_info  %}
+        </thead>
+        <tbody>
+            {% for value in variable_info  %}
+            <tr>
+                <td>{{value.0}}</td>
+                <td>{{value.1}}</td>
+                <td>{{value.2}}</td>
+                <td>{{value.3}}</td>
+                <td>{{value.4}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div style="display: inline-block; margin-left: 30px; vertical-align: top;">
+    <h3>Metrics</h3>
+    <table id="id_metrics_table">
+        <thead>
         <tr>
-            <td>{{value.0}}</td>
-            <td>{{value.1}}</td>
-            <td>{{value.2}}</td>
-            <td>{{value.3}}</td>
-            <td>{{value.4}}</td>
+            <th>Metric Name</th>
+            <th>Value</th>
         </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<h2>Dependency Analysis</h2>
+        </thead>
+        <tbody>
+            {% for key, value in metrics.items  %}
+            <tr>
+                <td>{{key}}</td>
+                <td>{{value}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div style="display: inline-block; margin-left: 30px; vertical-align: top;">
+<h3>Dependency Analysis</h3>
 <table id="id_dependency_table">
     <thead>
     <tr>
@@ -86,8 +91,11 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
+
 
 {% if Image %}
+<h2>Rendering of Model</h2>
 {% load static %}
 <img src="{% static 'images/tmp.png' %}" alt="Image of {{file_name}} not found">
 {% endif %}
