@@ -1,20 +1,8 @@
 <html>
 <head>
     <title>POU Analysis Report</title>
-
-    <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 8px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-      white-space: pre-wrap;
-    }
-    </style>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/report.css' %}">
 </head>
 <body>
 {{form}}
@@ -24,8 +12,8 @@
     <tr>
         <th>Check</th>
         <th>Pass/Fail</th>
-        <th>Justification</th>
-        <th>Review Comment</th>
+        <th>Explanation</th>
+        <!--<th>Review Comment</th>-->
     </tr>
     </thead>
     <tbody>
@@ -34,7 +22,7 @@
             <td>{{rep.0}}</td>
             <td>{{rep.1}}</td>
             <td>{{rep.2}}</td>
-            <td id="comment{{forloop.counter}}">[No Comment Provided]</td>
+            <!--<td id="comment{{forloop.counter}}">[No Comment Provided]</td>-->
         </tr>
         {% endfor %}
     </tbody>

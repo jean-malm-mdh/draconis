@@ -42,7 +42,7 @@ def home_page(request):
             reports = program.check_rules()
             metrics = program.getMetrics()
             variable_info = program.getVarDataColumns(
-                "name", "varType", "valueType", "initVal", "description"
+                "name", "paramType", "valueType", "initVal", "description"
             )
             backward_trace = {}
             for name, paths in program.getBackwardTrace().items():

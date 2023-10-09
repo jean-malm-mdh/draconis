@@ -17,7 +17,7 @@ class DrawContext:
         self.image = Image.new("RGB", (img_width, img_height), color=bg_col)
         self.canvas = ImageDraw.Draw(self.image)
         self.fonts = {
-            "__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 10),
+            "__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 15),
             "__HEADER__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20),
         }
         self.scaler = scaler or (lambda e: e)
