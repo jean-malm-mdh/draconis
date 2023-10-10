@@ -94,8 +94,8 @@ class Program:
 
         def make_ADT_consistent():
             """
-            Sets up and connects all the ports
-            Returns: Nothing. Changes are done in-memory
+            Sets up and connects all the ports mapping
+            Returns:
 
             """
             def addPortConnectionToBlock(blockID, portID, connection):
