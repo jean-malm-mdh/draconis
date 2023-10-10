@@ -178,7 +178,7 @@ class VariableWorkSheet:
         return None
 
     def getVarsByType(self, vType: ParameterType):
-        return [e.paramType == vType for e in self.getAllVariables()]
+        return [e for e in self.getAllVariables() if e.paramType == vType]
 
     def __str__(self):
         return "\n".join([str(vg) for vg in self.varGroups])
