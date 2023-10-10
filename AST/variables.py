@@ -52,7 +52,7 @@ class VariableLine:
         self.name = name
         self.paramType = var_type
         self.valueType = value_type
-        self.initVal = "UNINIT" if init_val is None else init_val
+        self.initVal = init_val or "UNINIT"
         self.description = description
         self.isFeedback = isFeedback
 
@@ -170,7 +170,7 @@ class VariableWorkSheet:
             result.extend(group.varLines)
         return result
 
-    def getVariableByName(self, name):
+    def getFirstVariableByName(self, name):
         allVars = self.getAllVariables()
         for v in allVars:
             if name == v.name:
@@ -178,15 +178,10 @@ class VariableWorkSheet:
         return None
 
     def getVarsByType(self, vType: ParameterType):
-        return list((filter(lambda e: e.paramType == vType, self.getAllVariables())))
+        return [e.paramType == vType for e in self.getAllVariables()]
 
     def __str__(self):
-        return "\n".join(
-            [
-                f"{groupContent}"
-                for groupContent in self.varGroups
-            ]
-        )
+        return "\n".join([str(vg) for vg in self.varGroups])
 
     def evaluate_cohesion_of_sheet(self):
         result = []
