@@ -40,8 +40,8 @@ def check_position_of_networks(prog: Program):
     sorted_by_midpoints = sorted(networks_midpoints_as_list, key=lambda e: e[1][1])
 
     result = set()
-    MARGIN_VALUE = -5
-    # check that all succeeding boxes in the list are either below or to the right
+    MARGIN_VALUE = -10
+    # check that all succeeding boxes in the list are to the right
     for index in range(len(sorted_by_midpoints)):
         net_id, (curr_px, curr_py) = sorted_by_midpoints[index]
         for next_index in range(index+1, len(sorted_by_midpoints)):

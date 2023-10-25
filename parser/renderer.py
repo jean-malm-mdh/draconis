@@ -212,9 +212,7 @@ def generate_image_of_program(
     draw_context = DrawContext(width, height, scaler, bg_col="white")
     text = program.progName
     text_x = (width - margin_size) // 2
-    draw_context.draw_text_centered(
-        text, (text_x, 15), font_name="__HEADER__", col="black"
-    )
+    #draw_context.draw_text_centered(text, (text_x, 2), font_name="__HEADER__", col="black")
 
     # render the FBD blocks
     render_blocks(program.behaviourElements, draw_context)
