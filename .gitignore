@@ -173,3 +173,4 @@ geckodriver.log
 /parser/test/DEMO/
 *test*.jpg
 **/static/*.pou
+.generated/

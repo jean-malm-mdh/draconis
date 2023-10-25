@@ -18,14 +18,14 @@
     </tr>
     </thead>
     <tbody>
-        {% for rep in rule_reports  %}
-        <tr>
-            <td>{{rep.0}}</td>
-            <td>{{rep.1}}</td>
-            <td>{{rep.2}}</td>
-            <!--<td id="comment{{forloop.counter}}">[No Comment Provided]</td>-->
-        </tr>
-        {% endfor %}
+    {% for rep in rule_reports %}
+    <tr>
+        <td>{{rep.0}}</td>
+        <td>{{rep.1}}</td>
+        <td>{{rep.2}}</td>
+        <!--<td id="comment{{forloop.counter}}">[No Comment Provided]</td>-->
+    </tr>
+    {% endfor %}
     </tbody>
 </table>
 <h2>Additional Data</h2>
@@ -42,15 +42,15 @@
         </tr>
         </thead>
         <tbody>
-            {% for value in variable_info  %}
-            <tr>
-                <td>{{value.0}}</td>
-                <td>{{value.1}}</td>
-                <td>{{value.2}}</td>
-                <td>{{value.3}}</td>
-                <td>{{value.4}}</td>
-            </tr>
-            {% endfor %}
+        {% for value in variable_info %}
+        <tr>
+            <td>{{value.0}}</td>
+            <td>{{value.1}}</td>
+            <td>{{value.2}}</td>
+            <td>{{value.3}}</td>
+            <td>{{value.4}}</td>
+        </tr>
+        {% endfor %}
         </tbody>
     </table>
 </div>
@@ -64,40 +64,40 @@
         </tr>
         </thead>
         <tbody>
-            {% for key, value in metrics.items  %}
-            <tr>
-                <td>{{key}}</td>
-                <td>{{value}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div style="display: inline-block; margin-left: 30px; vertical-align: top;">
-<h3>Dependency Analysis</h3>
-<table id="id_dependency_table">
-    <thead>
-    <tr>
-        <th>Output</th>
-        <th>Dependent Inputs</th>
-    </tr>
-    </thead>
-    <tbody>
-        {% for key, value in backward_trace.items  %}
+        {% for key, value in metrics.items %}
         <tr>
             <td>{{key}}</td>
             <td>{{value}}</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
+        </tbody>
+    </table>
+</div>
+<div style="display: inline-block; margin-left: 30px; vertical-align: top;">
+    <h3>Dependency Analysis</h3>
+    <table id="id_dependency_table">
+        <thead>
+        <tr>
+            <th>Output</th>
+            <th>Dependent Inputs</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for key, value in backward_trace.items %}
+        <tr>
+            <td>{{key}}</td>
+            <td>{{value}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 
 {% if Image %}
 <h2>Rendering of Model</h2>
 {% load static %}
-<img src="{% static 'images/tmp.png' %}" alt="Image of {{file_name}} not found">
+<img src="{% static 'images/.generated/tmp.png' %}" alt="Image of {{file_name}} not found">
 {% endif %}
 </body>
 

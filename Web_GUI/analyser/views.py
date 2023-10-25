@@ -4,6 +4,7 @@ from django.core.files.uploadedfile import UploadedFile
 from django.shortcuts import render
 import os
 import sys
+
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from parser.helper_functions import parse_pou_file
 
@@ -37,8 +38,9 @@ def home_page(request):
         if form.is_valid():
             file_path = save_file_to_django_space(request.FILES["file"])
             program = parse_pou_file(file_path)
-            imageFile = f"{ANALYSER_DATA_STORE_PATH}/images/tmp.png"
-            generate_image_of_program(program, imageFile, scale=7.0)
+            generated_image_django_path = "images/.generated/tmp.png"
+            image_file_path = os.path.join(ANALYSER_DATA_STORE_PATH, generated_image_django_path)
+            generate_image_of_program(program, image_file_path, scale=7.0)
             reports = program.check_rules()
             metrics = program.getMetrics()
             variable_info = program.getVarDataColumns(
@@ -51,7 +53,7 @@ def home_page(request):
                     for e in PathDivide.unpack_pathlist([paths])
                 ]
 
-            renderData = {
+            reportData = {
                 "file_name": request.FILES["file"].name,
                 "pou_progName": program.progName,
                 "rule_reports": reports,
@@ -59,10 +61,10 @@ def home_page(request):
                 "backward_trace": backward_trace,
                 "variable_info": variable_info,
             }
-            hasImageFile = os.path.exists(imageFile)
+            hasImageFile = os.path.exists(image_file_path)
             if hasImageFile:
-                renderData["Image"] = "images/tmp.png"
-            return render(request, "pou_report.html", renderData)
+                reportData["Image"] = generated_image_django_path
+            return render(request, "pou_report.html", reportData)
         else:
             return render(request, "home.html", {"form": form})
     else:
