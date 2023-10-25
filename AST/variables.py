@@ -65,7 +65,12 @@ class VariableLine:
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
-        "aVar", ParameterType.InputVar, ValueType.INT, "5", "This is a variable", isFeedback=True
+        "aVar",
+        ParameterType.InputVar,
+        ValueType.INT,
+        "5",
+        "This is a variable",
+        isFeedback=True,
     )
     assert v.name == "aVar"
     assert v.paramType == ParameterType.InputVar
@@ -210,7 +215,12 @@ class VariableWorkSheet:
 
     def transform_to_ST(self):
         def var_to_ST_declaration(variable: VariableLine):
-            param_ST_string = "Var_Input" if variable.paramType == ParameterType.InputVar else "Var_Output"
+            param_ST_string = (
+                "Var_Input"
+                if variable.paramType == ParameterType.InputVar
+                else "Var_Output"
+            )
             initstr = "" if not variable.initVal else f" := {variable.initVal}"
             return f"\t{param_ST_string} {variable.name} : {variable.valueType}{initstr}; (*{variable.description}*) End_Var"
+
         return "\n".join(map(var_to_ST_declaration, self.getAllVariables()))

@@ -28,10 +28,13 @@ class FBDObjData:
     @classmethod
     def fromJSON(cls, json_string):
         data = json.loads(json_string)
-        rectData = str(data["boundary_box"]).replace("'", "€€€&&").replace('"', "'").replace("€€€&&", '"')
-        return FBDObjData(
-            data["localID"], data["type"], Rectangle.fromJSON(rectData)
+        rectData = (
+            str(data["boundary_box"])
+            .replace("'", "€€€&&")
+            .replace('"', "'")
+            .replace("€€€&&", '"')
         )
+        return FBDObjData(data["localID"], data["type"], Rectangle.fromJSON(rectData))
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -67,6 +70,7 @@ def test_RectToJSONAndBack(rand_tc):
         rect = Rectangle(p_lefttop, p_rightbot)
         assert Rectangle.fromJSON(rect.toJSON()) == rect
 
+
 def test_objDataToJSONAndBack(rand_tc):
     for i in range(1000):
         rect = Rectangle(
@@ -79,15 +83,9 @@ def test_objDataToJSONAndBack(rand_tc):
                 rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
             ),
         )
-        obj = FBDObjData(
-            rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND),
-            "test",
-            rect
-        )
+        obj = FBDObjData(rand_tc.randint(-TC_INT_BOUND, TC_INT_BOUND), "test", rect)
         res = json.loads(obj.toJSON())
         assert res["localID"] == obj.localID
         assert res["type"] == obj.type
         assert res["boundary_box"] == json.loads(obj.boundary_box.toJSON())
         assert FBDObjData.fromJSON(obj.toJSON()) == obj
-
-

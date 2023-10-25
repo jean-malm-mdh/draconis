@@ -8,6 +8,7 @@ from .position import GUIPosition, make_absolute_position
 
 from .utilities import swap_in_string
 
+
 class ConnectionDirection(IntEnum):
     Input = 1
     Output = 2
@@ -22,7 +23,9 @@ class ConnectionDirection(IntEnum):
                 return ConnectionDirection.Input
             case "Output":
                 return ConnectionDirection.Output
-        raise ValueError(f"String {param} not matched for ConnectionDirection Conversion")
+        raise ValueError(
+            f"String {param} not matched for ConnectionDirection Conversion"
+        )
 
 
 @dataclass
@@ -47,19 +50,30 @@ class ConnectionData:
     @classmethod
     def fromJSON(cls, json_string):
         import json
+
         json_bool_fixed = json_string.replace("True", "true").replace("False", "false")
         d = json.loads(json_bool_fixed)
-        s = swap_in_string(str(d["position"]), '"', "'").replace("True", "true").replace("False", "false")
+        s = (
+            swap_in_string(str(d["position"]), '"', "'")
+            .replace("True", "true")
+            .replace("False", "false")
+        )
         pos = GUIPosition.fromJSON(s)
-        connIndex = int(d["connectionIndex"]) if d["connectionIndex"] != "null" else None
+        connIndex = (
+            int(d["connectionIndex"]) if d["connectionIndex"] != "null" else None
+        )
 
         return ConnectionData(pos, connIndex)
 
+
 def test_fromConnectionData_to_json_and_back():
     from random import Random
+
     r = Random()
     for i in range(1000):
-        gui_p = GUIPosition(bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000))
+        gui_p = GUIPosition(
+            bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000)
+        )
         ind = r.randint(-10, 100)
         connIndex = None if ind < 0 else ind
         cd = ConnectionData(gui_p, connIndex)
@@ -78,17 +92,28 @@ class Connection:
     @classmethod
     def fromJSON(cls, con_json):
         import json
+
         d = json.loads(con_json)
-        return Connection(startPoint=ConnectionData.fromJSON(swap_in_string(d["startPoint"], "'", '"')),
-                          endPoint=ConnectionData.fromJSON(swap_in_string(d["endPoint"], "'", '"')),
-                          formalName=d["formalName"])
+        return Connection(
+            startPoint=ConnectionData.fromJSON(
+                swap_in_string(d["startPoint"], "'", '"')
+            ),
+            endPoint=ConnectionData.fromJSON(swap_in_string(d["endPoint"], "'", '"')),
+            formalName=d["formalName"],
+        )
+
 
 def test_from_Connection_to_JSON_and_back():
     from random import Random
+
     r = Random()
     for i in range(1000):
-        gui_p1 = GUIPosition(bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000))
-        gui_p2 = GUIPosition(bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000))
+        gui_p1 = GUIPosition(
+            bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000)
+        )
+        gui_p2 = GUIPosition(
+            bool(r.randint(0, 1)), r.randint(-10000, 10000), r.randint(-10000, 10000)
+        )
 
         ind1 = r.randint(-10, 100)
         ind2 = r.randint(-10, 100)
@@ -98,7 +123,6 @@ def test_from_Connection_to_JSON_and_back():
         cd2 = ConnectionData(gui_p2, connIndex2)
         conn = Connection(cd1, cd2, "test")
         assert Connection.fromJSON(conn.toJSON()) == conn
-
 
 
 def trace_connection_in_dataflow_direction(
@@ -140,6 +164,8 @@ class ConnectionPoint:
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
         conns = [Connection.fromJSON(con_json) for con_json in d["connections"]]
-        return ConnectionPoint(connectionDir=ConnectionDirection.FromString(d["connectionDir"]),
-                               connections=conns,
-                               data=ConnectionData.fromJSON(d["data"]))
+        return ConnectionPoint(
+            connectionDir=ConnectionDirection.FromString(d["connectionDir"]),
+            connections=conns,
+            data=ConnectionData.fromJSON(d["data"]),
+        )

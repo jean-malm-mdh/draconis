@@ -52,8 +52,7 @@ class Program:
         return (
             json.dumps(json.loads(json_result), indent=2)
             # The JSON parser does not like quoted strings
-            .replace('"true"', "true")
-            .replace('"false"', "false")
+            .replace('"true"', "true").replace('"false"', "false")
         )
 
     @classmethod
@@ -66,12 +65,12 @@ class Program:
         pass
 
     def __init__(
-            self,
-            name,
-            varWorkSheet,
-            behaviourElementList=None,
-            behaviourIDMap=None,
-            lines=None,
+        self,
+        name,
+        varWorkSheet,
+        behaviourElementList=None,
+        behaviourIDMap=None,
+        lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -98,30 +97,49 @@ class Program:
             Returns:
 
             """
+
             def addPortConnectionToBlock(blockID, portID, connection):
                 targetPort = self.ports.get(portID, None)
                 if targetPort is None:
-                    targetPort = Port(portID=portID,
-                                      blockID=blockID,
-                                      rel_connection_direction=connection.connectionDir,
-                                      rel_position=Point(connection.data.position.x, connection.data.position.y),
-                                      connections=set())
+                    targetPort = Port(
+                        portID=portID,
+                        blockID=blockID,
+                        rel_connection_direction=connection.connectionDir,
+                        rel_position=Point(
+                            connection.data.position.x, connection.data.position.y
+                        ),
+                        connections=set(),
+                    )
                     self.ports[portID] = targetPort
                     self.behaviour_id_map[blockID].ports[portID] = targetPort
                 for conn in connection.connections:
-                    otherPoint = conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
+                    otherPoint = (
+                        conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
+                    )
                     targetPort.connections.add(otherPoint)
 
             # First, fill all forwards connections
-            fbd_blocks = [block for block in self.behaviourElements if isinstance(block, FBD_Block)]
+            fbd_blocks = [
+                block
+                for block in self.behaviourElements
+                if isinstance(block, FBD_Block)
+            ]
             for block in fbd_blocks:
-                for ID, conn in [(c.ID, c.connectionPoint) for c in block.getInputVars()]:
+                for ID, conn in [
+                    (c.ID, c.connectionPoint) for c in block.getInputVars()
+                ]:
                     addPortConnectionToBlock(block.getID(), ID, conn)
-                for ID, conn in [(c.ID, c.connectionPoint) for c in block.getOutputVars()]:
+                for ID, conn in [
+                    (c.ID, c.connectionPoint) for c in block.getOutputVars()
+                ]:
                     addPortConnectionToBlock(block.getID(), ID, conn)
-            output_blocks = [block for block in self.behaviourElements if isinstance(block, VarBlock)]
+            output_blocks = [
+                block for block in self.behaviourElements if isinstance(block, VarBlock)
+            ]
             for block in output_blocks:
-                addPortConnectionToBlock(block.getID(), block.getID(), block.outConnection)
+                addPortConnectionToBlock(
+                    block.getID(), block.getID(), block.outConnection
+                )
 
             ports = list(self.ports.items())
             for p_id, p_data in ports:
@@ -206,7 +224,10 @@ class Program:
             if l[0] == acc[-1]:
                 acc.extend(l[1:])
 
-        b = self.behaviour_id_map.get(bID, None) or self.behaviour_id_map[self.ports[bID].blockID]
+        b = (
+            self.behaviour_id_map.get(bID, None)
+            or self.behaviour_id_map[self.ports[bID].blockID]
+        )
         result = []
         # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
         flow = b.getFlow(DataflowDirection.Backward, trace_from_portID)
@@ -219,12 +240,19 @@ class Program:
             if len(connectionPorts) == 1:  # The number of input ports is one
                 appendIfNotInListEnd(result, connectionPorts[0][0])
                 appendIfNotInListEnd(result, connectionPorts[0][1])
-                recurse = self.performBackTraceFromBlock(connectionPorts[0][1], connectionPorts[0][1])
+                recurse = self.performBackTraceFromBlock(
+                    connectionPorts[0][1], connectionPorts[0][1]
+                )
                 for r in recurse:
                     appendIfNotInListEnd(result, r)
             else:
-                recurse = [(toPort, self.performBackTraceFromBlock(connectingPort, connectingPort)) for
-                           toPort, connectingPort in connectionPorts]
+                recurse = [
+                    (
+                        toPort,
+                        self.performBackTraceFromBlock(connectingPort, connectingPort),
+                    )
+                    for toPort, connectingPort in connectionPorts
+                ]
                 dividing_paths = []
                 for toPort, r in recurse:
                     _recurse = []
@@ -245,7 +273,7 @@ class Program:
         """
 
         def split_paths(
-                paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 for subPath in computed_subpaths:
@@ -353,18 +381,17 @@ class Program:
         return res
 
     def checkSafeDataFlow(self):
-        def exprIsConsideredSafe(safenessProperties, expr):
-
+        def exprIsConsideredSafe(safenessProperties, candidate_expr):
             # it is a constant
-            if "#" in expr:
-                return "SAFE" in expr
+            if "#" in candidate_expr:
+                return "SAFE" in candidate_expr
             else:
-                res = safenessProperties.get(expr, None)
+                res = safenessProperties.get(candidate_expr, None)
                 if res is None:
                     # log issue
                     logging.log(
                         level=logging.WARNING,
-                        msg=f"No safety information for {expr} found. Assuming it is unsafe.",
+                        msg=f"No safety information for {candidate_expr} found. Assuming it is unsafe.",
                     )
                     # We have no info, err on the side of caution, it is considered unsafe
                     return False
@@ -427,10 +454,13 @@ class Program:
                 isABlockChange = pot_block1 is not None and pot_block2 is not None
                 if isABlockChange:
                     if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
-                        result.append(f"Block '{pot_block1.data.type}' moved. Re-run graphical checks")
+                        result.append(
+                            f"Block '{pot_block1.data.type}' moved. Re-run graphical checks"
+                        )
                     if pot_block1.data.type != pot_block2.data.type:
                         result.append(
-                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks")
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
+                        )
 
             return result
 
@@ -462,7 +492,7 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                    "name", "varType", "valueType", "initVal", "description"
+                "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
@@ -484,7 +514,7 @@ class Program:
         metrics = self.getMetrics()
 
         def evaluate_rule(
-                ruleName, defaultVerdict, defaultJustification, evaluate_func
+            ruleName, defaultVerdict, defaultJustification, evaluate_func
         ):
             verdict = defaultVerdict
             justification = defaultJustification
@@ -555,6 +585,7 @@ class Program:
             Returns:
                 ST representation of the path
             """
+
             def consume_path_within_block(block, _path):
                 """
 
@@ -566,17 +597,28 @@ class Program:
                     The path starting from the first element not connected to the block
                 """
                 blockID = block.getID()
-                return dropWhile(_path, lambda portID: self.ports[portID].blockID == blockID)
+                return dropWhile(
+                    _path, lambda portID: self.ports[portID].blockID == blockID
+                )
+
             potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
             if potential_block.getBlockType() == "FunctionBlock":
                 # Recursive case
-                _path = dropWhile(path[1:],
-                                  lambda e: not ("PathDivide" in str(e.__class__) or "Block" in str(e.__class__)))
+                _path = dropWhile(
+                    path[1:],
+                    lambda e: not (
+                        "PathDivide" in str(e.__class__) or "Block" in str(e.__class__)
+                    ),
+                )
                 if "PathDivide" in str(_path[0].__class__):
                     pathdivide_paths = _path[0].paths
                     # Recursive call for each path
-                    args_in_ST_form = map(lambda p: path_to_ST_expression(consume_path_within_block(potential_block, p)),
-                            pathdivide_paths)
+                    args_in_ST_form = map(
+                        lambda p: path_to_ST_expression(
+                            consume_path_within_block(potential_block, p)
+                        ),
+                        pathdivide_paths,
+                    )
                     arglist = ", ".join(args_in_ST_form)
                 else:
                     arglist = path_to_ST_expression(_path)
@@ -599,8 +641,7 @@ class Program:
 
         varheader_transform_to_st = self.varHeader.transform_to_ST()
         outputs_to_st_statements = outputs_to_ST_statements()
-        return \
-            f"""
+        return f"""
 Function_Block {self.progName}
 {varheader_transform_to_st}{outputs_to_st_statements}
 End_Function_Block"""

@@ -23,8 +23,14 @@ class FormalParam:
     @classmethod
     def fromJSON(cls, pm_json):
         import json
+
         d = json.loads(pm_json)
-        return FormalParam(d["name"], ConnectionPoint.fromJSON(d["connectionPoint"]), d["ID"], d["data"])
+        return FormalParam(
+            d["name"],
+            ConnectionPoint.fromJSON(d["connectionPoint"]),
+            d["ID"],
+            d["data"],
+        )
 
     def get_connections(self, direction=DataflowDirection.Backward):
         result = []
@@ -60,6 +66,7 @@ class ParamList:
     @classmethod
     def FromJSON(cls, p_json):
         import json
+
         d = json.loads(p_json)
         parList = [FormalParam.fromJSON(pm_json) for pm_json in d["list"]]
         return ParamList(varType=ParameterType.fromString(d["varType"]), list=parList)

@@ -1,7 +1,5 @@
 from .point import Point
-from .connections import (
-    ConnectionDirection
-)
+from .connections import ConnectionDirection
 from typing import Set
 from dataclasses import dataclass
 
@@ -13,4 +11,3 @@ class Port:
     rel_position: Point
     blockID: int
     connections: Set[int]
-

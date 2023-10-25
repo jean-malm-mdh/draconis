@@ -5,6 +5,7 @@ class ParameterType(IntEnum):
     """
     Enumerable for different classes of parameters in the software.
     """
+
     UNSET = 0
     InternalVar = 1
     InputVar = 2

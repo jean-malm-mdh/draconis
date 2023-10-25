@@ -27,5 +27,6 @@ class Point:
     @classmethod
     def fromJSON(cls, json_string):
         import json
+
         d = json.loads(json_string)
         return Point(d["x"], d["y"])

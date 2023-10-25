@@ -25,15 +25,13 @@ class Rectangle:
 
     def toJSON(self):
         return json.dumps(dataclasses.asdict(self))
+
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
         string = swap_in_string(str(d["top_left"]), "'", '"')
-        lt = Point.fromJSON(
-            string)
-        rb = Point.fromJSON(
-            swap_in_string(str(d["bot_right"]), "'", '"')
-        )
+        lt = Point.fromJSON(string)
+        rb = Point.fromJSON(swap_in_string(str(d["bot_right"]), "'", '"'))
         return Rectangle(lt, rb)
 
     @classmethod

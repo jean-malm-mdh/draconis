@@ -19,5 +19,3 @@ class CommentBox:
         cont = d["comment_content"]
         rect = Rectangle.fromJSON(d["bounding_box"])
         return CommentBox(rect, cont)
-
-

@@ -7,15 +7,18 @@ from .rectangle import Rectangle
 from .connections import (
     ConnectionPoint,
     trace_connection_in_dataflow_direction,
-    trace_connection_in_dataflow_direction_list_version, ConnectionDirection,
+    trace_connection_in_dataflow_direction_list_version,
+    ConnectionDirection,
 )
 from typing import List, Dict
 from .formalparam import ParamList
 from .block_port import Port
 
+
 @dataclass
 class Expr:
     expr: str
+
 
 @dataclass
 class Block:
@@ -26,20 +29,30 @@ class Block:
         raise NotImplementedError("Implement in Child classes")
 
     def getInPorts(self):
-        return [p for p in self.ports.values() if p.rel_connection_direction == ConnectionDirection.Input]
+        return [
+            p
+            for p in self.ports.values()
+            if p.rel_connection_direction == ConnectionDirection.Input
+        ]
 
     def getOutPorts(self):
-        return [p for p in self.ports.values() if p.rel_connection_direction == ConnectionDirection.Output]
+        return [
+            p
+            for p in self.ports.values()
+            if p.rel_connection_direction == ConnectionDirection.Output
+        ]
 
     def getID(self):
         return self.data.localID
 
     def __hash__(self):
         return hash(self.data)
-    
+
     def __eq__(self, other):
         if not isinstance(other, Block):
-            raise ValueError("Checking equality between block and " + str(other.__class__))
+            raise ValueError(
+                "Checking equality between block and " + str(other.__class__)
+            )
         return self.data == other.data
 
     def getFlow(self, data_flow_dir: DataflowDirection, which_port):
@@ -56,7 +69,6 @@ class Block:
         return self.data.boundary_box
 
 
-
 @dataclass
 class VarBlock(Block):
     outConnection: ConnectionPoint
@@ -67,7 +79,9 @@ class VarBlock(Block):
 
     def __eq__(self, other):
         if not isinstance(other, Block):
-            raise ValueError("Checking equality between block and " + str(other.__class__))
+            raise ValueError(
+                "Checking equality between block and " + str(other.__class__)
+            )
         return self.data == other.data
 
     def toJSON(self):
@@ -88,11 +102,19 @@ class VarBlock(Block):
 
     def getFlow(self, data_flow_dir: DataflowDirection, _unused_=None):
         ID = self.getID()
-        toPorts = self.getInPorts() if self.data.type == "outVariable" else self.getOutPorts()
-        if DataflowDirection.Forward == data_flow_dir and self.data.type == "outVariable":
+        toPorts = (
+            self.getInPorts() if self.data.type == "outVariable" else self.getOutPorts()
+        )
+        if (
+            DataflowDirection.Forward == data_flow_dir
+            and self.data.type == "outVariable"
+        ):
             # By definition, outVariables do not have a forward flow inside the POU block
             return []
-        if DataflowDirection.Backward == data_flow_dir and self.data.type == "inVariable":
+        if (
+            DataflowDirection.Backward == data_flow_dir
+            and self.data.type == "inVariable"
+        ):
             # By definition, outVariables do not have a forward flow inside the POU block
             return []
         result = []
@@ -107,18 +129,31 @@ class VarBlock(Block):
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
-        vb = VarBlock(FBDObjData.fromJSON(d["data"]), outConnection=ConnectionPoint.fromJSON(d["outConnection"]), expr=d["expr"])
+        vb = VarBlock(
+            FBDObjData.fromJSON(d["data"]),
+            outConnection=ConnectionPoint.fromJSON(d["outConnection"]),
+            expr=d["expr"],
+        )
         return vb
 
     def getName(self):
-        block_direction = "Input" if self.outConnection.connectionDir == ConnectionDirection.Output else "Output"
+        block_direction = (
+            "Input"
+            if self.outConnection.connectionDir == ConnectionDirection.Output
+            else "Output"
+        )
         return f"{block_direction}_{self.getVarExpr()}"
 
 
 def test_varBlockFromJSON_AndBack():
-    vb = VarBlock(FBDObjData(14, "test", Rectangle(Point(42,42), Point(57,57))),
-                  expr=Expr("TEST_EXPR"),
-                  outConnection=ConnectionPoint(connectionDir=ConnectionDirection.Input, connections=[ConnectionPoint]))
+    vb = VarBlock(
+        FBDObjData(14, "test", Rectangle(Point(42, 42), Point(57, 57))),
+        expr=Expr("TEST_EXPR"),
+        outConnection=ConnectionPoint(
+            connectionDir=ConnectionDirection.Input, connections=[ConnectionPoint]
+        ),
+    )
+
 
 @dataclass
 class FBD_Block(Block):
@@ -142,7 +177,10 @@ class FBD_Block(Block):
     @classmethod
     def fromJSON(cls, json_string):
         d = json.loads(json_string)
-        return FBD_Block(data=FBDObjData.fromJSON(d["data"]), varLists=[ParamList.FromJSON(p_json) for p_json in d["varLists"]])
+        return FBD_Block(
+            data=FBDObjData.fromJSON(d["data"]),
+            varLists=[ParamList.FromJSON(p_json) for p_json in d["varLists"]],
+        )
 
     def getVariablesOfGivenType(self, queriedType):
         result = []
@@ -160,9 +198,14 @@ class FBD_Block(Block):
         Returns: [(startportID, endportID, outsideConnID) | startID in portDir(inportDirection) and endID in portDir(outportDirection)]
 
         """
+
         def intra_block_tracing(fromPorts, toPorts):
             result = []
-            _fromPorts = [p for p in fromPorts if p.portID == restrictToPortID] if restrictToPortID else fromPorts
+            _fromPorts = (
+                [p for p in fromPorts if p.portID == restrictToPortID]
+                if restrictToPortID
+                else fromPorts
+            )
             for fP in _fromPorts:
                 tmpRes = []
                 for tP in toPorts:
@@ -170,6 +213,7 @@ class FBD_Block(Block):
                         tmpRes.append((tP.portID, conn))
                 result.append((fP.portID, tmpRes))
             return result
+
         in_ports = self.getInPorts()
         out_ports = self.getOutPorts()
         result = []
@@ -205,4 +249,3 @@ class FBD_Block(Block):
 
     def getName(self):
         return self.data.type
-
