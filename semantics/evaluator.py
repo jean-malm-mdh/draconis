@@ -5,7 +5,8 @@ def evaluate(Block, *args):
     def get_combinator(block_family_type: str):
         combinators = {"ADD": lambda acc, _v: acc + _v,
                        "SUB": lambda acc, _v: acc - _v,
-                       "AND": lambda acc, _v: acc and _v}
+                       "AND": lambda acc, _v: acc and _v,
+                       "OR": lambda acc, _v: acc or _v}
         return combinators.get(block_family_type, lambda x, y: None)
 
     if len(args) == 0:

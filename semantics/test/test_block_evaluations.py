@@ -9,10 +9,12 @@ def blocks():
     add_block_data = FBDObjData(dummy_ID, "ADD")
     sub_block_data = FBDObjData(dummy_ID, "SUB")
     and_block_data = FBDObjData(dummy_ID, "AND")
+    or_block_data = FBDObjData(dummy_ID, "OR")
     return {
         "add": (FBD_Block(add_block_data, {}, [])),
         "sub": (FBD_Block(sub_block_data, {}, [])),
         "and": (FBD_Block(and_block_data, {}, [])),
+        "or": (FBD_Block(or_block_data, {}, [])),
     }
 
 
@@ -31,7 +33,14 @@ def test_given_sub_block_returns_subtraction(blocks):
 
 
 def test_given_and_block_returns_and(blocks):
+    assert evaluate(blocks["and"], False, False) == False
     assert evaluate(blocks["and"], False, True) == False
     assert evaluate(blocks["and"], True, False) == False
-    assert evaluate(blocks["and"], False, False) == False
     assert evaluate(blocks["and"], True, True) == True
+
+
+def test_given_or_block_returns_or(blocks):
+    assert evaluate(blocks["or"], False, False) == False
+    assert evaluate(blocks["or"], False, True) == True
+    assert evaluate(blocks["or"], True, False) == True
+    assert evaluate(blocks["or"], True, True) == True
