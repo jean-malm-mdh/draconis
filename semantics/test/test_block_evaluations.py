@@ -26,20 +26,21 @@ def test_given_add_block_returns_addition(blocks):
 
 def test_given_invalid_datatypes_addition_returns_none(blocks):
     assert evaluate(blocks["add"], 'a', 'b') == None
+    assert evaluate(blocks["add"], True, True) == None
 
 
-def test_given_sub_block_returns_subtraction(blocks):
+def test_given_SUB_block_evaluate_as_sub(blocks):
     assert evaluate(blocks["sub"], 3, 4) == -1
 
 
-def test_given_and_block_returns_and(blocks):
+def test_given_AND_block_evaluate_as_AND(blocks):
     assert evaluate(blocks["and"], False, False) == False
     assert evaluate(blocks["and"], False, True) == False
     assert evaluate(blocks["and"], True, False) == False
     assert evaluate(blocks["and"], True, True) == True
 
 
-def test_given_or_block_returns_or(blocks):
+def test_given_OR_block_evaluate_as_OR(blocks):
     assert evaluate(blocks["or"], False, False) == False
     assert evaluate(blocks["or"], False, True) == True
     assert evaluate(blocks["or"], True, False) == True

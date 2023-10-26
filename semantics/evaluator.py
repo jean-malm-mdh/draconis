@@ -2,6 +2,13 @@ from functools import reduce
 
 
 def evaluate(Block, *args):
+    def get_valid_py_types(block_family_type: str):
+        valid_types = {"ADD": [int, float],
+                       "SUB": [int, float],
+                       "AND": [bool],
+                       "OR": [bool]}
+        return valid_types.get(block_family_type, None)
+
     def get_combinator(block_family_type: str):
         combinators = {"ADD": lambda acc, _v: acc + _v,
                        "SUB": lambda acc, _v: acc - _v,
@@ -11,9 +18,10 @@ def evaluate(Block, *args):
 
     if len(args) == 0:
         return None
+    valid_types = get_valid_py_types(block_family_type=Block.getBlockFamily())
     for v in args:
         v_type = type(v)
-        if v_type is not int and v_type is not bool:
+        if v_type not in valid_types:
             return None
     combinator = get_combinator(block_family_type=Block.getBlockFamily())
     res = args[0]
