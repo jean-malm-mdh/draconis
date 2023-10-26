@@ -15,11 +15,11 @@ class FBDObjData:
     type: str
     boundary_box: Rectangle
 
-    def __init__(self, _id, _type, graphData=None):
+    def __init__(self, _id, _type, boundary_box=None):
         self.localID = _id
         self.type = _type
         self.boundary_box = (
-            Rectangle(Point(-1, -1), Point(-1, -1)) if graphData is None else graphData
+            Rectangle(Point(-1, -1), Point(-1, -1)) if boundary_box is None else boundary_box
         )
 
     def toJSON(self):

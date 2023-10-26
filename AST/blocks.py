@@ -67,7 +67,7 @@ class Block:
 
     def getBoundingBox(self):
         return self.data.boundary_box
-
+    
 
 @dataclass
 class VarBlock(Block):
@@ -106,14 +106,14 @@ class VarBlock(Block):
             self.getInPorts() if self.data.type == "outVariable" else self.getOutPorts()
         )
         if (
-            DataflowDirection.Forward == data_flow_dir
-            and self.data.type == "outVariable"
+                DataflowDirection.Forward == data_flow_dir
+                and self.data.type == "outVariable"
         ):
             # By definition, outVariables do not have a forward flow inside the POU block
             return []
         if (
-            DataflowDirection.Backward == data_flow_dir
-            and self.data.type == "inVariable"
+                DataflowDirection.Backward == data_flow_dir
+                and self.data.type == "inVariable"
         ):
             # By definition, outVariables do not have a forward flow inside the POU block
             return []
