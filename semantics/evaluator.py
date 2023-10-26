@@ -24,7 +24,4 @@ def evaluate(Block, *args):
         if v_type not in valid_types:
             return None
     combinator = get_combinator(block_family_type=Block.getBlockFamily())
-    res = args[0]
-    for v in args[1:]:
-        res = combinator(res, v)
-    return res
+    return reduce(combinator, args)
