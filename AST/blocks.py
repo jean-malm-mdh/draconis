@@ -28,6 +28,9 @@ class Block:
     def getBlockType(self):
         raise NotImplementedError("Implement in Child classes")
 
+    def getBlockFamily(self):
+        return self.data.type
+
     def getInPorts(self):
         return [
             p
@@ -67,7 +70,7 @@ class Block:
 
     def getBoundingBox(self):
         return self.data.boundary_box
-    
+
 
 @dataclass
 class VarBlock(Block):
