@@ -52,9 +52,8 @@ def clean_pou_string(input_pou_prog: str):
     """Removes useless parts of the program before parsing"""
     return input_pou_prog.replace("﻿", "")
 
-
-def parse_pou_file(pou_file_path: str):
-    program_string = clean_pou_string(Path(pou_file_path).read_text())
+def parse_pou_content(pou_content_str):
+    program_string = clean_pou_string(pou_content_str)
     varSheet, codeSheet = get_worksheets_from_input(program_string)
 
     resultProgram = parse_variable_worksheet(varSheet)
@@ -66,6 +65,9 @@ def parse_pou_file(pou_file_path: str):
     ) = parse_code_worksheet(codeSheet)
     resultProgram.post_parsing_analysis()
     return resultProgram
+
+def parse_pou_file(pou_file_path: str):
+    return parse_pou_content(clean_pou_string(Path(pou_file_path).read_text()))
 
 
 def change_pou_description(description_file, description):

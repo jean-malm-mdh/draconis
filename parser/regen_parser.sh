@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 ANTLR_GEN_DIR="antlr_generated"
 rm -fr "$ANTLR_GEN_DIR"
 
