@@ -32,3 +32,6 @@ def test_given_sub_block_returns_subtraction(blocks):
 
 def test_given_and_block_returns_and(blocks):
     assert evaluate(blocks["and"], False, True) == False
+    assert evaluate(blocks["and"], True, False) == False
+    assert evaluate(blocks["and"], False, False) == False
+    assert evaluate(blocks["and"], True, True) == True
