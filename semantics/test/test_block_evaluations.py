@@ -7,12 +7,12 @@ from semantics import evaluate
 def blocks():
     dummy_ID = 42
     add_block_data = FBDObjData(dummy_ID, "ADD")
-    add_block = FBD_Block(add_block_data, {}, [])
     sub_block_data = FBDObjData(dummy_ID, "SUB")
-    sub_block = FBD_Block(sub_block_data, {}, [])
+    and_block_data = FBDObjData(dummy_ID, "AND")
     return {
-        "add": add_block,
-        "sub": sub_block
+        "add": (FBD_Block(add_block_data, {}, [])),
+        "sub": (FBD_Block(sub_block_data, {}, [])),
+        "and": (FBD_Block(and_block_data, {}, [])),
     }
 
 
@@ -28,3 +28,7 @@ def test_given_invalid_datatypes_addition_returns_none(blocks):
 
 def test_given_sub_block_returns_subtraction(blocks):
     assert evaluate(blocks["sub"], 3, 4) == -1
+
+
+def test_given_and_block_returns_and(blocks):
+    assert evaluate(blocks["and"], False, True) == False
