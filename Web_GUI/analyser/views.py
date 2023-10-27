@@ -19,12 +19,12 @@ from AST import PathDivide
 from parser.renderer import generate_image_of_program
 
 
-ANALYSER_DATA_STORE_PATH = (
-    os.path.abspath(os.path.dirname(__file__)) + "/static"
-)
+ANALYSER_DATA_STORE_PATH = os.path.abspath(os.path.dirname(__file__)) + "/static"
+
 
 def get_file_content_as_single_string(file_field: FieldFile):
-    return "\n".join([str(s, 'UTF-8') for s in file_field.readlines()])
+    return "\n".join([str(s, "UTF-8") for s in file_field.readlines()])
+
 
 def make_and_save_program_model_instance(form):
     model_instance = form.save(commit=False)
@@ -57,13 +57,16 @@ def make_and_save_program_model_instance(form):
     }
     return program, reportData
 
+
 def home_page(request):
     if request.method == "POST":
         form = BlockModelForm(request.POST, request.FILES)
         if form.is_valid():
             program, reportData = make_and_save_program_model_instance(form)
             generated_image_django_path = "images/.generated/tmp.png"
-            image_file_path = os.path.join(ANALYSER_DATA_STORE_PATH, generated_image_django_path)
+            image_file_path = os.path.join(
+                ANALYSER_DATA_STORE_PATH, generated_image_django_path
+            )
             generate_image_of_program(program, image_file_path, scale=7.0)
 
             hasImageFile = os.path.exists(image_file_path)
@@ -75,5 +78,3 @@ def home_page(request):
     else:
         form = BlockModelForm()
         return render(request, "analyser/home.html", {"form": form})
-
-
