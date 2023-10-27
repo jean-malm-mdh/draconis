@@ -3,10 +3,11 @@
     <title>DRACONIS Web View</title>
 </head>
 <body>
-<h1>DRACONIS</h1>
+<h1>DRACONIS Web View</h1>
+<p>Select file to analyse:</p>
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    {{form}}
+    {{form.as_p}}
     <br/><br/><input type="submit" value="Analyse!">
 </form>
 </body>
