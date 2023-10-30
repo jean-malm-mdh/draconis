@@ -65,12 +65,12 @@ class Program:
         pass
 
     def __init__(
-        self,
-        name,
-        varWorkSheet,
-        behaviourElementList=None,
-        behaviourIDMap=None,
-        lines=None,
+            self,
+            name,
+            varWorkSheet,
+            behaviourElementList=None,
+            behaviourIDMap=None,
+            lines=None,
     ):
         self.progName = name
         self.varHeader = varWorkSheet
@@ -114,7 +114,7 @@ class Program:
                     self.behaviour_id_map[blockID].ports[portID] = targetPort
                 for conn in connection.connections:
                     otherPoint = (
-                        conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
+                            conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
                     )
                     targetPort.connections.add(otherPoint)
 
@@ -225,8 +225,8 @@ class Program:
                 acc.extend(l[1:])
 
         b = (
-            self.behaviour_id_map.get(bID, None)
-            or self.behaviour_id_map[self.ports[bID].blockID]
+                self.behaviour_id_map.get(bID, None)
+                or self.behaviour_id_map[self.ports[bID].blockID]
         )
         result = []
         # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
@@ -273,7 +273,7 @@ class Program:
         """
 
         def split_paths(
-            paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
+                paths: list[Tuple[int, List[Tuple[int, int]]]], computed_subpaths
         ):
             def get_path_given_start_point(start_id, end_id, computed_subpaths):
                 for subPath in computed_subpaths:
@@ -492,7 +492,7 @@ class Program:
         def gen_variable_string():
             _variables_part = f"Variables:"
             for vData in self.getVarDataColumns(
-                "name", "varType", "valueType", "initVal", "description"
+                    "name", "varType", "valueType", "initVal", "description"
             ):
                 _variables_part = f"{_variables_part}\n{'(' + ', '.join(vData) + ')'}"
             return _variables_part
@@ -510,11 +510,11 @@ class Program:
             res = f"{res}\n{name:40}{verdict:4}: {justification}\n"
         return res
 
-    def check_rules(self):
+    def check_rules(self) -> List[List[str]]:
         metrics = self.getMetrics()
 
         def evaluate_rule(
-            ruleName, defaultVerdict, defaultJustification, evaluate_func
+                ruleName, defaultVerdict, defaultJustification, evaluate_func
         ):
             verdict = defaultVerdict
             justification = defaultJustification
@@ -607,7 +607,7 @@ class Program:
                 _path = dropWhile(
                     path[1:],
                     lambda e: not (
-                        "PathDivide" in str(e.__class__) or "Block" in str(e.__class__)
+                            "PathDivide" in str(e.__class__) or "Block" in str(e.__class__)
                     ),
                 )
                 if "PathDivide" in str(_path[0].__class__):
