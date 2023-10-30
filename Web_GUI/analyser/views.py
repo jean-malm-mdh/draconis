@@ -15,9 +15,9 @@ from parser.helper_functions import parse_pou_file, parse_pou_content
 # Create your views here.
 from django import forms
 from .forms import BlockModelForm
+from .models import ReportModel
 from AST import PathDivide
-from parser.renderer import generate_image_of_program
-
+from parser.renderer import generate_image_of_program, render_program_to_svg
 
 ANALYSER_DATA_STORE_PATH = os.path.abspath(os.path.dirname(__file__)) + "/static"
 
@@ -47,7 +47,17 @@ def make_and_save_program_model_instance(form):
     model_instance.program_variables = json.dumps(variable_info)
     model_instance.program_vardependencies = json.dumps(backward_trace)
     # Finally, save the analysed model instance to DB
+    # We do this first to generate the primary key value
+    # As this is needed for the report generation step
     model_instance.save()
+    # Create ReportModel objects for each report
+    # Note: model_instance.id is the primary key for the model
+    for (ruleName, verdict, explanation) in reports:
+        new_report = ReportModel.create(model_instance,
+                                        ruleName,
+                                        report_text=explanation,
+                                        it_passed=verdict == "Passed")
+        new_report.save()
     reportData = {
         "pou_progName": program.progName,
         "rule_reports": reports,
@@ -63,15 +73,10 @@ def home_page(request):
         form = BlockModelForm(request.POST, request.FILES)
         if form.is_valid():
             program, reportData = make_and_save_program_model_instance(form)
-            generated_image_django_path = "images/.generated/tmp.png"
-            image_file_path = os.path.join(
-                ANALYSER_DATA_STORE_PATH, generated_image_django_path
-            )
-            generate_image_of_program(program, image_file_path, scale=7.0)
 
-            hasImageFile = os.path.exists(image_file_path)
-            if hasImageFile:
-                reportData["Image"] = generated_image_django_path
+            shouldRenderImage = True
+            if shouldRenderImage:
+                reportData["ImageSVG"] = render_program_to_svg(program, scale=7.0)
             return render(request, "analyser/pou_report.html", reportData)
         else:
             return render(request, "analyser/home.html", {"form": form})

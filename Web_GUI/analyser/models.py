@@ -13,13 +13,28 @@ class BlockModel(models.Model):
 
 
 class ReportModel(models.Model):
-    class ReportStatus(models.IntegerChoices):
+    class ReportReviewStatus(models.IntegerChoices):
         UNVIEWED = 0
-        UNDER_REVIEW = 1
-        REVIEWED = 2
+        REVIEWED = 1
+        CONFIRMED = 2
+        FALSE_POSITIVE = 3
+
+    class CheckStatus(models.IntegerChoices):
+        FAIL = 0
+        PASS = 1
 
     block_program = models.ForeignKey(BlockModel, on_delete=models.CASCADE)
     check_name = models.TextField()
     check_verbose_name = models.TextField()
     report_content = models.TextField()
-    report_status = models.IntegerField(choices=ReportStatus.choices)
+    report_check_status = models.IntegerField(choices=CheckStatus.choices, default=CheckStatus.FAIL)
+    report_review_status = models.IntegerField(choices=ReportReviewStatus.choices, default=ReportReviewStatus.UNVIEWED)
+
+    @classmethod
+    def create(cls, program_id, check_name, report_text, it_passed=False):
+        report = cls(block_program=program_id,
+                     check_name=check_name,
+                     check_verbose_name=check_name,
+                     report_content=report_text,
+                     report_check_status=int(it_passed))
+        return report

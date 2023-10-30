@@ -1,3 +1,20 @@
+.inport {
+    fill:red;
+}
+.outport {
+    fill:green;
+}
+
+.block {
+    stroke:black;
+    stroke-width:2;
+    fill:none;
+}
+
+.signal_line {
+    stroke:black;
+    stroke-width:2;
+}
 
 table {
   width: 100%;

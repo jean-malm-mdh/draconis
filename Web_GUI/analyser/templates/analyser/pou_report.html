@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>POU Analysis Report</title>
@@ -94,10 +95,12 @@
 </div>
 
 
-{% if Image %}
+{% if ImageSVG %}
 <h2>Rendering of Model</h2>
-{% load static %}
-<img src="{% static 'images/.generated/tmp.png' %}" alt="Image of {{file_name}} not found">
+<svg width="{{ImageSVG.0}}" height="{{ImageSVG.1}}">
+    {{ ImageSVG.2|safe }}
+    Sorry, your browser does not support inline SVG.
+</svg>
 {% endif %}
 </body>
 
