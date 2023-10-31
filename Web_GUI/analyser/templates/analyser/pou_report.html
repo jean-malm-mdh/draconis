@@ -97,8 +97,8 @@
 
 {% if ImageSVG %}
 <h2>Rendering of Model</h2>
-<svg width="{{ImageSVG.0}}" height="{{ImageSVG.1}}">
-    {{ ImageSVG.2|safe }}
+<svg width="{{ImageDimension.0}}" height="{{ImageDimension.1}}">
+    {{ ImageSVG|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>
 {% endif %}

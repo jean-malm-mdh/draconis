@@ -76,7 +76,9 @@ def home_page(request):
 
             shouldRenderImage = True
             if shouldRenderImage:
-                reportData["ImageSVG"] = render_program_to_svg(program, scale=7.0)
+                imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, scale=7.0)
+                reportData["ImageSVG"] = imageSVGString
+                reportData["ImageDimension"] = (imageWidth, imageHeight)
             return render(request, "analyser/pou_report.html", reportData)
         else:
             return render(request, "analyser/home.html", {"form": form})
