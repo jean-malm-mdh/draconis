@@ -168,12 +168,7 @@ class DrawContext:
 
 def render_lines_to_draw_context(lines, draw_context):
     for line in lines:
-        # Not sure why scaling of 2.0 is required to get lines to proper places ...
-        _line = (
-            Point(line[0].x * 2, line[0].y * 2),
-            (Point(line[1].x * 2, line[1].y * 2)),
-        )
-        draw_context.render_line(_line, width=2)
+        draw_context.render_line(line, width=2)
 
 
 def render_blocks_to_draw_context(blocks, draw_context):
@@ -363,15 +358,9 @@ def render_lines_to_svg(lines, scalerFunc):
 
 
 def render_line_to_svg(line, scalerFunc):
-    # Not sure why scaling of 2.0 is required to get lines to proper places ...
-    _line = (
-        Point(line[0].x * 2, line[0].y * 2),
-        (Point(line[1].x * 2, line[1].y * 2)),
-    )
-    start_point, end_point = _line
-
-    s_s_x, s_s_y, e_s_x, e_s_y = map(scalerFunc, (start_point.x, start_point.y, end_point.x, end_point.y))
-    return f'<line class="signal_line" x1="{s_s_x}" y1="{s_s_y}" x2="{e_s_x}" y2="{e_s_y}" />'
+    start_point, end_point = line
+    s_x, s_y, e_x, e_y = map(scalerFunc, (start_point.x, start_point.y, end_point.x, end_point.y))
+    return f'<line class="signal_line" x1="{s_x}" y1="{s_y}" x2="{e_x}" y2="{e_y}" />'
 
 
 def render_blocks_to_svg(blocks, scalerFunc):

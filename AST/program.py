@@ -147,7 +147,16 @@ class Program:
                     startPort = self.ports.get(conn, None)
                     startPort.connections.add(p_id)
 
+        def correctGraphicalDetails():
+            # Lines are in their own coordinate space.
+            # To ease work during rendering, they are moved once into the model's space
+            self.lines = [(
+                Point(line[0].x * 2, line[0].y * 2),
+                (Point(line[1].x * 2, line[1].y * 2)),
+            ) for line in self.lines]
+
         make_ADT_consistent()
+        correctGraphicalDetails()
 
     def getVarGroups(self):
         return self.varHeader.varGroups
