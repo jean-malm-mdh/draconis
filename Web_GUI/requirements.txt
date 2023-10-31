@@ -46,3 +46,4 @@ urllib3==2.0.7
 watchdog==3.0.0
 word2number==1.1
 wsproto==1.2.0
+html-sanitizer==2.2.0

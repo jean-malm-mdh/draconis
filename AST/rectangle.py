@@ -20,6 +20,9 @@ class Rectangle:
             abs(self.bot_right.y - self.top_left.y),
         )
 
+    def getSizeAsTuple(self):
+        return (abs(self.bot_right.x - self.top_left.x), abs(self.bot_right.y - self.top_left.y))
+
     def getAsTuple(self):
         return self.top_left.x, self.top_left.y, self.bot_right.x, self.bot_right.y
 

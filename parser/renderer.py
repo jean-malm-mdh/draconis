@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from parser import Program
 from parser import ConnectionDirection
 from Web_GUI import Point
+from html_sanitizer import Sanitizer
 
 
 @dataclasses.dataclass
@@ -345,11 +346,13 @@ def render_program_to_svg(aProgram, scale=1.0):
     height += boundary
     blocks_svg = "\n".join(render_blocks_to_svg(aProgram.behaviourElements, scaler))
     lines_svg = "\n".join(render_lines_to_svg(aProgram.lines, scaler))
+    comments_svg = "\n".join(render_comments_to_svg(aProgram.comments, scaler))
     return (width, height,
             f'''
     <text x="15" y="15">{aProgram.progName}</text>
-    {blocks_svg}
-    {lines_svg}
+    <g id="blocks">{blocks_svg}</g>
+    <g id="lines">{lines_svg}</g>
+    <g id="comments">{comments_svg}</g>
 ''')
 
 
@@ -413,4 +416,29 @@ def render_block_to_svg(block, scalerFunc):
         result += "\n" + render_as_func_block()
     elif block.getBlockType() == "Port":
         result += "\n" + render_as_port_block()
-    return result
+    return f"<g>{result}</g>"
+
+
+def render_comment_to_svg(comment, scaler):
+    L, T = map(scaler, comment.bounding_box.getPosition())
+    Width, Height = map(scaler, comment.bounding_box.getSizeAsTuple())
+    # Since content is rich text, we need to sanitise the data
+    sanitizer = Sanitizer(settings={'tags': set('p'),
+                                    'attributes': {},
+                                    'empty': set(),
+                                    'separate': set(),
+                                    })
+
+    comment_content = comment.content
+    comment_sanitised = sanitizer.sanitize(comment_content)
+    return \
+        f'''<g>
+        <rect class="comment_box" x="{L}" y="{T}" width="{Width}" height="{Height}" />
+        <foreignObject x="{L}" y="{T}" width="{Width}" height="{Height}">
+            <div>{comment_sanitised}</div>
+        </foreignObject>
+        </g>'''
+
+
+def render_comments_to_svg(comments, scaler):
+    return [render_comment_to_svg(comment, scaler) for comment in comments]

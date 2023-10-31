@@ -10,6 +10,12 @@
     stroke-width:2;
     fill:none;
 }
+.comment_box {
+    stroke:green;
+    stroke-width:2;
+    fill:yellow;
+    opacity:0.4;
+}
 
 .signal_line {
     stroke:black;
