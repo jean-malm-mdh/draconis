@@ -2,8 +2,9 @@ import pytest
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                             ".."))
+source_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..")
+if source_path not in sys.path:
+    sys.path.append(source_path)
 from rule_utility_functions import conforms_to
 
 
