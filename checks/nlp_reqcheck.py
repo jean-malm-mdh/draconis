@@ -95,9 +95,9 @@ def classify_as_metric_check(tagged_words: List[Tuple[str, str]], numbers):
             """We already know it is a number"""
             properties.remove("number")
         if (
-            enumeration
-            and connector_word_index is not None
-            and tagged_words[connector_word_index + 1][0] in properties
+                enumeration
+                and connector_word_index is not None
+                and tagged_words[connector_word_index + 1][0] in properties
         ):
             # stubs should be part of enumeration, where the last word is a combination of the stub and the root
             # For now we assume that enumerations are on the form of r"(stub-,? ) and (stub)(root)"
@@ -107,7 +107,7 @@ def classify_as_metric_check(tagged_words: List[Tuple[str, str]], numbers):
                 get_stub_pairs().get(first_stub, None), ""
             )
             assert (
-                root_part != last_enum_word and "there was no extraction of root part"
+                    root_part != last_enum_word and "there was no extraction of root part"
             )
             unstubbed = [e.replace("-", root_part) for e in enumeration]
             unstubbed.append(last_enum_word)
@@ -123,7 +123,7 @@ def classify_as_metric_check(tagged_words: List[Tuple[str, str]], numbers):
 def get_issue_level(tagged_words):
     issue_level_qualifier = [n for n, t in tagged_words if t == "MD"]
     if any_of_in(
-        ["shall", "must", "cannot", "need", "will", "couldn't"], issue_level_qualifier
+            ["shall", "must", "cannot", "need", "will", "couldn't"], issue_level_qualifier
     ):
         return "error"
     else:
@@ -157,8 +157,8 @@ def classify(req_text: str):
         [
             n
             for n in [
-                get_numstr_orNone_from_word(w) for w, t in tagged_words if t != "CD"
-            ]
+            get_numstr_orNone_from_word(w) for w, t in tagged_words if t != "CD"
+        ]
             if n is not None
         ]
     )
@@ -172,11 +172,16 @@ def classify(req_text: str):
 
 def complies(data, req):
     def get_property_value(req_data):
-        res = req_data["property"]
+        res = req_data.get("property", None)
+        if res is None:
+            return None
+
         if res.startswith("SUM"):
-            sym_values = str(res).lstrip("SUM(").rstrip(")").split(",")
-            actual_values = [data[e] for e in sym_values]
+            sym_values = str(res).lstrip("SUM(").rstrip(")").replace("[", "").replace("]", "").split(",")
+            actual_values = [str(data[e]) for e in sym_values]
             return f'({"+".join(actual_values)})'
+        else:
+            return data[res]
 
     classified_req = classify(req)
     if classified_req["target_function"] == "interval":

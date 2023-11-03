@@ -1,0 +1,6 @@
+{
+    "Rules": {
+    "IsTooShort": "len($1)<10", 
+    "IsTooLong": "len($1)>20"
+    }
+}
