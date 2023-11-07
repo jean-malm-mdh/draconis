@@ -26,49 +26,48 @@ def get_file_content_as_single_string(file_field: FieldFile):
     return "\n".join([str(s, "UTF-8") for s in file_field.readlines()])
 
 
-def make_and_save_program_model_instance(form):
-    model_instance = form.save(commit=False)
-    program_content = get_file_content_as_single_string(model_instance.program_content)
-    program = parse_pou_content(program_content)
-    reports = program.check_rules()
-    metrics = program.getMetrics()
-    variable_info = program.getVarDataColumns(
-        "name", "paramType", "valueType", "initVal", "description"
-    )
-    backward_trace = {}
-    for name, paths in program.getBackwardTrace().items():
-        backward_trace[name] = [
-            program.behaviour_id_map[e[-1]].expr.expr
-            for e in PathDivide.unpack_pathlist([paths])
-        ]
-    # Populate model instance object based on analysis
-    model_instance.program_name = program.progName
-    model_instance.program_metrics = json.dumps(metrics)
-    model_instance.program_variables = json.dumps(variable_info)
-    model_instance.program_vardependencies = json.dumps(backward_trace)
-    # Finally, save the analysed model instance to DB
-    # We do this first to generate the primary key value
-    # As this is needed for the report generation step
-    model_instance.save()
-    # Create ReportModel objects for each report
-    # Note: model_instance.id is the primary key for the model
-    for (ruleName, verdict, explanation) in reports:
-        new_report = ReportModel.create(model_instance,
-                                        ruleName,
-                                        report_text=explanation,
-                                        it_passed=verdict == "Passed")
-        new_report.save()
-    reportData = {
-        "pou_progName": program.progName,
-        "rule_reports": reports,
-        "metrics": metrics,
-        "backward_trace": backward_trace,
-        "variable_info": variable_info,
-    }
-    return program, reportData
-
-
 def home_page(request):
+    def make_and_save_program_model_instance(_form):
+        model_instance = _form.save(commit=False)
+        program_content = get_file_content_as_single_string(model_instance.program_content)
+        aProgram = parse_pou_content(program_content)
+        reports = aProgram.check_rules()
+        metrics = aProgram.getMetrics()
+        variable_info = aProgram.getVarDataColumns(
+            "name", "paramType", "valueType", "initVal", "description"
+        )
+        backward_trace = {}
+        for name, paths in aProgram.getBackwardTrace().items():
+            backward_trace[name] = [
+                aProgram.behaviour_id_map[e[-1]].expr.expr
+                for e in PathDivide.unpack_pathlist([paths])
+            ]
+        # Populate model instance object based on analysis
+        model_instance.program_name = aProgram.progName
+        model_instance.program_metrics = json.dumps(metrics)
+        model_instance.program_variables = json.dumps(variable_info)
+        model_instance.program_vardependencies = json.dumps(backward_trace)
+        # Finally, save the analysed model instance to DB
+        # We do this first to generate the primary key value
+        # As this is needed for the report generation step
+        model_instance.save()
+        # Create ReportModel objects for each report
+        # Note: model_instance.id is the primary key for the model
+        for (ruleName, verdict, explanation) in reports:
+            new_report = ReportModel.create(model_instance,
+                                            ruleName,
+                                            report_text=explanation,
+                                            it_passed=verdict == "Passed")
+            new_report.save()
+        report_data = {
+            "pou_progName": aProgram.progName,
+            "rule_reports": reports,
+            "metrics": metrics,
+            "backward_trace": backward_trace,
+            "variable_info": variable_info,
+        }
+        return aProgram, report_data
+
     if request.method == "POST":
         form = BlockModelForm(request.POST, request.FILES)
         if form.is_valid():

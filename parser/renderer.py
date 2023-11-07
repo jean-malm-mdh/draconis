@@ -420,8 +420,9 @@ def render_block_to_svg(block, scalerFunc):
 
 
 def render_comment_to_svg(comment, scaler):
-    L, T = map(scaler, comment.bounding_box.getPosition())
+    Left, Top = map(scaler, comment.bounding_box.getPosition())
     Width, Height = map(scaler, comment.bounding_box.getSizeAsTuple())
+
     # Since content is rich text, we need to sanitise the data
     sanitizer = Sanitizer(settings={'tags': set('p'),
                                     'attributes': {},
@@ -431,10 +432,11 @@ def render_comment_to_svg(comment, scaler):
 
     comment_content = comment.content
     comment_sanitised = sanitizer.sanitize(comment_content)
+
     return \
         f'''<g>
-        <rect class="comment_box" x="{L}" y="{T}" width="{Width}" height="{Height}" />
-        <foreignObject x="{L}" y="{T}" width="{Width}" height="{Height}">
+        <rect class="comment_box" x="{Left}" y="{Top}" width="{Width}" height="{Height}" />
+        <foreignObject x="{Left}" y="{Top}" width="{Width}" height="{Height}">
             <div>{comment_sanitised}</div>
         </foreignObject>
         </g>'''

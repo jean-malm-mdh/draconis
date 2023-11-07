@@ -93,5 +93,15 @@ def test_can_parse_constraint_rule_file(rule_files):
     assert ["IsTooShort", "IsTooLong"] == ruleset.getRuleNames()
 
 
+def test_can_parse_funcstyle_constraint():
+    names = ["Apa", "apa", ""]
+    ruleset = SignalRules.from_json_string("""{ "Defines": {"DEFTEMPLATE": "Apa"},
+             "Rules": {"isATemplateRule": "__input__ |> fullmatch(^##DEFTEMPLATE##$) |> not"} }
+             """)
+    assert [[], ["isATemplateRule"], ["isATemplateRule"]] == [
+        ruleset.check(n) for n in names
+    ]
+
+
 if __name__ == "__main__":
     files = load_rule_files()
