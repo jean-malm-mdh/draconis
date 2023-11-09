@@ -10,52 +10,52 @@ else:
 
 def serializedATN():
     return [
-        4,1,82,149,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        4,1,82,147,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
         6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,
         2,14,7,14,2,15,7,15,2,16,7,16,2,17,7,17,1,0,1,0,1,0,1,0,1,0,1,0,
-        1,1,1,1,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,
-        1,3,1,3,1,3,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,5,4,5,70,8,5,11,5,12,5,
-        71,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,7,4,7,84,8,7,11,7,12,7,
-        85,1,8,1,8,1,8,1,8,1,8,1,8,1,8,1,8,5,8,96,8,8,10,8,12,8,99,9,8,1,
-        8,1,8,1,9,1,9,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,11,1,11,1,11,
-        1,11,1,11,1,11,1,11,1,11,1,11,1,11,1,11,3,11,123,8,11,1,11,3,11,
-        126,8,11,1,11,1,11,3,11,130,8,11,1,12,1,12,1,12,1,12,1,12,3,12,137,
-        8,12,1,13,1,13,1,14,1,14,1,15,1,15,1,16,1,16,1,17,1,17,1,17,0,0,
-        18,0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,0,7,1,0,1,2,
-        2,0,17,18,79,79,1,0,24,45,1,0,46,57,1,0,58,63,1,0,64,73,1,0,74,76,
-        140,0,36,1,0,0,0,2,42,1,0,0,0,4,44,1,0,0,0,6,58,1,0,0,0,8,65,1,0,
-        0,0,10,69,1,0,0,0,12,73,1,0,0,0,14,83,1,0,0,0,16,87,1,0,0,0,18,102,
-        1,0,0,0,20,104,1,0,0,0,22,111,1,0,0,0,24,136,1,0,0,0,26,138,1,0,
-        0,0,28,140,1,0,0,0,30,142,1,0,0,0,32,144,1,0,0,0,34,146,1,0,0,0,
+        1,1,1,1,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,3,1,3,
+        1,3,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,5,4,5,68,8,5,11,5,12,5,69,1,6,
+        1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,6,1,7,4,7,82,8,7,11,7,12,7,83,1,8,
+        1,8,1,8,1,8,1,8,1,8,1,8,1,8,5,8,94,8,8,10,8,12,8,97,9,8,1,8,1,8,
+        1,9,1,9,1,10,1,10,1,10,1,10,1,10,1,10,1,10,1,11,1,11,1,11,1,11,1,
+        11,1,11,1,11,1,11,1,11,1,11,1,11,3,11,121,8,11,1,11,3,11,124,8,11,
+        1,11,1,11,3,11,128,8,11,1,12,1,12,1,12,1,12,1,12,3,12,135,8,12,1,
+        13,1,13,1,14,1,14,1,15,1,15,1,16,1,16,1,17,1,17,1,17,0,0,18,0,2,
+        4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,0,7,1,0,1,2,2,0,17,
+        19,79,79,1,0,25,46,2,0,17,17,47,57,1,0,58,63,1,0,64,73,1,0,74,76,
+        138,0,36,1,0,0,0,2,42,1,0,0,0,4,44,1,0,0,0,6,56,1,0,0,0,8,63,1,0,
+        0,0,10,67,1,0,0,0,12,71,1,0,0,0,14,81,1,0,0,0,16,85,1,0,0,0,18,100,
+        1,0,0,0,20,102,1,0,0,0,22,109,1,0,0,0,24,134,1,0,0,0,26,136,1,0,
+        0,0,28,138,1,0,0,0,30,140,1,0,0,0,32,142,1,0,0,0,34,144,1,0,0,0,
         36,37,3,2,1,0,37,38,5,80,0,0,38,39,3,6,3,0,39,40,3,4,2,0,40,41,5,
         0,0,1,41,1,1,0,0,0,42,43,7,0,0,0,43,3,1,0,0,0,44,45,5,3,0,0,45,46,
-        5,4,0,0,46,47,5,5,0,0,47,48,5,6,0,0,48,49,5,80,0,0,49,50,5,6,0,0,
-        50,51,5,7,0,0,51,52,5,8,0,0,52,53,5,5,0,0,53,54,5,6,0,0,54,55,5,
-        81,0,0,55,56,5,6,0,0,56,57,5,9,0,0,57,5,1,0,0,0,58,59,5,3,0,0,59,
-        60,5,10,0,0,60,61,5,5,0,0,61,62,5,11,0,0,62,63,5,9,0,0,63,64,3,8,
-        4,0,64,7,1,0,0,0,65,66,3,10,5,0,66,67,3,14,7,0,67,9,1,0,0,0,68,70,
-        3,12,6,0,69,68,1,0,0,0,70,71,1,0,0,0,71,69,1,0,0,0,71,72,1,0,0,0,
-        72,11,1,0,0,0,73,74,5,3,0,0,74,75,5,12,0,0,75,76,5,13,0,0,76,77,
-        5,79,0,0,77,78,5,7,0,0,78,79,5,78,0,0,79,80,5,14,0,0,80,81,5,9,0,
-        0,81,13,1,0,0,0,82,84,3,16,8,0,83,82,1,0,0,0,84,85,1,0,0,0,85,83,
-        1,0,0,0,85,86,1,0,0,0,86,15,1,0,0,0,87,88,3,34,17,0,88,89,5,3,0,
-        0,89,90,5,15,0,0,90,91,5,13,0,0,91,92,5,79,0,0,92,93,5,14,0,0,93,
-        97,5,9,0,0,94,96,3,22,11,0,95,94,1,0,0,0,96,99,1,0,0,0,97,95,1,0,
-        0,0,97,98,1,0,0,0,98,100,1,0,0,0,99,97,1,0,0,0,100,101,5,16,0,0,
-        101,17,1,0,0,0,102,103,7,1,0,0,103,19,1,0,0,0,104,105,5,3,0,0,105,
-        106,5,19,0,0,106,107,5,13,0,0,107,108,5,20,0,0,108,109,5,14,0,0,
-        109,110,5,9,0,0,110,21,1,0,0,0,111,112,5,3,0,0,112,113,5,21,0,0,
-        113,114,5,13,0,0,114,115,5,79,0,0,115,116,5,14,0,0,116,117,5,9,0,
-        0,117,118,5,80,0,0,118,119,5,22,0,0,119,122,3,24,12,0,120,121,5,
-        5,0,0,121,123,3,18,9,0,122,120,1,0,0,0,122,123,1,0,0,0,123,125,1,
-        0,0,0,124,126,3,20,10,0,125,124,1,0,0,0,125,126,1,0,0,0,126,127,
-        1,0,0,0,127,129,5,23,0,0,128,130,5,82,0,0,129,128,1,0,0,0,129,130,
-        1,0,0,0,130,23,1,0,0,0,131,137,3,26,13,0,132,137,3,30,15,0,133,137,
-        3,32,16,0,134,137,3,28,14,0,135,137,5,80,0,0,136,131,1,0,0,0,136,
-        132,1,0,0,0,136,133,1,0,0,0,136,134,1,0,0,0,136,135,1,0,0,0,137,
-        25,1,0,0,0,138,139,7,2,0,0,139,27,1,0,0,0,140,141,7,3,0,0,141,29,
-        1,0,0,0,142,143,7,4,0,0,143,31,1,0,0,0,144,145,7,5,0,0,145,33,1,
-        0,0,0,146,147,7,6,0,0,147,35,1,0,0,0,7,71,85,97,122,125,129,136
+        5,4,0,0,46,47,5,5,0,0,47,48,5,78,0,0,48,49,5,6,0,0,49,50,5,7,0,0,
+        50,51,5,5,0,0,51,52,5,8,0,0,52,53,5,81,0,0,53,54,5,8,0,0,54,55,5,
+        9,0,0,55,5,1,0,0,0,56,57,5,3,0,0,57,58,5,10,0,0,58,59,5,5,0,0,59,
+        60,5,11,0,0,60,61,5,9,0,0,61,62,3,8,4,0,62,7,1,0,0,0,63,64,3,10,
+        5,0,64,65,3,14,7,0,65,9,1,0,0,0,66,68,3,12,6,0,67,66,1,0,0,0,68,
+        69,1,0,0,0,69,67,1,0,0,0,69,70,1,0,0,0,70,11,1,0,0,0,71,72,5,3,0,
+        0,72,73,5,12,0,0,73,74,5,13,0,0,74,75,5,79,0,0,75,76,5,6,0,0,76,
+        77,5,78,0,0,77,78,5,14,0,0,78,79,5,9,0,0,79,13,1,0,0,0,80,82,3,16,
+        8,0,81,80,1,0,0,0,82,83,1,0,0,0,83,81,1,0,0,0,83,84,1,0,0,0,84,15,
+        1,0,0,0,85,86,3,34,17,0,86,87,5,3,0,0,87,88,5,15,0,0,88,89,5,13,
+        0,0,89,90,5,79,0,0,90,91,5,14,0,0,91,95,5,9,0,0,92,94,3,22,11,0,
+        93,92,1,0,0,0,94,97,1,0,0,0,95,93,1,0,0,0,95,96,1,0,0,0,96,98,1,
+        0,0,0,97,95,1,0,0,0,98,99,5,16,0,0,99,17,1,0,0,0,100,101,7,1,0,0,
+        101,19,1,0,0,0,102,103,5,3,0,0,103,104,5,20,0,0,104,105,5,13,0,0,
+        105,106,5,21,0,0,106,107,5,14,0,0,107,108,5,9,0,0,108,21,1,0,0,0,
+        109,110,5,3,0,0,110,111,5,22,0,0,111,112,5,13,0,0,112,113,5,79,0,
+        0,113,114,5,14,0,0,114,115,5,9,0,0,115,116,5,80,0,0,116,117,5,23,
+        0,0,117,120,3,24,12,0,118,119,5,5,0,0,119,121,3,18,9,0,120,118,1,
+        0,0,0,120,121,1,0,0,0,121,123,1,0,0,0,122,124,3,20,10,0,123,122,
+        1,0,0,0,123,124,1,0,0,0,124,125,1,0,0,0,125,127,5,24,0,0,126,128,
+        5,82,0,0,127,126,1,0,0,0,127,128,1,0,0,0,128,23,1,0,0,0,129,135,
+        3,26,13,0,130,135,3,30,15,0,131,135,3,32,16,0,132,135,3,28,14,0,
+        133,135,5,80,0,0,134,129,1,0,0,0,134,130,1,0,0,0,134,131,1,0,0,0,
+        134,132,1,0,0,0,134,133,1,0,0,0,135,25,1,0,0,0,136,137,7,2,0,0,137,
+        27,1,0,0,0,138,139,7,3,0,0,139,29,1,0,0,0,140,141,7,4,0,0,141,31,
+        1,0,0,0,142,143,7,5,0,0,143,33,1,0,0,0,144,145,7,6,0,0,145,35,1,
+        0,0,0,7,69,83,95,120,123,127,134
     ]
 
 class POUParser ( Parser ):
@@ -69,22 +69,23 @@ class POUParser ( Parser ):
     sharedContextCache = PredictionContextCache()
 
     literalNames = [ "<INVALID>", "'PROGRAM'", "'FUNCTION_BLOCK'", "'{'", 
-                     "'CodeWorksheet'", "':='", "'''", "','", "'Type'", 
+                     "'CodeWorksheet'", "':='", "','", "'Type'", "'''", 
                      "'}'", "'VariableWorksheet'", "''Variables''", "'GroupDefinition'", 
-                     "'('", "')'", "'Group'", "'END_VAR'", "'SAFETRUE'", 
-                     "'SAFEFALSE'", "'Feedback'", "'true'", "'LINE'", "':'", 
-                     "';'", "'ANALOG'", "'BOOL'", "'BYTE'", "'WORD'", "'DWORD'", 
-                     "'LWORD'", "'SINT'", "'INT'", "'DINT'", "'LINT'", "'USINT'", 
-                     "'UINT'", "'UDINT'", "'ULINT'", "'REAL'", "'LREAL'", 
-                     "'TIME'", "'DATE'", "'DT'", "'TOD'", "'STRING'", "'WSTRING'", 
-                     "'SAFEANALOG'", "'SAFEBOOL'", "'SAFEBYTE'", "'SAFEDINT'", 
-                     "'SAFEDWORD'", "'SAFEINT'", "'SAFESINT'", "'SAFETIME'", 
-                     "'SAFEUDINT'", "'SAFEUINT'", "'SAFEUSINT'", "'SAFEWORD'", 
-                     "'ARRAY'", "'DERIVED'", "'ENUM'", "'SUBRANGESIGNED'", 
-                     "'SUBRANGEUNSIGNED'", "'STRUCT'", "'ANY'", "'ANY_DERIVED'", 
-                     "'ANY_ELEMENTARY'", "'ANY_MAGNITUDE'", "'ANY_NUM'", 
-                     "'ANY_REAL'", "'ANY_INT'", "'ANY_BIT'", "'ANY_STRING'", 
-                     "'ANY_DATE'", "'VAR'", "'VAR_INPUT'", "'VAR_OUTPUT'" ]
+                     "'('", "')'", "'Group'", "'END_VAR'", "'SAFEUSINT'", 
+                     "'SAFETRUE'", "'SAFEFALSE'", "'Feedback'", "'true'", 
+                     "'LINE'", "':'", "';'", "'ANALOG'", "'BOOL'", "'BYTE'", 
+                     "'WORD'", "'DWORD'", "'LWORD'", "'SINT'", "'INT'", 
+                     "'DINT'", "'LINT'", "'USINT'", "'UINT'", "'UDINT'", 
+                     "'ULINT'", "'REAL'", "'LREAL'", "'TIME'", "'DATE'", 
+                     "'DT'", "'TOD'", "'STRING'", "'WSTRING'", "'SAFEANALOG'", 
+                     "'SAFEBOOL'", "'SAFEBYTE'", "'SAFEDINT'", "'SAFEDWORD'", 
+                     "'SAFEINT'", "'SAFESINT'", "'SAFETIME'", "'SAFEUDINT'", 
+                     "'SAFEUINT'", "'SAFEWORD'", "'ARRAY'", "'DERIVED'", 
+                     "'ENUM'", "'SUBRANGESIGNED'", "'SUBRANGEUNSIGNED'", 
+                     "'STRUCT'", "'ANY'", "'ANY_DERIVED'", "'ANY_ELEMENTARY'", 
+                     "'ANY_MAGNITUDE'", "'ANY_NUM'", "'ANY_REAL'", "'ANY_INT'", 
+                     "'ANY_BIT'", "'ANY_STRING'", "'ANY_DATE'", "'VAR'", 
+                     "'VAR_INPUT'", "'VAR_OUTPUT'" ]
 
     symbolicNames = [ "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
                       "<INVALID>", "<INVALID>", "<INVALID>", "<INVALID>", 
@@ -355,8 +356,8 @@ class POUParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-        def ID(self):
-            return self.getToken(POUParser.ID, 0)
+        def QUOTED_STRING(self):
+            return self.getToken(POUParser.QUOTED_STRING, 0)
 
         def FILE_EXT(self):
             return self.getToken(POUParser.FILE_EXT, 0)
@@ -394,24 +395,20 @@ class POUParser ( Parser ):
             self.state = 46
             self.match(POUParser.T__4)
             self.state = 47
-            self.match(POUParser.T__5)
+            self.match(POUParser.QUOTED_STRING)
             self.state = 48
-            self.match(POUParser.ID)
-            self.state = 49
             self.match(POUParser.T__5)
-            self.state = 50
+            self.state = 49
             self.match(POUParser.T__6)
+            self.state = 50
+            self.match(POUParser.T__4)
             self.state = 51
             self.match(POUParser.T__7)
             self.state = 52
-            self.match(POUParser.T__4)
-            self.state = 53
-            self.match(POUParser.T__5)
-            self.state = 54
             self.match(POUParser.FILE_EXT)
-            self.state = 55
-            self.match(POUParser.T__5)
-            self.state = 56
+            self.state = 53
+            self.match(POUParser.T__7)
+            self.state = 54
             self.match(POUParser.T__8)
         except RecognitionException as re:
             localctx.exception = re
@@ -459,17 +456,17 @@ class POUParser ( Parser ):
         self.enterRule(localctx, 6, self.RULE_variableWorkSheet)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 58
+            self.state = 56
             self.match(POUParser.T__2)
-            self.state = 59
+            self.state = 57
             self.match(POUParser.T__9)
-            self.state = 60
+            self.state = 58
             self.match(POUParser.T__4)
-            self.state = 61
+            self.state = 59
             self.match(POUParser.T__10)
-            self.state = 62
+            self.state = 60
             self.match(POUParser.T__8)
-            self.state = 63
+            self.state = 61
             self.varGroups()
         except RecognitionException as re:
             localctx.exception = re
@@ -521,9 +518,9 @@ class POUParser ( Parser ):
         self.enterRule(localctx, 8, self.RULE_varGroups)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 65
+            self.state = 63
             self.groupDefs()
-            self.state = 66
+            self.state = 64
             self.varDefGroups()
         except RecognitionException as re:
             localctx.exception = re
@@ -575,13 +572,13 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 69 
+            self.state = 67 
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 68
+                self.state = 66
                 self.groupDef()
-                self.state = 71 
+                self.state = 69 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not (_la==3):
@@ -637,21 +634,21 @@ class POUParser ( Parser ):
         self.enterRule(localctx, 12, self.RULE_groupDef)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 73
+            self.state = 71
             self.match(POUParser.T__2)
-            self.state = 74
+            self.state = 72
             self.match(POUParser.T__11)
-            self.state = 75
+            self.state = 73
             self.match(POUParser.T__12)
-            self.state = 76
+            self.state = 74
             localctx.groupID = self.match(POUParser.INT)
-            self.state = 77
-            self.match(POUParser.T__6)
-            self.state = 78
+            self.state = 75
+            self.match(POUParser.T__5)
+            self.state = 76
             localctx.groupName = self.match(POUParser.QUOTED_STRING)
-            self.state = 79
+            self.state = 77
             self.match(POUParser.T__13)
-            self.state = 80
+            self.state = 78
             self.match(POUParser.T__8)
         except RecognitionException as re:
             localctx.exception = re
@@ -703,13 +700,13 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 83 
+            self.state = 81 
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while True:
-                self.state = 82
+                self.state = 80
                 self.varDefGroup()
-                self.state = 85 
+                self.state = 83 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if not ((((_la - 74)) & ~0x3f) == 0 and ((1 << (_la - 74)) & 7) != 0):
@@ -774,31 +771,31 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 87
+            self.state = 85
             localctx.varType = self.var_type()
-            self.state = 88
+            self.state = 86
             self.match(POUParser.T__2)
-            self.state = 89
+            self.state = 87
             self.match(POUParser.T__14)
-            self.state = 90
+            self.state = 88
             self.match(POUParser.T__12)
-            self.state = 91
+            self.state = 89
             localctx.groupNr = self.match(POUParser.INT)
-            self.state = 92
+            self.state = 90
             self.match(POUParser.T__13)
-            self.state = 93
+            self.state = 91
             self.match(POUParser.T__8)
-            self.state = 97
+            self.state = 95
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             while _la==3:
-                self.state = 94
+                self.state = 92
                 self.varLine()
-                self.state = 99
+                self.state = 97
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
 
-            self.state = 100
+            self.state = 98
             self.match(POUParser.T__15)
         except RecognitionException as re:
             localctx.exception = re
@@ -846,9 +843,9 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 102
+            self.state = 100
             _la = self._input.LA(1)
-            if not((((_la - 17)) & ~0x3f) == 0 and ((1 << (_la - 17)) & 4611686018427387907) != 0):
+            if not((((_la - 17)) & ~0x3f) == 0 and ((1 << (_la - 17)) & 4611686018427387911) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -896,17 +893,17 @@ class POUParser ( Parser ):
         self.enterRule(localctx, 20, self.RULE_feedbackRule)
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 104
+            self.state = 102
             self.match(POUParser.T__2)
-            self.state = 105
-            self.match(POUParser.T__18)
-            self.state = 106
-            self.match(POUParser.T__12)
-            self.state = 107
+            self.state = 103
             self.match(POUParser.T__19)
-            self.state = 108
+            self.state = 104
+            self.match(POUParser.T__12)
+            self.state = 105
+            self.match(POUParser.T__20)
+            self.state = 106
             self.match(POUParser.T__13)
-            self.state = 109
+            self.state = 107
             self.match(POUParser.T__8)
         except RecognitionException as re:
             localctx.exception = re
@@ -978,49 +975,49 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 111
+            self.state = 109
             self.match(POUParser.T__2)
-            self.state = 112
-            self.match(POUParser.T__20)
-            self.state = 113
-            self.match(POUParser.T__12)
-            self.state = 114
-            localctx.lineNr = self.match(POUParser.INT)
-            self.state = 115
-            self.match(POUParser.T__13)
-            self.state = 116
-            self.match(POUParser.T__8)
-            self.state = 117
-            localctx.varName = self.match(POUParser.ID)
-            self.state = 118
+            self.state = 110
             self.match(POUParser.T__21)
-            self.state = 119
+            self.state = 111
+            self.match(POUParser.T__12)
+            self.state = 112
+            localctx.lineNr = self.match(POUParser.INT)
+            self.state = 113
+            self.match(POUParser.T__13)
+            self.state = 114
+            self.match(POUParser.T__8)
+            self.state = 115
+            localctx.varName = self.match(POUParser.ID)
+            self.state = 116
+            self.match(POUParser.T__22)
+            self.state = 117
             localctx.valueType = self.val_Type()
-            self.state = 122
+            self.state = 120
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==5:
-                self.state = 120
+                self.state = 118
                 self.match(POUParser.T__4)
-                self.state = 121
+                self.state = 119
                 localctx.initVal = self.valTypeRule()
 
 
-            self.state = 125
+            self.state = 123
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==3:
-                self.state = 124
+                self.state = 122
                 localctx.isFeedback = self.feedbackRule()
 
 
+            self.state = 125
+            self.match(POUParser.T__23)
             self.state = 127
-            self.match(POUParser.T__22)
-            self.state = 129
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if _la==82:
-                self.state = 128
+                self.state = 126
                 localctx.varDesc = self.match(POUParser.DESCRIPTION)
 
 
@@ -1085,32 +1082,32 @@ class POUParser ( Parser ):
         localctx = POUParser.Val_TypeContext(self, self._ctx, self.state)
         self.enterRule(localctx, 24, self.RULE_val_Type)
         try:
-            self.state = 136
+            self.state = 134
             self._errHandler.sync(self)
             token = self._input.LA(1)
-            if token in [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]:
+            if token in [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]:
                 self.enterOuterAlt(localctx, 1)
-                self.state = 131
+                self.state = 129
                 self.elementary_type()
                 pass
             elif token in [58, 59, 60, 61, 62, 63]:
                 self.enterOuterAlt(localctx, 2)
-                self.state = 132
+                self.state = 130
                 self.derived_type()
                 pass
             elif token in [64, 65, 66, 67, 68, 69, 70, 71, 72, 73]:
                 self.enterOuterAlt(localctx, 3)
-                self.state = 133
+                self.state = 131
                 self.generic_type()
                 pass
-            elif token in [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]:
+            elif token in [17, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57]:
                 self.enterOuterAlt(localctx, 4)
-                self.state = 134
+                self.state = 132
                 self.safe_type()
                 pass
             elif token in [80]:
                 self.enterOuterAlt(localctx, 5)
-                self.state = 135
+                self.state = 133
                 localctx.custom_type = self.match(POUParser.ID)
                 pass
             else:
@@ -1160,9 +1157,9 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 138
+            self.state = 136
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 70368727400448) != 0):
+            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 140737454800896) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1211,9 +1208,9 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 140
+            self.state = 138
             _la = self._input.LA(1)
-            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 288160007407534080) != 0):
+            if not(((_la) & ~0x3f) == 0 and ((1 << _la) & 288089638663487488) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -1262,7 +1259,7 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 142
+            self.state = 140
             _la = self._input.LA(1)
             if not(((_la) & ~0x3f) == 0 and ((1 << _la) & -288230376151711744) != 0):
                 self._errHandler.recoverInline(self)
@@ -1313,7 +1310,7 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 144
+            self.state = 142
             _la = self._input.LA(1)
             if not((((_la - 64)) & ~0x3f) == 0 and ((1 << (_la - 64)) & 1023) != 0):
                 self._errHandler.recoverInline(self)
@@ -1364,7 +1361,7 @@ class POUParser ( Parser ):
         self._la = 0 # Token type
         try:
             self.enterOuterAlt(localctx, 1)
-            self.state = 146
+            self.state = 144
             _la = self._input.LA(1)
             if not((((_la - 74)) & ~0x3f) == 0 and ((1 << (_la - 74)) & 7) != 0):
                 self._errHandler.recoverInline(self)
