@@ -2,6 +2,10 @@ grammar POU;
 
 WS      : [ \t\r\n]+ -> skip ;
 
+QUOTED_STRING : '\'' .*? '\'' ;
+
+TYPE_CONSTANT : [A-Z]+[#][0-9]+ ;
+
 INT     : [-]?[0-9]+ ;
 
 ID      : [a-zA-Z][a-zA-Z0-9_]* ;
@@ -14,7 +18,7 @@ safe_program_POU: pou_type ID varWS=variableWorkSheet codeWorkSheet EOF ;
 
 pou_type: 'PROGRAM' | 'FUNCTION_BLOCK' ;
 
-codeWorkSheet : '{' 'CodeWorksheet' ':=' '\'' ID '\'' ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
+codeWorkSheet : '{' 'CodeWorksheet' ':=' QUOTED_STRING ',' 'Type' ':=' '\'' FILE_EXT '\'' '}' ;
 
 variableWorkSheet : '{' 'VariableWorksheet' ':=' '\'Variables\'' '}' varGroups  ;
 
@@ -22,13 +26,13 @@ varGroups : groupDefs varDefGroups ;
 
 groupDefs : groupDef+ ;
 
-groupDef : '{' 'GroupDefinition' '(' groupID=INT ',' '\'' groupName=ID '\'' ')' '}' ;
+groupDef : '{' 'GroupDefinition' '(' groupID=INT ',' groupName=QUOTED_STRING ')' '}' ;
 
 varDefGroups : varDefGroup+ ;
 
 varDefGroup : varType=var_type '{' 'Group' '(' groupNr=INT  ')' '}' varLine* 'END_VAR' ;
 
-valTypeRule : INT | 'SAFETRUE' | 'SAFEFALSE' ;
+valTypeRule : INT | TYPE_CONSTANT | 'SAFETRUE' | 'SAFEFALSE' ;
 feedbackRule : '{' 'Feedback' '(' 'true' ')' '}' ;
 
 varLine : '{' 'LINE' '(' lineNr=INT ')' '}' varName=ID ':' valueType=val_Type (':=' initVal=valTypeRule)? (isFeedback=feedbackRule)? ';' (varDesc=DESCRIPTION)? ;
