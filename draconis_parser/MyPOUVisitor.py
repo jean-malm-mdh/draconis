@@ -38,7 +38,7 @@ class MyPOUVisitor(POUVisitor):
     # Visit a parse tree produced by POUParser#groupDef.
     def visitGroupDef(self, ctx: POUParser.GroupDefContext):
         return int(str(ctx.groupID.text)), VariableGroup(
-            str(ctx.groupName.text), []
+            str(ctx.groupName.text).strip("'").strip(), []
         )
 
     # Visit a parse tree produced by POUParser#vars.

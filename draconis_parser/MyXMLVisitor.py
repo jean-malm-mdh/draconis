@@ -28,6 +28,26 @@ class MyXMLVisitor(XMLParserVisitor):
         self.lines = []
         self.comments = []
 
+    @classmethod
+    def get_blocks_by_tag(cls, start_context, tag):
+        def get_block_by_tag_from_children(context):
+            children = [c for c in context.getChildren() if
+                        isinstance(c, XMLParser.ElementContext) or isinstance(c, XMLParser.ContentContext)]
+            if [] == children:
+                return None
+            checked_children = [MyXMLVisitor.get_blocks_by_tag(c, tag) for c in children]
+            found_results = []
+            for rc in [r for r in checked_children if r is not None]:
+                found_results.extend(rc)
+            return found_results
+
+        if isinstance(start_context, XMLParser.ElementContext):
+            if tag == start_context.blockTag.text:
+                return [start_context]
+            return get_block_by_tag_from_children(start_context)
+        elif isinstance(start_context, XMLParser.ContentContext):
+            return get_block_by_tag_from_children(start_context)
+
     def ppx_parse_block(
             self, blockParams: dict[str, str], content: XMLParser.ContentContext
     ):
@@ -80,8 +100,7 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_comment_content(self, ctx):
         html_tag = ctx.content().element()[0]
-        head_node = html_tag.content().element()[0]
-        body_node = head_node.content().element()[1]
+        body_node = MyXMLVisitor.get_blocks_by_tag(html_tag, "body")[0]
         p_node = body_node.content().element()[0]
         comment_content = p_node.content().getText()
         return comment_content
