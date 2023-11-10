@@ -1,0 +1,206 @@
+﻿FUNCTION_BLOCK Collatz_Calculator_Odd
+        { VariableWorksheet := 'Variables' }
+        ﻿{GroupDefinition(0,'Inputs')}
+        {GroupDefinition(2,'Outputs')}
+
+        VAR_INPUT {Group(0)}
+        {LINE(1)}
+        N : UINT := 1; (*Collatz Input*)
+        END_VAR
+
+        VAR_OUTPUT {Group(0)}
+        END_VAR
+
+        VAR {Group(0)}
+        END_VAR
+
+        VAR_INPUT {Group(2)}
+        END_VAR
+
+        VAR_OUTPUT {Group(2)}
+        {LINE(3)}
+        Result_Odd : UINT := 0; (*Result if the input is an odd number*)
+        END_VAR
+
+        VAR {Group(2)}
+        END_VAR
+
+        { CodeWorksheet := 'Collatz_Calculator_Odd', Type := '.fbd' }
+        ﻿
+        <?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<FBD>
+    <addData>
+        <data name="redacted.redacted.com" handleUnknown="preserve">
+            <line localId="0" beginX="41" beginY="20" endX="60" endY="20"/>
+            <line localId="1" beginX="72" beginY="22" endX="77" endY="22"/>
+            <line localId="2" beginX="56" beginY="24" endX="60" endY="24"/>
+            <line localId="3" beginX="26" beginY="13" endX="27" endY="13"/>
+            <line localId="4" beginX="27" beginY="13" endX="27" endY="18"/>
+            <line localId="5" beginX="27" beginY="18" endX="29" endY="18"/>
+        </data>
+    </addData>
+    <inVariable localId="6" height="4" width="20">
+        <position x="92" y="46"/>
+        <expression>UINT#1</expression>
+        <connectionPointOut>
+            <relPosition x="20" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <inVariable localId="7" height="4" width="8">
+        <position x="44" y="24"/>
+        <expression>N</expression>
+        <connectionPointOut>
+            <relPosition x="8" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <inVariable localId="8" height="4" width="20">
+        <position x="38" y="42"/>
+        <expression>UINT#3</expression>
+        <connectionPointOut>
+            <relPosition x="20" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <outVariable localId="9" height="4" width="26">
+        <position x="154" y="42"/>
+        <expression>Result_Odd</expression>
+        <connectionPointIn>
+            <relPosition x="0" y="2"/>
+            <connection refLocalId="16" formalParameter="ADD">
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <connectedFormalparameter refLocalId="12"/>
+                    </data>
+                </addData>
+                <position x="154" y="44"/>
+                <position x="144" y="44"/>
+            </connection>
+        </connectionPointIn>
+    </outVariable>
+    <block localId="16" height="24" width="16" typeName="ADD">
+        <position x="124" y="32"/>
+        <addData>
+            <data name="redacted.redacted.com" handleUnknown="preserve">
+                <fbData fbFuType="1"/>
+            </data>
+        </addData>
+        <inputVariables>
+            <variable formalParameter="IN1" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="8"/>
+                    <connection refLocalId="17" formalParameter="MUL">
+                        <addData>
+                            <data name="redacted.redacted.com" handleUnknown="preserve">
+                                <connectedFormalparameter refLocalId="15"/>
+                            </data>
+                        </addData>
+                        <position x="120" y="40"/>
+                        <position x="82" y="40"/>
+                    </connection>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="10" inState="640" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+            <variable formalParameter="IN2" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="16"/>
+                    <connection refLocalId="6">
+                        <position x="120" y="48"/>
+                        <position x="112" y="48"/>
+                    </connection>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="11" inState="640" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+        </inputVariables>
+        <inOutVariables/>
+        <outputVariables>
+            <variable formalParameter="ADD" hidden="true">
+                <connectionPointOut>
+                    <relPosition x="16" y="12"/>
+                </connectionPointOut>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="12" inState="0" outState="640" width="1" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+        </outputVariables>
+    </block>
+    <block localId="17" height="24" width="16" typeName="MUL">
+        <position x="62" y="28"/>
+        <addData>
+            <data name="redacted.redacted.com" handleUnknown="preserve">
+                <fbData fbFuType="1"/>
+            </data>
+        </addData>
+        <inputVariables>
+            <variable formalParameter="IN1" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="8"/>
+                    <connection refLocalId="7">
+                        <position x="58" y="36"/>
+                        <position x="54" y="36"/>
+                        <position x="54" y="26"/>
+                        <position x="52" y="26"/>
+                    </connection>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="13" inState="640" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+            <variable formalParameter="IN2" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="16"/>
+                    <connection refLocalId="8"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="14" inState="640" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+        </inputVariables>
+        <inOutVariables/>
+        <outputVariables>
+            <variable formalParameter="MUL" hidden="true">
+                <connectionPointOut>
+                    <relPosition x="16" y="12"/>
+                </connectionPointOut>
+                <addData>
+                    <data name="redacted.redacted.com" handleUnknown="preserve">
+                        <fp localId="15" inState="0" outState="640" width="1" height="2" flagType=""
+                            dataType="ANY_NUM"/>
+                    </data>
+                </addData>
+            </variable>
+        </outputVariables>
+    </block>
+    <comment localId="21" height="16" width="48">
+        <position x="72" y="26"/>
+        <content>
+            <html xmlns="">
+                <head>
+                    <title/>
+                    <body>
+                        <p style="">This<script>alert("injected some javascript!")</script> is a comment
+                        </p>
+                    </body>
+                </head>
+            </html>
+        </content>
+    </comment>
+</FBD>
+        END_FUNCTION_BLOCK

@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from parser import SafeClass
+from draconis_parser import SafeClass
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from helper_functions import (
@@ -30,24 +30,24 @@ def programs():
         [
             (n, parse_pou_file(p))
             for n, p in [
-                ("Calc_Odd", f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
-                (
-                    "Calc_Even",
-                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
-                ),
-                (
-                    "Calc_Even_SafeVer",
-                    f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
-                ),
-                ("MultiAND", f"{testDir}/MultiANDer.pou"),
-                ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
-                ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
-                ("SingleIn_MultiOut", f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou"),
-                ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
-                ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
-                ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
-                ("feedback_example", f"{testDir}/Feedback_Exampple.pou")
-            ]
+            ("Calc_Odd", f"{testDir}/Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
+            (
+                "Calc_Even",
+                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
+            ),
+            (
+                "Calc_Even_SafeVer",
+                f"{testDir}/Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+            ),
+            ("MultiAND", f"{testDir}/MultiANDer.pou"),
+            ("MultiANDAddedVariable", f"{testDir}/MultiANDAddedVariables.pou"),
+            ("MultiANDRemovedVariable", f"{testDir}/MultiANDRemovedVariable.pou"),
+            ("SingleIn_MultiOut", f"{testDir}/TestPOU_SingleInput_MultipleOutput.pou"),
+            ("output_has_non_outputs", f"{testDir}/output_has_non_output_vars.pou"),
+            ("input_has_non_inputs", f"{testDir}/input_has_non_input_vars.pou"),
+            ("empty_no_proper_groups", f"{testDir}/empty_prog_no_groups.pou"),
+            ("feedback_example", f"{testDir}/Feedback_Exampple.pou")
+        ]
         ]
     )
     return programs
@@ -64,14 +64,14 @@ def test_given_a_file_can_extract_numeric_metrics(programs):
 def test_given_a_name_can_get_variable_info_by_name(programs):
     info = programs["Calc_Even"].getVarInfo()
     assert (
-        str(info["OutputVariables"].get("Result_Even", None))
-        .replace("'", "")
-        .replace('"', "")
-        == "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
+            str(info["OutputVariables"].get("Result_Even", None))
+            .replace("'", "")
+            .replace('"', "")
+            == "Var(UINT Result_Even: OutputVar = 0; Description: Result if the input is an even number)"
     )
     assert (
-        str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "")
-        == "Var(UINT N: InputVar = 1; Description: Collatz Input)"
+            str(info["InputVariables"].get("N", None)).replace("'", "").replace('"', "")
+            == "Var(UINT N: InputVar = 1; Description: Collatz Input)"
     )
     assert len(info["InternalVariables"]) == 0
 
@@ -122,8 +122,8 @@ def test_given_program_can_extract_names_and_descriptions(programs):
 def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
     safeness_info = programs["Calc_Even_SafeVer"].getVarInfo()["Safeness"]
     assert (
-        SafeClass.Unsafe == safeness_info["N"]
-        and SafeClass.Safe == safeness_info["Result_Even"]
+            SafeClass.Unsafe == safeness_info["N"]
+            and SafeClass.Safe == safeness_info["Result_Even"]
     ), "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even_SafeVer"].checkSafeDataFlow() == [
         "ERROR: Unsafe data ('N') flowing to safe output ('Result_Even')"
@@ -132,24 +132,24 @@ def test_can_detect_unsafe_usage_of_data_at_safe_output(programs):
 
 def test_can_check_cohesiveness_and_structure_of_variable_header(programs):
     assert (
-        programs["empty_no_proper_groups"].varHeader.evaluate_cohesion_of_sheet() == []
+            programs["empty_no_proper_groups"].varHeader.evaluate_cohesion_of_sheet() == []
     )
     assert programs[
-        "empty_no_proper_groups"
-    ].varHeader.evaluate_structure_of_var_sheet() == [
-        "No input variables defined.",
-        "The Input group has not been defined.",
-        "No output variables defined.",
-        "The Output group has not been defined.",
-    ]
+               "empty_no_proper_groups"
+           ].varHeader.evaluate_structure_of_var_sheet() == [
+               "No input variables defined.",
+               "The Input group has not been defined.",
+               "No output variables defined.",
+               "The Output group has not been defined.",
+           ]
 
 
 def test_given_unsafe_output_safeness_is_irrelevant(programs):
     # For sanity checking of test data
     safeness_info = programs["Calc_Even"].getVarInfo()["Safeness"]
     assert (
-        SafeClass.Unsafe == safeness_info["N"]
-        and SafeClass.Unsafe == safeness_info["Result_Even"]
+            SafeClass.Unsafe == safeness_info["N"]
+            and SafeClass.Unsafe == safeness_info["Result_Even"]
     ), "Prerequisite for remainder of test to be reasonable does not hold"
     assert programs["Calc_Even"].checkSafeDataFlow() == []
 

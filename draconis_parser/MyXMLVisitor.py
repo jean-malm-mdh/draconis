@@ -1,23 +1,23 @@
 from typing import List
 
-from parser import CommentBox
+from draconis_parser import CommentBox
 from antlr_generated.python.XMLParserVisitor import XMLParserVisitor
 from antlr_generated.python.XMLParser import XMLParser
 
 import logging
 
-from parser import ParameterType
-from parser import FBDObjData
+from draconis_parser import ParameterType
+from draconis_parser import FBDObjData
 from Web_GUI import Point, Rectangle
 from AST.blocks import Expr, VarBlock, FBD_Block
-from parser import (
+from draconis_parser import (
     ConnectionDirection,
     ConnectionData,
     Connection,
     ConnectionPoint,
 )
-from parser import FormalParam, ParamList
-from parser import make_absolute_position, make_relative_position
+from draconis_parser import FormalParam, ParamList
+from draconis_parser import make_absolute_position, make_relative_position
 
 
 class MyXMLVisitor(XMLParserVisitor):
@@ -29,7 +29,7 @@ class MyXMLVisitor(XMLParserVisitor):
         self.comments = []
 
     def ppx_parse_block(
-        self, blockParams: dict[str, str], content: XMLParser.ContentContext
+            self, blockParams: dict[str, str], content: XMLParser.ContentContext
     ):
         elements = content.element()
         blockElements = [self.visitElement(e)[0] for e in elements]
@@ -179,9 +179,7 @@ class MyXMLVisitor(XMLParserVisitor):
                     ParameterType.OutputVar, self.ppx_parse_variables(ctx.content())
                 )
             elif "inOutVariables" == name:
-                content = ctx.content()
-                vars = None if content is None else self.ppx_parse_variables(content)
-                return ParamList(ParameterType.InOutVar, vars)
+                return ParamList(ParameterType.InOutVar, self.ppx_parse_variables(ctx.content()))
             elif "variable" == name:
                 return self.ppx_parse_formal_variable(attrs, ctx.content())
             elif "comment" == name:
@@ -207,7 +205,7 @@ class MyXMLVisitor(XMLParserVisitor):
 
         # Consistency check if we are visiting an entire block
         assert (ctx.blockCloseTag is None) or (
-            str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
+                str(ctx.blockTag.text) == str(ctx.blockCloseTag.text)
         )
         if ctx.blockTag is None:
             return
@@ -344,12 +342,15 @@ class MyXMLVisitor(XMLParserVisitor):
 
     def ppx_parse_variables(self, variables_content: XMLParser.ContentContext):
         """Parse a list of variables"""
-
+        # if variables_content is None, result should be an empty list
+        # E.g., block is a generator taking no input, or a sink having no outputs
+        if variables_content is None:
+            return []
         ## TODO: After debugging is done, refactor to one-liner is possible
         return [self.visitElement(e)[0] for e in variables_content.element()]
 
     def ppx_parse_formal_variable(
-        self, attrs, variable_content: XMLParser.ContentContext
+            self, attrs, variable_content: XMLParser.ContentContext
     ):
         elements = variable_content.element()
         assert len(elements) == 2

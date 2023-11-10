@@ -1,7 +1,7 @@
 import pytest
 
-from parser import DataflowDirection, SafeClass
-from parser import PathDivide
+from draconis_parser import DataflowDirection, SafeClass
+from draconis_parser import PathDivide
 from .test_programanalysis import programs
 
 

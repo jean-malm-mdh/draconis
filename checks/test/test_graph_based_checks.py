@@ -10,9 +10,9 @@ import networkx as nx
 from matplotlib import pyplot as plt
 
 from checks.graphical_checks import check_position_of_networks
-from parser.helper_functions import parse_pou_file
+from draconis_parser.helper_functions import parse_pou_file
 
-from parser.test import programs
+from draconis_parser.test import programs
 
 
 def test_path_list_to_graph():
@@ -25,8 +25,6 @@ def test_path_list_to_graph_duplicate_edges_are_ignored():
     path = [[[9, 12, 10, 15, 13, 7], [9, 12, 10, 15, 13, 7], [9, 12, 10, 15, 13, 7]]]
     actual = path_list_to_graph_edges(path)
     assert {(9, 12), (12, 10), (10, 15), (15, 13), (13, 7)} == actual
-
-
 
 
 def test_graph_from_empty_program_is_empty_graph(programs):
@@ -59,13 +57,14 @@ def test_given_multiple_islands_can_identify_each():
 def test_given_program_with_multiple_networks_can_identify_each_with_element_names_and_ids(programs):
     prog = programs["feedback_example"]
     expected_with_qualified_names = {1: {"Output_Feedback_6", "ADD_S_3", "Input_A_4", "Input_B_5"},
-                           2: {"Output_asd_18", "ADD_15", "Input_In1_16", "Input_hello_17"},
-                           3: {"Output_B_8", "Input_Feedback_7"}}
+                                     2: {"Output_asd_18", "ADD_15", "Input_In1_16", "Input_hello_17"},
+                                     3: {"Output_B_8", "Input_Feedback_7"}}
     expected_with_IDs = {1: {0, 1, 2, 4, 5, 6},
                          2: {12, 13, 14, 16, 17, 18},
                          3: {8, 7}}
     assert expected_with_IDs == islands_from_program(prog)
     assert expected_with_qualified_names == islands_from_program(prog, display="Names")
+
 
 def test_check_can_identify_graphically_misaligned_networks(programs):
     conforming_single_network_program = programs["MultiAND"]

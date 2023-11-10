@@ -5,7 +5,7 @@ import os
 this_dirname = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if this_dirname not in sys.path:
     sys.path.insert(0, this_dirname)
-from parser import Program, ParameterType, VariableWorkSheet, VariableLine, VariableGroup
+from draconis_parser import Program, ParameterType, VariableWorkSheet, VariableLine, VariableGroup
 from AST import strToValType, strToVariableType
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser

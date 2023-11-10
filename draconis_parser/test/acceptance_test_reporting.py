@@ -1,6 +1,6 @@
 import unittest
 
-from parser import (
+from draconis_parser import (
     parse_pou_file,
     get_pou_description,
     change_pou_description,
@@ -18,36 +18,36 @@ class FBDParseReportTest(unittest.TestCase):
             [
                 (n, parse_pou_file(p))
                 for n, p in [
-                    ("Calc_Odd", "Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
-                    (
-                        "Calc_Even",
-                        "Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
-                    ),
-                    (
-                        "Calc_Even_SafeVer",
-                        "Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
-                    ),
-                    ("MultiAND", "MultiANDer.pou"),
-                    ("SingleIn_MultiOut", "TestPOU_SingleInput_MultipleOutput.pou"),
-                    ("output_has_non_outputs", "output_has_non_output_vars.pou"),
-                    ("input_has_non_inputs", "input_has_non_input_vars.pou"),
-                    ("empty_no_proper_groups", "empty_prog_no_groups.pou"),
-                ]
+                ("Calc_Odd", "Collatz_Calculator_Odd/Collatz_Calculator_Odd.pou"),
+                (
+                    "Calc_Even",
+                    "Collatz_Calculator_Even/Collatz_Calculator_Even.pou",
+                ),
+                (
+                    "Calc_Even_SafeVer",
+                    "Collatz_Calculator_Even/Collatz_Calculator_Even_UnsafeIn_SafeOut.pou",
+                ),
+                ("MultiAND", "MultiANDer.pou"),
+                ("SingleIn_MultiOut", "TestPOU_SingleInput_MultipleOutput.pou"),
+                ("output_has_non_outputs", "output_has_non_output_vars.pou"),
+                ("input_has_non_inputs", "input_has_non_input_vars.pou"),
+                ("empty_no_proper_groups", "empty_prog_no_groups.pou"),
+            ]
             ]
         )
         cls.descriptions = dict(
             [
                 (n, (p, get_pou_description(p)))
                 for n, p in [
-                    (
-                        "Calc_Odd",
-                        "Collatz_Calculator_Odd/DESCRIPTIONTranslation_SF.xml",
-                    ),
-                    (
-                        "Calc_Even",
-                        "Collatz_Calculator_Even/DESCRIPTIONTranslation_SF.xml",
-                    ),
-                ]
+                (
+                    "Calc_Odd",
+                    "Collatz_Calculator_Odd/DESCRIPTIONTranslation_SF.xml",
+                ),
+                (
+                    "Calc_Even",
+                    "Collatz_Calculator_Even/DESCRIPTIONTranslation_SF.xml",
+                ),
+            ]
             ]
         )
 

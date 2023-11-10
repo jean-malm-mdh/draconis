@@ -10,14 +10,14 @@ import os
 import sys
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
-from parser.helper_functions import parse_pou_file, parse_pou_content
+from draconis_parser.helper_functions import parse_pou_file, parse_pou_content
 
 # Create your views here.
 from django import forms
 from .forms import BlockModelForm
 from .models import ReportModel
 from AST import PathDivide
-from parser.renderer import generate_image_of_program, render_program_to_svg
+from draconis_parser.renderer import generate_image_of_program, render_program_to_svg
 
 ANALYSER_DATA_STORE_PATH = os.path.abspath(os.path.dirname(__file__)) + "/static"
 

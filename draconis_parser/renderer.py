@@ -3,8 +3,8 @@ import sys
 from typing import Tuple
 
 from PIL import Image, ImageDraw, ImageFont
-from parser import Program
-from parser import ConnectionDirection
+from draconis_parser import Program
+from draconis_parser import ConnectionDirection
 from Web_GUI import Point
 from html_sanitizer import Sanitizer
 

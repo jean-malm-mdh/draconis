@@ -7,7 +7,7 @@ __pycache__/
 *.so
 
 # Java
-parser/gen/
+draconis_parser/gen/
 
 # Distribution / packaging
 .Python
@@ -170,7 +170,7 @@ DATASTORE/
 .DS_Store
 db.sqlite3
 geckodriver.log
-/parser/test/DEMO/
+/draconis_parser/test/DEMO/
 *test*.jpg
 **/static/*.pou
 .generated/

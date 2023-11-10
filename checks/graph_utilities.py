@@ -2,7 +2,7 @@ from typing import List, Set
 import networkx as nx
 
 from AST import PathDivide, Port
-from parser import Program
+from draconis_parser import Program
 
 
 def path_list_to_graph_edges(path_list: List[List[List[int]]]):
@@ -41,6 +41,7 @@ def islands_from_program(prog: Program, display="IDs"):
         block = prog.behaviour_id_map[port.blockID]
         name = block.getName()
         return f"{name}_{port.blockID}"
+
     islands = islands_from_graph(graph_from_program(prog))
     if display == "Names":
         return {i: set(map(blockID_to_display_name, v)) for i, v in islands.items()}
