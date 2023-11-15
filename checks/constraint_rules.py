@@ -12,9 +12,11 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from rule_utility_functions import unique, conforms_to, any_match, full_match, is_magic_named_constant, in_list
 
-
 INPUT_PLACEHOLDER = "__input__"
 INPUT_PLACEHOLDER_LIST = "__inputlist__"
+METRIC_PLACEHOLDER = "metric"
+VARIABLE_PLACEHOLDERS = ["inputvariables", "outputvariables"]
+PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER] + VARIABLE_PLACEHOLDERS
 
 
 class Rule:
@@ -35,17 +37,16 @@ class Rule:
     def __str__(self) -> str:
         return f"Rule: {self.name} - {self.constraint}"
 
-
     @classmethod
     def parse(
-        cls, rule_name, rule_constraint, _defines_map=None, abbreviations_map=None
+            cls, rule_name, rule_constraint, _defines_map=None, abbreviations_map=None
     ):
-        def handle_custom_syntax(constraint:str):
+        def handle_custom_syntax(constraint: str):
             result = constraint
             for reg_f in ["fullmatch", "any_match", "conforms_to"]:
                 if reg_f in constraint:
                     result = re.sub(
-                        rf"{reg_f}\s*\(([^,]*)\s*((?:,\s*[^,]*)*)\)", 
+                        rf"{reg_f}\s*\(([^,]*)\s*((?:,\s*[^,]*)*)\)",
                         rf'{reg_f}("\1"\2)', constraint
                     )
             result = result.replace(";", ",")
@@ -61,10 +62,11 @@ class Rule:
                     f"##{define_name}##", defines_map[define_name], constraint
                 )
             return constraint
+
         def isFuncStyle(constraint):
             return "|>" in constraint
-        
-        def parse_func_style(constraint:str):
+
+        def parse_func_style(constraint: str):
             split_on_pipe = constraint.split("|>")
             result = split_on_pipe[0]
             split_on_pipe = map(handle_custom_syntax, split_on_pipe[1:])
@@ -75,18 +77,18 @@ class Rule:
                     f = f"partial({m.group(1)}, {m.group(2)})"
                 result = f"{f}({result})"
             return result
-        
+
         _defines_map = _defines_map or {}
         rule_constraint = handle_defines(rule_constraint, _defines_map)
         if isFuncStyle(rule_constraint):
-           rule_constraint = parse_func_style(rule_constraint)
+            rule_constraint = parse_func_style(rule_constraint)
         else:
             rule_constraint = handle_custom_syntax(rule_constraint)
         res = Rule(rule_name, rule_constraint)
-        print(rule_constraint)
 
         res.aCheck = lambda e: eval(
-            rule_constraint.replace(INPUT_PLACEHOLDER, '"$$$$1"').replace(INPUT_PLACEHOLDER_LIST, "$$$$1").replace("$$$$1", e),
+            rule_constraint.replace(INPUT_PLACEHOLDER, '"$$$$1"').replace(INPUT_PLACEHOLDER_LIST, "$$$$1").replace(
+                "$$$$1", e),
             {
                 "unique": unique,
                 "any_match": any_match,
@@ -139,12 +141,16 @@ class SignalRules:
             if "" == rule_name:
                 return "Empty name for constraint: " + rule_constraint
             constraint_lower = rule_constraint.lower()
-            if INPUT_PLACEHOLDER not in constraint_lower and INPUT_PLACEHOLDER_LIST not in constraint_lower:
+            placeholder_found = False
+            for pl in PLACEHOLDERS:
+                placeholder_found = placeholder_found or pl in rule_constraint
+            if not placeholder_found:
                 return (
-                    "Missing template for entity injection in constraint: "
-                    + rule_constraint
+                        "Missing template for entity injection in constraint: "
+                        + rule_constraint
                 )
             return None
+
         data = json.loads(json_string)
         ruleset = SignalRules()
         rules = data.get("Rules", None)

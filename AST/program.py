@@ -1,8 +1,13 @@
+import functools
 import json
 import logging
+import re
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
 
+import regex
+
+from checks.rule_utility_functions import unique
 from .point import Point
 from .ast_typing import DataflowDirection, ParameterType, SafeClass
 from .blocks import FBD_Block, VarBlock
@@ -386,6 +391,10 @@ class Program:
         res["NrOutputVariables"] = len(
             self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
+        backwards_flow = self.getBackwardTrace()
+
+        res["LongestSignalPath"] = max(map(len, backwards_flow.values()))
+        res["ShortestSignalPath"] = min(map(len, backwards_flow.values()))
 
         return res
 
@@ -494,6 +503,15 @@ class Program:
 
         return res
 
+    def get_dependencies_names(self):
+        backward_trace = {}
+        for name, paths in self.getBackwardTrace().items():
+            backward_trace[name] = [
+                self.behaviour_id_map[e[-1]].expr.expr
+                for e in PathDivide.unpack_pathlist([paths])
+            ]
+        return backward_trace
+
     def __str__(self):
         return f"Program: {self.progName}\nVariables:\n{self.varHeader}"
 
@@ -576,11 +594,44 @@ class Program:
                 self.varHeader.evaluate_structure_of_var_sheet,
             )
 
+        def check_variable_naming_uniqueness(aProgram, max_length_to_check):
+            def find_in_list_from_start_index(e, l, startI):
+                for i in range(startI, len(l)):
+                    if l[i] == e:
+                        return i
+                return None
+
+            violations = []
+            variable_names = [v.name for v in aProgram.varHeader.getAllVariables()]
+            stripped_variable_names = list(map(lambda e: e[:max_length_to_check], variable_names))
+            if unique(stripped_variable_names):
+                return []
+            else:
+                non_unique_signals = set()
+                for it, name in enumerate(stripped_variable_names):
+                    found_name_index = find_in_list_from_start_index(name, stripped_variable_names, it + 1)
+                    if found_name_index:
+                        non_unique_signals.add(variable_names[it])
+                        non_unique_signals.add(variable_names[found_name_index])
+                return [sorted([name for name in non_unique_signals])]
+
+        def evaluate_variable_uniqueness_rules():
+            rulename = "FBD.Naming.Uniqueness"
+            verdict = "Pass"
+            justification = "The variable names are suitably unique to be told apart by compilers"
+            return evaluate_rule(
+                rulename,
+                verdict,
+                justification,
+                functools.partial(check_variable_naming_uniqueness, self,
+                                  30))
+
         result = []
-        result.append(evaluate_variable_limit_rule(metrics, 20))
+        result.append(evaluate_variable_limit_rule(metrics, 40))
         result.append(evaluate_safeness_data_flow())
         result.append(evaluate_var_group_cohesion_rules())
         result.append(evaluate_var_group_structure_rules())
+        result.append(evaluate_variable_uniqueness_rules())
 
         return result
 
@@ -651,6 +702,30 @@ class Program:
         varheader_transform_to_st = self.varHeader.transform_to_ST()
         outputs_to_st_statements = outputs_to_ST_statements()
         return f"""
-Function_Block {self.progName}
-{varheader_transform_to_st}{outputs_to_st_statements}
-End_Function_Block"""
+            Function_Block {self.progName}
+            {varheader_transform_to_st}{outputs_to_st_statements}
+            End_Function_Block"""
+
+
+def extract_from_program(target_program: Program, value: str):
+    def extract_metric(metric_value):
+        return target_program.getMetrics()[metric_value]
+
+    def extract_interface(request_value):
+        if "vargroupnames" == request_value:
+            return [g.groupName for g in target_program.getVarGroups()]
+        result = []
+        vars = target_program.getVarInfo()
+        if "inputvariables" in request_value:
+            result.extend([v for v in vars["InputVariables"]])
+        if "outputvariables" in request_value:
+            result.extend([v for v in vars["OutputVariables"]])
+        return result
+
+    value_without_dunder = value.strip("__")
+    metric_regex = regex.compile(r"^metric\[((.*?)\}$")
+    metric_match = re.match(metric_regex, value_without_dunder)
+    if metric_match is not None:
+        return extract_metric(metric_match.group(1))
+    else:
+        return extract_interface(value_without_dunder)

@@ -1,0 +1,142 @@
+﻿FUNCTION_BLOCK MultiANDer
+        { VariableWorksheet := 'Variables' }
+        ﻿{GroupDefinition(0,'Inputs')}
+        {GroupDefinition(4,'Outputs')}
+
+        VAR_INPUT {Group(0)}
+        {LINE(1)}
+        TheActualSystemIsCurrentlyOn_ST : SAFEBOOL := SAFEFALSE; (*If system is on*)
+        {LINE(2)}
+        TheActualSystemIsCurrentlyRunning_ST : SAFEBOOL {Feedback(true)}; (*If system is running*)
+        {LINE(3)}
+        TheActualSystemIsCurrentlyNotBusy_ST : SAFEBOOL; (*If system is busy*)
+        END_VAR
+
+        VAR_OUTPUT {Group(0)}
+        END_VAR
+
+        VAR {Group(0)}
+        END_VAR
+
+        VAR_INPUT {Group(4)}
+        END_VAR
+
+        VAR_OUTPUT {Group(4)}
+        {LINE(5)}
+        CanDoWork_ST : SAFEBOOL; (*If System can do work*)
+        END_VAR
+
+        VAR {Group(4)}
+        END_VAR
+
+        { CodeWorksheet := 'MultiANDer', Type := '.fbd' }
+        ﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<FBD>
+    <addData>
+        <data name="redacted" handleUnknown="preserve">
+            <line localId="6" beginX="22" beginY="28" endX="27" endY="28"/>
+            <line localId="10" beginX="39" beginY="32" endX="46" endY="32"/>
+        </data>
+    </addData>
+    <block localId="3" height="36" width="16" typeName="AND_S">
+        <position x="58" y="48"/>
+        <addData>
+            <data name="redacted" handleUnknown="preserve">
+                <fbData fbFuType="1"/>
+            </data>
+        </addData>
+        <inputVariables>
+            <variable formalParameter="IN1" negated="false" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="8"/>
+                    <connection refLocalId="5">
+                        <position x="54" y="56"/>
+                        <position x="44" y="56"/>
+                    </connection>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted" handleUnknown="preserve">
+                        <fp localId="0" inState="1665" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_SAFEBIT"/>
+                    </data>
+                </addData>
+            </variable>
+            <variable formalParameter="IN2" negated="false" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="16"/>
+                    <connection refLocalId="7"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted" handleUnknown="preserve">
+                        <fp localId="1" inState="1665" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_SAFEBIT"/>
+                    </data>
+                </addData>
+            </variable>
+            <variable formalParameter="IN3" negated="false" hidden="true">
+                <connectionPointIn>
+                    <relPosition x="0" y="24"/>
+                    <connection refLocalId="8"/>
+                </connectionPointIn>
+                <addData>
+                    <data name="redacted" handleUnknown="preserve">
+                        <fp localId="4" inState="1665" outState="0" width="2" height="2" flagType=""
+                            dataType="ANY_SAFEBIT"/>
+                    </data>
+                </addData>
+            </variable>
+        </inputVariables>
+        <inOutVariables/>
+        <outputVariables>
+            <variable formalParameter="AND_S" negated="false" hidden="true">
+                <connectionPointOut>
+                    <relPosition x="16" y="16"/>
+                </connectionPointOut>
+                <addData>
+                    <data name="redacted" handleUnknown="preserve">
+                        <fp localId="2" inState="0" outState="641" width="1" height="2" flagType=""
+                            dataType="ANY_SAFEBIT"/>
+                    </data>
+                </addData>
+            </variable>
+        </outputVariables>
+    </block>
+    <inVariable localId="5" height="4" width="20">
+        <position x="24" y="54"/>
+        <expression>IsOn_ST</expression>
+        <connectionPointOut>
+            <relPosition x="20" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <inVariable localId="7" height="4" width="30">
+        <position x="24" y="62"/>
+        <expression>IsRunning_ST</expression>
+        <connectionPointOut>
+            <relPosition x="30" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <inVariable localId="8" height="4" width="30">
+        <position x="24" y="70"/>
+        <expression>IsNotBusy_ST</expression>
+        <connectionPointOut>
+            <relPosition x="30" y="2"/>
+        </connectionPointOut>
+    </inVariable>
+    <outVariable localId="9" height="4" width="32">
+        <position x="92" y="62"/>
+        <expression>CanDoWork_ST</expression>
+        <connectionPointIn>
+            <relPosition x="0" y="2"/>
+            <connection refLocalId="3" formalParameter="AND_S">
+                <addData>
+                    <data name="redacted" handleUnknown="preserve">
+                        <connectedFormalparameter refLocalId="2"/>
+                    </data>
+                </addData>
+                <position x="92" y="64"/>
+                <position x="78" y="64"/>
+            </connection>
+        </connectionPointIn>
+    </outVariable>
+</FBD>
+        END_FUNCTION_BLOCK

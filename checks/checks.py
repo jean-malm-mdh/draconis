@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from AST import Program
+from rule_utility_functions import conforms_to, unique
 
 
 @dataclass
@@ -50,3 +51,14 @@ class DataflowCheck(Check):
 
     def check(self, program: Program):
         return self.flow_check(program, program.backward_flow, program.forward_flow)
+
+
+def check_variable_naming_conformance(aProgram, naming_rule_id, conformance_pattern, abbreviations):
+    violations = []
+    for name in [v.name for v in aProgram.varHeader.getAllVariables()]:
+        if not conforms_to(pattern=conformance_pattern, input=name, name_groups=abbreviations):
+            violations.append(f"{name} does not conform to the rule {naming_rule_id}")
+    return violations
+
+
+
