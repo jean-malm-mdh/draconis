@@ -118,9 +118,8 @@ class Program:
                     self.ports[portID] = targetPort
                     self.behaviour_id_map[blockID].ports[portID] = targetPort
                 for conn in connection.connections:
-                    otherPoint = (
-                            conn.startPoint.connectionIndex or conn.endPoint.connectionIndex
-                    )
+                    start_point = conn.startPoint.connectionIndex
+                    otherPoint = start_point if start_point is not None else conn.endPoint.connectionIndex
                     targetPort.connections.add(otherPoint)
 
             # First, fill all forwards connections
