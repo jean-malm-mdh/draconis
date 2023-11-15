@@ -96,11 +96,11 @@ class Program:
             No return value - will mutate the instance object
         """
 
-        def make_ADT_consistent():
+        def set_up_ports() -> None:
             """
             Sets up and connects all the ports mapping
             Returns:
-
+                No return value - Modifies the instance object
             """
 
             def addPortConnectionToBlock(blockID, portID, connection):
@@ -151,7 +151,7 @@ class Program:
                     startPort = self.ports.get(conn, None)
                     startPort.connections.add(p_id)
 
-        def correctGraphicalDetails():
+        def rescale_graphical_details():
             # Lines are in their own coordinate space.
             # To ease work during rendering, they are moved once into the model's space
             self.lines = [(
@@ -159,8 +159,8 @@ class Program:
                 (Point(line[1].x * 2, line[1].y * 2)),
             ) for line in self.lines]
 
-        make_ADT_consistent()
-        correctGraphicalDetails()
+        set_up_ports()
+        rescale_graphical_details()
 
     def getVarGroups(self):
         return self.varHeader.varGroups
