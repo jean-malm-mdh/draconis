@@ -1,10 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>Diff Result</title>
+
+    {% load static %}
+    {% if darkMode %}
+    <link rel="stylesheet" href="{% static 'styles/report_dark.css' %}">
+    {% else %}
+    <link rel="stylesheet" href="{% static 'styles/report.css' %}">
+    {% endif %}
 </head>
 <body>
-$END$
+<h1>Diff Report for the selected Programs</h1>
+<p>
+    {{data |safe }}
+</p>
+<h2>Version 1</h2>
+<svg width="{{ImageSVG1_Size.0}}" height="{{ImageSVG1_Size.1}}">
+    {{ ImageSVG1|safe }}
+    Sorry, your browser does not support inline SVG.
+</svg>
+<h2>Version 2</h2>
+<svg width="{{ImageSVG2_Size.0}}" height="{{ImageSVG2_Size.1}}">
+    {{ ImageSVG2|safe }}
+    Sorry, your browser does not support inline SVG.
+</svg>
 </body>
 </html>

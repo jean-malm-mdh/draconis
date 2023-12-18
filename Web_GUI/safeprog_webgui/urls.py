@@ -23,6 +23,7 @@ from analyser import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home_page, name="home"),
+    path("diff/", views.diff_page, name="diff")
 ]
 
 if settings.DEBUG:

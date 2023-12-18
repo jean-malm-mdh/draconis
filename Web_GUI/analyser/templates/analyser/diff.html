@@ -1,10 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <title>DRACONIS - Differ</title>
+
+    {% load static %}
+    {% if darkMode %}
+    <link rel="stylesheet" href="{% static 'styles/report_dark.css' %}">
+    {% else %}
+    <link rel="stylesheet" href="{% static 'styles/report.css' %}">
+    {% endif %}
 </head>
 <body>
-$END$
+<h1>DRACONIS Differ</h1>
+<p>Select files to compare:</p>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{modelFormSet.as_p}}
+    <br/><br/>
+    <input type="submit" value="Compare!">
+</form>
 </body>
 </html>

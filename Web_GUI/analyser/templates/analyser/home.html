@@ -1,6 +1,13 @@
 <html>
 <head>
     <title>DRACONIS Web View</title>
+
+    {% load static %}
+    {% if darkMode %}
+    <link rel="stylesheet" href="{% static 'styles/report_dark.css' %}">
+    {% else %}
+    <link rel="stylesheet" href="{% static 'styles/report.css' %}">
+    {% endif %}
 </head>
 <body>
 <h1>DRACONIS Web View</h1>

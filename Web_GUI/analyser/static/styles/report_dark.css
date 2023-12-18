@@ -1,10 +1,86 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+body {
+    background-color: black;
+}
+
+h1, h2, h3, p{
+    color: white;
+}
+
+svg {
+color: white;
+fill: white;
+}
+
+.inport {
+    fill: #ff6666; /* dark red */
+}
+
+.outport {
+    fill: #66ff66; /* dark green */
+}
+
+.block {
+    stroke: #ffffff; /* white */
+    stroke-width: 2;
+    fill: none;
+}
+
+.comment_box {
+    stroke: #66ff66; /* dark green */
+    stroke-width: 2;
+    fill: #ffff66; /* dark yellow */
+    opacity: 0.4;
+}
+
+.signal_line {
+    stroke: #ffffff; /* white */
+    stroke-width: 2;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #ffffff; /* white */
+}
+
+th, td {
+    padding: 4px;
+    text-align: left;
+    border-bottom: 1px solid #555555; /* dark gray */
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted #ffffff; /* white */
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 240px;
+    background-color: #333333; /* dark gray */
+    color: #ffffff; /* white */
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 150%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 30%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333333 transparent transparent transparent; /* dark gray */
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}

@@ -3,7 +3,11 @@
 <head>
     <title>POU Analysis Report</title>
     {% load static %}
+    {% if darkMode %}
+    <link rel="stylesheet" href="{% static 'styles/report_dark.css' %}">
+    {% else %}
     <link rel="stylesheet" href="{% static 'styles/report.css' %}">
+    {% endif %}
 </head>
 <body>
 {{form}}
@@ -23,7 +27,7 @@
     <tr>
         <td>{{rep.0}}</td>
         <td>{{rep.1}}</td>
-        <td>{{rep.2}}</td>
+        <td>{{rep.2 | safe}}</td>
         <!--<td id="comment{{forloop.counter}}">[No Comment Provided]</td>-->
     </tr>
     {% endfor %}
@@ -101,7 +105,7 @@
 
 {% if ImageSVG %}
 <h2>Rendering of Model</h2>
-<svg width="{{ImageDimension.0}}" height="{{ImageDimension.1}}">
+<svg width="{{ImageSVG_Size.0}}" height="{{ImageSVG_Size.1}}">
     {{ ImageSVG|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>

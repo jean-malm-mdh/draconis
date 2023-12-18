@@ -3,6 +3,7 @@ import os.path
 
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models.fields.files import FieldFile
+from django.forms import formset_factory
 from django.shortcuts import render
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
@@ -36,12 +37,50 @@ def replaceValWithVal(collection, valtoReplace, valToReplaceWith):
     return [replaceifmatches(e, valtoReplace, valToReplaceWith) for e in collection]
 
 
+BlockModelFormset_Differ = formset_factory(BlockModelForm, min_num=2, max_num=2, absolute_max=4, can_delete_extra=True)
+
+
+def renderToReport(reportData, imageName, program, scale=None):
+    _scale = scale or 7.0
+    imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, _scale)
+    reportData[imageName] = imageSVGString
+    reportData[imageName + "_Size"] = (imageWidth, imageHeight)
+
+
+def diff_page(request):
+    if request.GET.get("dark", None) is not None:
+        diffData = {"darkMode": True}
+    else:
+        diffData = dict()
+
+    if request.method == "POST":
+        fileHandles = request.FILES.values()
+        programs = [parse_pou_content(get_file_content_as_single_string(f)) for f in fileHandles]
+        diffData["data"] = "\n".join(programs[0].compute_delta(programs[1])).replace("\n", "<br>")
+        renderScale = 5.5
+        renderToReport(diffData, "ImageSVG1", programs[0], renderScale)
+        renderToReport(diffData, "ImageSVG2", programs[1], renderScale)
+        return render(request, "analyser/diff_result.html",
+                      context=diffData)
+
+    else:
+        # Create the formset
+        diffData["modelFormSet"] = BlockModelFormset_Differ()
+        return render(request, "analyser/diff.html", context=diffData)
+
+
 def home_page(request):
+    if request.GET.get("dark", None) is not None:
+        pageData = {"darkMode": True}
+    else:
+        pageData = dict()
+
     def make_and_save_program_model_instance(_form):
         model_instance = _form.save(commit=False)
         program_content = get_file_content_as_single_string(model_instance.program_content)
         aProgram = parse_pou_content(program_content)
         reports = aProgram.check_rules()
+        reports = [[v0, v1, v2.replace("\n", "<br>")] for [v0, v1, v2] in reports]
         metrics = aProgram.getMetrics()
         variable_info = aProgram.getVarDataColumns(
             "name", "paramType", "valueType", "initVal", "description"
@@ -64,8 +103,8 @@ def home_page(request):
                                             report_text=explanation,
                                             it_passed=verdict == "Passed")
             new_report.save()
-        variable_info = [replaceValWithVal(vList, "UNINIT", "") for vList in variable_info]
-        variable_info = [replaceValWithVal(vList, None, "") for vList in variable_info]
+        variable_info = [replaceValWithVal(replaceValWithVal(vList, "UNINIT", ""),
+                                           None, "") for vList in variable_info]
         metrics_info = metrics.copy()
         metrics_explained = aProgram.getMetricsExplanations()
         for k, v in metrics_info.items():
@@ -83,15 +122,15 @@ def home_page(request):
         form = BlockModelForm(request.POST, request.FILES)
         if form.is_valid():
             program, reportData = make_and_save_program_model_instance(form)
-
+            for k, v in reportData.items():
+                pageData[k] = v
             shouldRenderImage = True
             if shouldRenderImage:
-                imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, scale=7.0)
-                reportData["ImageSVG"] = imageSVGString
-                reportData["ImageDimension"] = (imageWidth, imageHeight)
-            return render(request, "analyser/pou_report.html", reportData)
+                renderToReport(pageData, "ImageSVG", program)
+            return render(request, "analyser/pou_report.html", pageData)
         else:
-            return render(request, "analyser/home.html", {"form": form})
+            pageData["form"] = form
+        return render(request, "analyser/home.html", pageData)
     else:
-        form = BlockModelForm()
-        return render(request, "analyser/home.html", {"form": form})
+        pageData["form"] = BlockModelForm()
+        return render(request, "analyser/home.html", pageData)
