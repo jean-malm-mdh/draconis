@@ -466,16 +466,49 @@ class Program:
             variable_changes_new_to_old = {v.name: v for v in vars_2.difference(vars_1)}
 
             _res = [
-                (str(v), str(variable_changes_new_to_old.pop(n, "")))
+                f"\t{str(v)} ->\n\t{str(variable_changes_new_to_old.pop(n, ''))}\n"
                 for n, v in variable_changes_old_to_new.items()
             ]
+            if _res != []:
+                res.insert(0, "The following variables have changed some property between the versions:")
+
             # at this point, we have processed all common variables and those found in first set.
             # The remaining variables represent additions during the change
-            _res.extend(("", str(v)) for v in variable_changes_new_to_old.values())
+            new_variables_added = [str(v) for v in variable_changes_new_to_old.values()]
+            if len(new_variables_added) > 0:
+                _res.append("The following variables have been added between the versions")
+                _res.extend(new_variables_added)
 
             return _res
 
         def find_changes_in_blocks():
+            def identify_block_difference(_diff_id, _result):
+                # if the ID exists in both programs, it's likely a change
+                pot_block1 = self.behaviour_id_map.get(_diff_id, None)
+                pot_block2 = other_program.behaviour_id_map.get(_diff_id, None)
+                isABlockChange = pot_block1 is not None and pot_block2 is not None
+                if isABlockChange:
+                    if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
+                        _result.append(
+                            f"Block '{pot_block1.data.type}' moved. Re-run graphical checks"
+                        )
+                    if pot_block1.data.type != pot_block2.data.type:
+                        _result.append(
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
+                        )
+                if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
+                    assert isinstance(pot_block1, VarBlock)
+                    assert isinstance(pot_block2, VarBlock)
+                    expr1 = pot_block1.getVarExpr()
+                    expr2 = pot_block2.getVarExpr()
+                    if expr1 != expr2:
+                        if "#" in expr1:
+                            _result.append(
+                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+                        else:
+                            _result.append(
+                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+
             """
 
             Returns:
@@ -486,20 +519,7 @@ class Program:
             blocks2 = set(other_program.behaviourElements)
             differences = {b.getID() for b in blocks1.difference(blocks2)}
             for diff_id in differences:
-                # if the ID exists in both programs, it's likely a change
-                pot_block1 = self.behaviour_id_map.get(diff_id, None)
-                pot_block2 = other_program.behaviour_id_map.get(diff_id, None)
-
-                isABlockChange = pot_block1 is not None and pot_block2 is not None
-                if isABlockChange:
-                    if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
-                        result.append(
-                            f"Block '{pot_block1.data.type}' moved. Re-run graphical checks"
-                        )
-                    if pot_block1.data.type != pot_block2.data.type:
-                        result.append(
-                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
-                        )
+                identify_block_difference(diff_id, result)
 
             return result
 
@@ -591,6 +611,30 @@ class Program:
                 ruleName, verdict, justification, self.checkSafeDataFlow
             )
 
+        def check_useless_initializations(aProgram: Program):
+            def expression_is_equal_to_zeroed(expr: str):
+                return "FALSE" in expr or re.fullmatch(r"^([A-Z0-9]+#)?0$", expr)
+
+            allVars = aProgram.varHeader.getAllVariables()
+            name_initializer_list = [(v.getName(), v.initVal) for v in allVars if
+                                     v.initVal is not None]
+            zero_initialized_variables = [name for name, init in name_initializer_list if
+                                          expression_is_equal_to_zeroed(init)]
+            if zero_initialized_variables == []:
+                return []
+            result = ["The following variables are unnecessarily initialized to zero:\n"]
+            result.append("\n\t".join(zero_initialized_variables))
+            return result
+
+        def evaluate_initialization_rule():
+            ruleName = "FBD.Variables.Initialization"
+            verdict = "Pass"
+            justification = "No useless initializations are done"
+
+            return evaluate_rule(
+                ruleName, verdict, justification, functools.partial(check_useless_initializations, self)
+            )
+
         def evaluate_var_group_cohesion_rules():
             ruleName = "FBD.Variables.GroupCohesion"
             verdict = "Pass"
@@ -607,7 +651,7 @@ class Program:
         def evaluate_var_group_structure_rules():
             ruleName = "FBD.Variables.GroupStructure"
             verdict = "Pass"
-            justification = "The mandatory groups (Inputs and Outputs) exists. At least one input and output variable is defined"
+            justification = "The mandatory groups (Inputs and Outputs) exists.\nAt least one input and output variable is defined"
             return evaluate_rule(
                 ruleName,
                 verdict,
@@ -658,6 +702,7 @@ class Program:
         result.append(evaluate_var_group_cohesion_rules())
         result.append(evaluate_var_group_structure_rules())
         result.append(evaluate_variable_uniqueness_rules())
+        result.append(evaluate_initialization_rule())
 
         return result
 
@@ -728,9 +773,9 @@ class Program:
         varheader_transform_to_st = self.varHeader.transform_to_ST()
         outputs_to_st_statements = outputs_to_ST_statements()
         return f"""
-            Function_Block {self.progName}
-            {varheader_transform_to_st}{outputs_to_st_statements}
-            End_Function_Block"""
+                Function_Block {self.progName}
+                {varheader_transform_to_st}{outputs_to_st_statements}
+                End_Function_Block"""
 
 
 def extract_from_program(target_program: Program, value: str):

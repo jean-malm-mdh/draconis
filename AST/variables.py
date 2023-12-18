@@ -62,6 +62,9 @@ class VariableLine:
     def getName(self):
         return self.name
 
+    def getInitialValue(self):
+        return self.initVal
+
 
 def test_can_create_variable_line_and_get_properties():
     v = VariableLine(
