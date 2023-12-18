@@ -38,7 +38,7 @@
             <th>Variable name</th>
             <th>Variable Type</th>
             <th>Data Type</th>
-            <th>Default Value</th>
+            <th>Initialized Value</th>
             <th>Description</th>
         </tr>
         </thead>
@@ -67,8 +67,12 @@
         <tbody>
         {% for key, value in metrics.items %}
         <tr>
-            <td>{{key}}</td>
-            <td>{{value}}</td>
+            <td>
+                <div class="tooltip">{{key}}
+                    <span class="tooltiptext">{{ value.1 |safe }}</span>
+                </div>
+            </td>
+            <td>{{value.0}}</td>
         </tr>
         {% endfor %}
         </tbody>
@@ -80,7 +84,7 @@
         <thead>
         <tr>
             <th>Output</th>
-            <th>Dependent Inputs</th>
+            <th>Dependent Input(s)</th>
         </tr>
         </thead>
         <tbody>

@@ -26,6 +26,16 @@ def get_file_content_as_single_string(file_field: FieldFile):
     return "\n".join([str(s, "UTF-8") for s in file_field.readlines()])
 
 
+def replaceValWithVal(collection, valtoReplace, valToReplaceWith):
+    def replaceifmatches(v, replacethis, withthis):
+        if v == replacethis:
+            return withthis
+        else:
+            return v
+
+    return [replaceifmatches(e, valtoReplace, valToReplaceWith) for e in collection]
+
+
 def home_page(request):
     def make_and_save_program_model_instance(_form):
         model_instance = _form.save(commit=False)
@@ -36,12 +46,7 @@ def home_page(request):
         variable_info = aProgram.getVarDataColumns(
             "name", "paramType", "valueType", "initVal", "description"
         )
-        backward_trace = {}
-        for name, paths in aProgram.getBackwardTrace().items():
-            backward_trace[name] = [
-                aProgram.behaviour_id_map[e[-1]].expr.expr
-                for e in PathDivide.unpack_pathlist([paths])
-            ]
+        backward_trace = aProgram.getDependencyPathsByName()
         # Populate model instance object based on analysis
         model_instance.program_name = aProgram.progName
         model_instance.program_metrics = json.dumps(metrics)
@@ -59,10 +64,16 @@ def home_page(request):
                                             report_text=explanation,
                                             it_passed=verdict == "Passed")
             new_report.save()
+        variable_info = [replaceValWithVal(vList, "UNINIT", "") for vList in variable_info]
+        variable_info = [replaceValWithVal(vList, None, "") for vList in variable_info]
+        metrics_info = metrics.copy()
+        metrics_explained = aProgram.getMetricsExplanations()
+        for k, v in metrics_info.items():
+            metrics_info[k] = (v, metrics_explained.get(k, "").replace("\n", "<br>"))
         report_data = {
             "pou_progName": aProgram.progName,
             "rule_reports": reports,
-            "metrics": metrics,
+            "metrics": metrics_info,
             "backward_trace": backward_trace,
             "variable_info": variable_info,
         }
