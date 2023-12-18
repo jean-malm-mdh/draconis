@@ -9,7 +9,7 @@ import regex
 
 from checks.rule_utility_functions import unique
 from .point import Point
-from .ast_typing import DataflowDirection, ParameterType, SafeClass
+from .ast_typing import DataflowDirection, ParameterType, SafeClass, ValueType
 from .blocks import FBD_Block, VarBlock
 from .path import PathDivide
 from .comment_box import CommentBox
@@ -231,12 +231,6 @@ class Program:
             if not l or l[-1] != elem:
                 l.append(elem)
 
-        def extendIfFirstIsSame(acc, l):
-            if len(acc) == 0:
-                return []
-            if l[0] == acc[-1]:
-                acc.extend(l[1:])
-
         b = (
                 self.behaviour_id_map.get(bID, None)
                 or self.behaviour_id_map[self.ports[bID].blockID]
@@ -376,7 +370,23 @@ class Program:
             backwards = self.getBackwardTrace()
             return ComputeForwardFlowFromBack(backwards)
 
+    def getDependencyPathsByName(self):
+        backward_trace = dict()
+        for name, paths in self.getBackwardTrace().items():
+            backward_trace[name] = [
+                self.behaviour_id_map[e[-1]].expr.expr
+                for e in PathDivide.unpack_pathlist([paths])
+            ]
+        return backward_trace
+
+    def computeComplexity(self):
+        def map_variable_to_complexity_number(variable: VariableLine):
+            return variable.valueType.valueTypeComplexity()
+
+        return sum([map_variable_to_complexity_number(v) for v in self.varHeader.getAllVariables()])
+
     def getMetrics(self):
+
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
 
@@ -390,11 +400,23 @@ class Program:
         res["NrOutputVariables"] = len(
             self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
-        backwards_flow = self.getBackwardTrace()
+        backwards_flow = self.getDependencyPathsByName()
+        res["VariableTypeComplexity"] = self.computeComplexity()
 
-        res["LongestSignalPath"] = max(map(len, backwards_flow.values()))
-        res["ShortestSignalPath"] = min(map(len, backwards_flow.values()))
+        return res
 
+    def getMetricsExplanations(self):
+        res = dict()
+        res["NrOfVariables"] = "The total number of variables in the program's variable sheet"
+        res["NrOfFuncBlocks"] = "The total number of function blocks in the program's work sheet"
+        res["NrInputVariables"] = "The total number of input variables"
+        res["NrOutputVariables"] = "The total number of output variables"
+        res["VariableTypeComplexity"] = "\n".join(
+            ["The total complexity value given the variable types used, given the following rules:\n",
+             "Boolean variables: 2",
+             "Numeric variables: 5",
+             "Subsystems: 10",
+             "Safe variables: +1"])
         return res
 
     def checkSafeDataFlow(self):
@@ -606,13 +628,18 @@ class Program:
             if unique(stripped_variable_names):
                 return []
             else:
+                result = []
                 non_unique_signals = set()
                 for it, name in enumerate(stripped_variable_names):
                     found_name_index = find_in_list_from_start_index(name, stripped_variable_names, it + 1)
                     if found_name_index:
                         non_unique_signals.add(variable_names[it])
                         non_unique_signals.add(variable_names[found_name_index])
-                return [sorted([name for name in non_unique_signals])]
+                if len(non_unique_signals) > 0:
+                    result = [f"Compilers supporting symbol table entry lengths of {max_length_to_check} "
+                              f"or less would be unable to tell some of these names apart"]
+                    result.extend([sorted([name for name in non_unique_signals])])
+                return result
 
         def evaluate_variable_uniqueness_rules():
             rulename = "FBD.Naming.Uniqueness"

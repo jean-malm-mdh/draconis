@@ -53,6 +53,13 @@ def programs():
     return programs
 
 
+def test_given_a_program_with_metrics_every_metric_has_help_text(programs):
+    for p in programs.values():
+        metrics = p.getMetrics()
+        for k in metrics.keys():
+            assert p.getMetricsExplanations().get(k, None) is not None
+
+
 def test_given_a_file_can_extract_numeric_metrics(programs):
     metrics = programs["Calc_Odd"].getMetrics()
     assert metrics["NrOfVariables"] == 2

@@ -83,6 +83,18 @@ class ValueType(IntEnum):
     def fromString(cls, aString):
         return ValueType.__dict__.get(aString, ValueType.CUSTOM_FBD)
 
+    def valueTypeComplexity(self):
+        if self.value == ValueType.CUSTOM_FBD:
+            return 10
+        result = 1
+        if "BOOL" in self.name:
+            result = 2
+        if "INT" in self.name or "WORD" in self.name or "BYTE" in self.name:
+            result += 4
+        if "SAFE" in self.name:
+            result += 1
+        return result
+
 
 class DataflowDirection(IntEnum):
     Forward = 1
