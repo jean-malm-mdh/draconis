@@ -4,7 +4,7 @@ asgiref==3.7.2
 async-generator==1.10
 attrs==23.1.0
 beautifulsoup4==4.12.2
-black==23.3.0
+black==24.3.0
 bs4==0.0.1
 certifi==2023.7.22
 click==8.1.3
