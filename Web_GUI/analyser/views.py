@@ -56,7 +56,11 @@ def getImageDiffAsSvg(program1, program2, renderscale=5.0):
     generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
     generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
     print(fpp_dir)
-    runresult = subprocess.run(["magick", "compare", "-metric", "AE", "-fuzz", "15%", fpp, fpp2, fpp_diff], capture_output=True)
+    try:
+        runresult = subprocess.run(["magick", "compare", "-metric", "AE", "-fuzz", "15%", fpp, fpp2, fpp_diff], capture_output=True)
+    except Exception as e:
+        print(e)
+        return None
     if runresult.returncode == 2:
         print(runresult.stderr)
         return None
