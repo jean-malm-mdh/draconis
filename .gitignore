@@ -174,4 +174,5 @@ geckodriver.log
 *test*.jpg
 **/static/*.pou
 .generated/
+draconis_parser/antlr_generated/*
 DEMO/

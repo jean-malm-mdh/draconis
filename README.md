@@ -11,5 +11,5 @@ The tool supports checking of configurable rules in an interactive manner.
 From the base path, run the following commands to setup all pre-requisites for the project. 
 ```
 pip install -r requirements_development.txt
-pushd ./parser && ./regen_parser.sh && popd
+pushd ./draconis_parser && ./regen_parser.sh && popd
 ```
