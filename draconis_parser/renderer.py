@@ -266,7 +266,7 @@ def get_program_width_height(program, min_size=100):
     return _height, _width
 
 
-def render_block(aBlock, scalerFunc, font: ImageFont, canvas: ImageDraw):
+def render_block(aBlock, scalerFunc, font: ImageFont.FreeTypeFont, canvas: ImageDraw.ImageDraw):
     def render_fbd_block(block):
         def draw_port_box(port_coord, block_left_coord, block_top_coord, color):
             port_box_width, port_box_height = map(scalerFunc, (4, 2))
@@ -302,11 +302,11 @@ def render_block(aBlock, scalerFunc, font: ImageFont, canvas: ImageDraw):
 
         # Draw ports
         for in_port in input_connections:
-            draw_port_box(in_port, l, t, color="red")
+            draw_port_box(in_port, l, t, color="black")
         for out_port in output_connections:
-            draw_port_box(out_port, l, t, color="green")
+            draw_port_box(out_port, l, t, color="black")
         name = block.data.type
-        text_width, text_height = canvas.textsize(name, font)
+        _, _, text_width, text_height = font.getbbox(name)
         block_width_scaled = r - l
         text_offset_x = (block_width_scaled - text_width) // 2
         text_offset_y = text_height // 2
@@ -317,9 +317,9 @@ def render_block(aBlock, scalerFunc, font: ImageFont, canvas: ImageDraw):
 
     def render_port_block(block):
         l, t, r, b = map(scalerFunc, block.data.boundary_box.getAsTuple())
-        canvas.rectangle((l, t, r, b), outline="purple", width=2)
+        canvas.rectangle((l, t, r, b), outline="black", width=2)
         expr_text = block.getVarExpr()
-        text_width, text_height = canvas.textsize(expr_text, font=font)
+        _, _, text_width, text_height = font.getbbox(expr_text)
         block_width_scaled = r - l
         text_offset_x = (block_width_scaled - text_width) // 2
         text_offset_y = 0
@@ -399,7 +399,7 @@ def render_block_to_svg(block, scalerFunc):
         # Draw ports
         result += "\n".join([
             draw_port_box(in_port.connectionPoint, left, top) for in_port in block.getInputVars()])
-        result += "\n<!-- Output ports --!>\n"
+        #result += "\n<!-- Output ports --!>\n"
         result += "\n".join([
             draw_port_box(out_port.connectionPoint, left, top) for out_port in block.getOutputVars()])
 

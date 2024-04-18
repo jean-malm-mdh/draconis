@@ -12,19 +12,34 @@
     {% endif %}
 </head>
 <body>
-<h1>Diff Report for the selected Programs</h1>
-<p>
+<h1>Diff Report for the Selected Programs</h1>
+<h2>Summary</h2>
+<p class="diff-report-text">
     {{data |safe }}
 </p>
-<h2>Version 1</h2>
-<svg width="{{ImageSVG1_Size.0}}" height="{{ImageSVG1_Size.1}}">
+<h2>Variants</h2>
+<div>
+<svg class="variant" width="{{ImageSVG1_Size.0}}" height="{{ImageSVG1_Size.1}}">
     {{ ImageSVG1|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>
-<h2>Version 2</h2>
-<svg width="{{ImageSVG2_Size.0}}" height="{{ImageSVG2_Size.1}}">
+<svg class="variant" width="{{ImageSVG2_Size.0}}" height="{{ImageSVG2_Size.1}}">
     {{ ImageSVG2|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>
+</div>
+
+<h2>Visual Difference</h2>
+{% if diffPath %}
+<p class="diff-report-text">
+    Differences between the model variants are highlighted using a bright red colour.
+</p>
+{% load static %}
+<img src="{% static 'images/.generated/prog_diff.jpg' %}" alt="Error during rendering of visual difference."/>
+{% else %}
+<p class="error">
+    Was not able to produce a diff image. Check log for more information.
+</p>
+{% endif %}
 </body>
 </html>

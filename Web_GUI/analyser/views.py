@@ -1,5 +1,8 @@
 import json
 import os.path
+import shutil
+import subprocess
+import tempfile
 
 from django.core.files.uploadedfile import UploadedFile
 from django.db.models.fields.files import FieldFile
@@ -13,7 +16,6 @@ import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.helper_functions import parse_pou_file, parse_pou_content
 
-# Create your views here.
 from django import forms
 from .forms import BlockModelForm
 from .models import ReportModel
@@ -46,7 +48,23 @@ def renderToReport(reportData, imageName, program, scale=None):
     reportData[imageName] = imageSVGString
     reportData[imageName + "_Size"] = (imageWidth, imageHeight)
 
+def getImageDiffAsSvg(program1, program2, renderscale=5.0):
+    fpp_dir = tempfile.gettempdir()
+    fpp = os.path.join(fpp_dir, "prog1.jpg")
+    fpp2 = os.path.join(fpp_dir, "prog2.jpg")
+    fpp_diff = os.path.join(ANALYSER_DATA_STORE_PATH, "images", ".generated", "prog_diff.jpg")
+    generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
+    generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
+    print(fpp_dir)
+    runresult = subprocess.run(["magick", "compare", "-metric", "AE", "-fuzz", "15%", fpp, fpp2, fpp_diff], capture_output=True)
+    if runresult.returncode == 2:
+        print(runresult.stderr)
+        return None
+    return "images/.generated/prog_diff.jpg"
 
+
+
+# Create your views here.
 def diff_page(request):
     if request.GET.get("dark", None) is not None:
         diffData = {"darkMode": True}
@@ -56,10 +74,15 @@ def diff_page(request):
     if request.method == "POST":
         fileHandles = request.FILES.values()
         programs = [parse_pou_content(get_file_content_as_single_string(f)) for f in fileHandles]
-        diffData["data"] = "\n".join(programs[0].compute_delta(programs[1])).replace("\n", "<br>")
-        renderScale = 5.5
+        prog1 = programs[0]
+        prog2 = programs[1]
+        diffData["data"] = "\n".join(prog1.compute_delta(prog2)).replace("\n", "<br>")
+        renderScale = 5.0
         renderToReport(diffData, "ImageSVG1", programs[0], renderScale)
         renderToReport(diffData, "ImageSVG2", programs[1], renderScale)
+        diffpath = getImageDiffAsSvg(programs[0], programs[1], renderscale=renderScale)
+        if diffpath:
+            diffData["diffPath"] = diffpath
         return render(request, "analyser/diff_result.html",
                       context=diffData)
 

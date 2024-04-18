@@ -10,11 +10,22 @@ svg {
 color: black;
 fill: black;
 }
+.diff-report-text {
+    font-size: 1.45em;
+}
+.error {
+    font-size: 1.45em;
+    stroke:red;
+    stroke-width:2;
+}
+.variant {
+    border-style: solid;
+}
 .inport {
-    fill:red;
+    fill:black;
 }
 .outport {
-    fill:green;
+    fill:black;
 }
 
 .block {
