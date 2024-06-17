@@ -16,6 +16,7 @@ from .comment_box import CommentBox
 from .utilities import indexOrNone
 from .variables import VariableWorkSheet, VariableLine
 from .block_port import Port
+from .delta import ChangeType, Delta
 
 
 def dropWhile(aList: list, p):
@@ -458,6 +459,58 @@ class Program:
                         )
         return result
 
+    def compute_deltas2(self, other_program):
+        def find_variable_changes():
+            vars_1 = set(self.varHeader.getAllVariables())
+            vars_2 = set(other_program.varHeader.getAllVariables())
+            variable_changes_old_to_new = {v.name: v for v in vars_1.difference(vars_2)}
+            variable_changes_new_to_old = {v.name: v for v in vars_2.difference(vars_1)}
+
+            _res = [
+                Delta.Create(ChangeType.MODIFICATION, v, variable_changes_new_to_old.pop(n, None))
+                for n, v in variable_changes_old_to_new.items()
+            ]
+            _res = [r for r in _res if r is not None]
+
+            # at this point, we have processed all common variables and those found in first set.
+            # The remaining variables represent additions during the change
+            _res.extend([Delta.CreateAddition(v) for v in variable_changes_new_to_old.values()])
+
+            return _res
+
+        def find_changes_in_blocks():
+            def identify_block_difference(_diff_id, _result):
+                # if the ID exists in both programs, it's likely a change
+                pot_block1 = self.behaviour_id_map.get(_diff_id, None)
+                pot_block2 = other_program.behaviour_id_map.get(_diff_id, None)
+                isABlockChange = pot_block1 is not None and pot_block2 is not None
+                if isABlockChange:
+                    if pot_block1.data.boundary_box != pot_block2.data.boundary_box:
+                        _result.append(
+                            f"Block '{pot_block1.data.type}' moved. Re-run graphical checks"
+                        )
+                    if pot_block1.data.type != pot_block2.data.type:
+                        _result.append(
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
+                        )
+                if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
+                    assert isinstance(pot_block1, VarBlock)
+                    assert isinstance(pot_block2, VarBlock)
+                    expr1 = pot_block1.getVarExpr()
+                    expr2 = pot_block2.getVarExpr()
+                    if expr1 != expr2:
+
+                        if "#" in expr1:
+                            _result.append(
+                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+                        else:
+                            _result.append(
+                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+
+        res = []
+
+        return res
+
     def compute_delta(self, other_program):
         def find_variable_changes():
             vars_1 = set(self.varHeader.getAllVariables())
@@ -494,7 +547,8 @@ class Program:
                         )
                     if pot_block1.data.type != pot_block2.data.type:
                         _result.append(
-                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'."
+                            f"\nRe-run functional checks"
                         )
                 if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
                     assert isinstance(pot_block1, VarBlock)
@@ -778,24 +832,22 @@ class Program:
                 End_Function_Block"""
 
 
-def extract_from_program(target_program: Program, value: str):
+def extract_from_program(value: str, target_program: Program):
     def extract_metric(metric_value):
         return target_program.getMetrics()[metric_value]
 
     def extract_interface(request_value):
-        if "vargroupnames" == request_value:
-            return [g.groupName for g in target_program.getVarGroups()]
-        result = []
         vars = target_program.getVarInfo()
-        if "inputvariables" in request_value:
-            result.extend([v for v in vars["InputVariables"]])
-        if "outputvariables" in request_value:
-            result.extend([v for v in vars["OutputVariables"]])
-        return result
+        return {
+            "VarGroupNames":  [g.groupName for g in target_program.getVarGroups()],
+            "InputVariables": [v for v in vars["InputVariables"]],
+            "OuputVariables": [v for v in vars["OutputVariables"]],
+            "VariableNames": [v.getName() for v in target_program.varHeader.getAllVariables()]
+        }.get(request_value, [])
+
 
     value_without_dunder = value.strip("__")
-    metric_regex = regex.compile(r"^metric\[((.*?)\}$")
-    metric_match = re.match(metric_regex, value_without_dunder)
+    metric_match = re.match(r"^metric\[(.*?)\]$", value_without_dunder)
     if metric_match is not None:
         return extract_metric(metric_match.group(1))
     else:

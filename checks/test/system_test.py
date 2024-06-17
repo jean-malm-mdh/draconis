@@ -18,10 +18,9 @@ def load_rule_files():
         os.path.abspath(os.path.dirname(__file__)), "program_constraint_rules"
     )
     return {
-        "Empty": os.path.join(program_constraint_dir, "empty.rules"),
-        "Length": os.path.join(program_constraint_dir, "length.rules"),
         "Formatting": os.path.join(program_constraint_dir, "formatting.rules"),
-        "NameConv": os.path.join(program_constraint_dir, "naming_conventions.rules"),
+        "Length": os.path.join(program_constraint_dir, "length.rules"),
+        "NamingConvention": os.path.join(program_constraint_dir, "naming_conventions.rules")
     }
 
 
@@ -49,7 +48,5 @@ def test_length_checks(programs, rule_files):
     ruleset = SignalRules.parse_rule_file(rule_files["Length"])
     assert ruleset.checkProgram(programs["MultiAND"]) == []
     assert ruleset.checkProgram(programs["MultiANDLong"]) == [
-        "SignalNameIsIsTooLong: TheActualSystemIsCurrentlyOn_ST",
-        "SignalNameIsIsTooLong: TheActualSystemIsCurrentlyRunning_ST",
-        "SignalNameIsIsTooLong: TheActualSystemIsCurrentlyNotBusy_ST"
+        "SignalNameIsIsTooLong",
     ]

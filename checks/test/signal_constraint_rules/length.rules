@@ -1,6 +1,0 @@
-{
-    "Rules": {
-    "IsTooShort": "len(__input__)<10",
-    "IsTooLong": "len(__input__)>20"
-    }
-}

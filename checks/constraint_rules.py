@@ -12,11 +12,12 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from rule_utility_functions import unique, conforms_to, any_match, full_match, is_magic_named_constant, in_list
 
+from AST.program import Program, extract_from_program
+
 INPUT_PLACEHOLDER = "__input__"
 INPUT_PLACEHOLDER_LIST = "__inputlist__"
 METRIC_PLACEHOLDER = "metric"
-VARIABLE_PLACEHOLDERS = ["inputvariables", "outputvariables"]
-PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER] + VARIABLE_PLACEHOLDERS
+PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER]
 
 
 class Rule:
@@ -29,17 +30,31 @@ class Rule:
     def __init__(self, name, constraint):
         self.name = name
         self.constraint = constraint
-        self.aCheck = id
+        self.aCheck = lambda cons, prog: None
+        self.data_source = lambda prog: []
 
     def check_rule_violation(self, entity) -> bool:
         return self.aCheck(entity)
+
+    def check_against_program(self, prog):
+        datas = self.data_source(prog)
+        to_check = partial(self.aCheck, datas)
+        rule_failed_on_data = []
+        for d in datas:
+            if to_check(d):
+                rule_failed_on_data.append(str(d))
+        return rule_failed_on_data
+
+    @classmethod
+    def parse_data_source(cls, data_source: str):
+        return partial(extract_from_program, data_source)
 
     def __str__(self) -> str:
         return f"Rule: {self.name} - {self.constraint}"
 
     @classmethod
     def parse(
-            cls, rule_name, rule_constraint, _defines_map=None, abbreviations_map=None
+            cls, rule_name, rule_constraint, data_source_str, _defines_map=None, abbreviations_map=None
     ):
         def handle_custom_syntax(constraint: str):
             result = constraint
@@ -85,10 +100,9 @@ class Rule:
         else:
             rule_constraint = handle_custom_syntax(rule_constraint)
         res = Rule(rule_name, rule_constraint)
-
-        res.aCheck = lambda e: eval(
-            rule_constraint.replace(INPUT_PLACEHOLDER, '"$$$$1"').replace(INPUT_PLACEHOLDER_LIST, "$$$$1").replace(
-                "$$$$1", e),
+        _data_source = cls.parse_data_source(data_source_str)
+        res.aCheck = lambda datas, e: eval(
+            rule_constraint,
             {
                 "unique": unique,
                 "any_match": any_match,
@@ -100,7 +114,12 @@ class Rule:
                 "is_magic_named_constant": is_magic_named_constant,
                 "in_list": in_list,
             },
+            {
+                INPUT_PLACEHOLDER_LIST: datas,
+                INPUT_PLACEHOLDER: e
+            }
         )
+        res.data_source = _data_source
         return res
 
 
@@ -156,6 +175,7 @@ class SignalRules:
         rules = data.get("Rules", None)
         defines_map = data.get("Defines", None)
         abbreviations_map = data.get("Abbreviations", None)
+        data_source_map = data.get("DataSource", None)
         assert rules is not None
 
         for rule_name, rule_constraint in rules.items():
@@ -166,7 +186,7 @@ class SignalRules:
             if err:
                 raise ValueError(err)
             ruleset.rules.append(
-                Rule.parse(rule_name, rule_constraint, defines_map, abbreviations_map)
+                Rule.parse(rule_name, rule_constraint, data_source_map, defines_map, abbreviations_map)
             )
         return ruleset
 
@@ -175,7 +195,13 @@ class SignalRules:
             r.name for r in self.rules if bool(r.check_rule_violation(entity)) == True
         ]
         return res
-
+    def checkProgram(self, prog):
+        res = []
+        for r in self.rules:
+            if r.check_against_program(prog):
+                res.append(r.name)
+        return res
+        #return [r.name for r in self.rules if bool(r.check_against_program(prog))]
     def check_all(self, entity_list):
         return [self.check(e) for e in entity_list]
 

@@ -1,4 +1,5 @@
 import dataclasses
+import functools
 import sys
 from typing import Tuple
 
@@ -8,6 +9,14 @@ from draconis_parser import ConnectionDirection
 from Web_GUI import Point
 from html_sanitizer import Sanitizer
 
+
+def get_text_bb_size(text: str, font:ImageFont.ImageFont, fontCharHeight: int):
+    # width = length of longest row * fontCharWidth
+    if text == "":
+        return (0,0)
+    rows = "\n".split(text.replace("\t", "    "))
+    longest_row = functools.reduce(max, [font.getlength(s) for s in rows])
+    return (longest_row, fontCharHeight * len(rows))
 
 @dataclasses.dataclass
 class DrawContext:
@@ -38,7 +47,7 @@ class DrawContext:
             self, msg, position: Tuple[int, int], font_name, col="black"
     ):
         font = self.fonts.get(font_name, None) or self.fonts["__DEFAULT__"]
-        text_width, text_height = self.canvas.textsize(msg, font)
+        text_width, text_height = font.getbbox(msg)#self.canvas.textsize(msg, font)
         p_x, p_y = position
         p_x -= text_width // 2
         p_y -= text_height // 2
@@ -60,8 +69,8 @@ class DrawContext:
         def isWS_Or_Punct(c):
             return not c.isalnum()
 
-        def trimMessageToWidth(_message, _font, _maxWidth):
-            _msg_width, _msg_height = draw.textsize(_message, _font)
+        def trimMessageToWidth(_message, _font: ImageFont.ImageFont, _maxWidth):
+            _msg_width, _msg_height = get_text_bb_size(_message, _font, _font.getbbox(_message)[3])
             while _msg_width > _maxWidth:
                 message_len = len(_message)
                 msg_split_point = message_len // 2
@@ -76,9 +85,9 @@ class DrawContext:
                     ):
                         msg_split_point -= 1
                 _message = (
-                        _message[:msg_split_point] + "\n" + _message[msg_split_point:]
+                        _message[:msg_split_point].strip() + "\n" + _message[msg_split_point:]
                 )
-                _msg_width, _msg_height = draw.textsize(_message, header_font)
+                _msg_width, _msg_height = get_text_bb_size(_message, _font, _font.getbbox(_message)[3])
             return _message, _msg_width, _msg_height
 
         def position_message(font, header_font, header_msg, maxWidth, message):
