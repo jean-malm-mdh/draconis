@@ -5,7 +5,7 @@
 
         VAR_INPUT {Group(0)}
         {LINE(1)}
-        TheActualSystemIsCurrentlyOn_ST : SAFEBOOL := SAFEFALSE; (*If system is on*)
+        On_ST : SAFEBOOL := SAFEFALSE; (*If system is on*)
         {LINE(2)}
         TheActualSystemIsCurrentlyRunning_ST : SAFEBOOL {Feedback(true)}; (*If system is running*)
         {LINE(3)}

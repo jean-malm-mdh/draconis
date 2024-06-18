@@ -46,7 +46,7 @@ def rule_files():
 
 def test_length_checks(programs, rule_files):
     ruleset = SignalRules.parse_rule_file(rule_files["Length"])
-    assert ruleset.checkProgram(programs["MultiAND"]) == []
-    assert ruleset.checkProgram(programs["MultiANDLong"]) == [
-        "SignalNameIsIsTooLong",
-    ]
+    assert set(ruleset.checkProgram(programs["MultiAND"])) == set()
+    assert set(ruleset.checkProgram(programs["MultiANDLong"])) == {"SignalNameIsTooShort: On_ST",
+                                                                   "SignalNameIsIsTooLong: TheActualSystemIsCurrentlyRunning_ST",
+                                                                   "SignalNameIsIsTooLong: TheActualSystemIsCurrentlyNotBusy_ST"}

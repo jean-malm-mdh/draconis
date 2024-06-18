@@ -11,13 +11,13 @@ logging.basicConfig(level=logging.DEBUG)
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from rule_utility_functions import unique, conforms_to, any_match, full_match, is_magic_named_constant, in_list
-
-from AST.program import Program, extract_from_program
-
 INPUT_PLACEHOLDER = "__input__"
 INPUT_PLACEHOLDER_LIST = "__inputlist__"
 METRIC_PLACEHOLDER = "metric"
 PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER]
+
+from AST.program import Program, extract_from_program
+
 
 
 class Rule:
@@ -198,10 +198,8 @@ class SignalRules:
     def checkProgram(self, prog):
         res = []
         for r in self.rules:
-            if r.check_against_program(prog):
-                res.append(r.name)
+            res.extend([f"{r.name}: {v}" for v in r.check_against_program(prog)])
         return res
-        #return [r.name for r in self.rules if bool(r.check_against_program(prog))]
     def check_all(self, entity_list):
         return [self.check(e) for e in entity_list]
 
