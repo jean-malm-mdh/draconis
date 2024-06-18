@@ -7,16 +7,14 @@ import logging
 
 from functools import partial
 
+
 logging.basicConfig(level=logging.DEBUG)
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 from rule_utility_functions import unique, conforms_to, any_match, full_match, is_magic_named_constant, in_list
-INPUT_PLACEHOLDER = "__input__"
-INPUT_PLACEHOLDER_LIST = "__inputlist__"
-METRIC_PLACEHOLDER = "metric"
-PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER]
+from checks.check_interface import INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, PLACEHOLDERS
 
-from AST.program import Program, extract_from_program
+from AST.program import extract_from_program
 
 
 
