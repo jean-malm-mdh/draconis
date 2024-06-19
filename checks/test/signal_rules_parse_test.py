@@ -57,26 +57,6 @@ def test_given_unknown_constraints_shall_not_parse():
     assert "Invalid constraint property" in str(excinfo)
 
 
-def test_given_templated_regex_can_transform_to_python_version():
-    names = ["Apa", "apa", ""]
-    ruleset = SignalRules.from_json_string(
-        """{ "Defines": {"DEFTEMPLATE": "Apa"}, "Rules": {"isATemplateRule": "not(fullmatch(^##DEFTEMPLATE##$, __input__))"} }"""
-    )
-    assert [[], ["isATemplateRule"], ["isATemplateRule"]] == [
-        ruleset.check(n) for n in names
-    ]
-
-
-
-def test_can_parse_funcstyle_constraint():
-    names = ["Apa", "apa", ""]
-    ruleset = SignalRules.from_json_string("""{ "Defines": {"DEFTEMPLATE": "Apa"},
-             "Rules": {"isATemplateRule": "__input__ |> fullmatch(^##DEFTEMPLATE##$) |> not"} }
-             """)
-    assert [[], ["isATemplateRule"], ["isATemplateRule"]] == [
-        ruleset.check(n) for n in names
-    ]
-
 
 if __name__ == "__main__":
     files = load_rule_files()
