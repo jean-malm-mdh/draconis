@@ -1,3 +1,4 @@
+import functools
 from pathlib import Path
 import os
 import sys
@@ -7,22 +8,19 @@ import logging
 
 from functools import partial
 
-
 logging.basicConfig(level=logging.DEBUG)
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from rule_utility_functions import unique, conforms_to, any_match, full_match, is_magic_named_constant, in_list
-from checks.check_interface import INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, PLACEHOLDERS
+from checks.check_interface import PLACEHOLDERS, allowed_actions_map, \
+    reserved_value_input_mapper
 
 from AST.program import extract_from_program
-
 
 
 class Rule:
     """
     A Rule is defined as a name and a constraint string.
     The string '__input__' is used as a placeholder for the entity string value that should be checked in the constraint
-    If the rule check fails, the name of the rule is returned
     """
 
     def __init__(self, name, constraint):
@@ -30,9 +28,6 @@ class Rule:
         self.constraint = constraint
         self.aCheck = lambda cons, prog: None
         self.data_source = lambda prog: []
-
-    def check_rule_violation(self, entity) -> bool:
-        return self.aCheck(entity)
 
     def check_against_program(self, prog):
         datas = self.data_source(prog)
@@ -76,7 +71,7 @@ class Rule:
                 )
             return constraint
 
-        def isFuncStyle(constraint):
+        def is_func_style(constraint):
             return "|>" in constraint
 
         def parse_func_style(constraint: str):
@@ -93,7 +88,7 @@ class Rule:
 
         _defines_map = _defines_map or {}
         rule_constraint = handle_defines(rule_constraint, _defines_map)
-        if isFuncStyle(rule_constraint):
+        if is_func_style(rule_constraint):
             rule_constraint = parse_func_style(rule_constraint)
         else:
             rule_constraint = handle_custom_syntax(rule_constraint)
@@ -101,21 +96,8 @@ class Rule:
         _data_source = cls.parse_data_source(data_source_str)
         res.aCheck = lambda datas, e: eval(
             rule_constraint,
-            {
-                "unique": unique,
-                "any_match": any_match,
-                "fullmatch": full_match,
-                "conforms_to": partial(conforms_to, abbreviations_map),
-                "partial": partial,
-                "AND": bool.__and__,
-                "OR": bool.__or__,
-                "is_magic_named_constant": is_magic_named_constant,
-                "in_list": in_list,
-            },
-            {
-                INPUT_PLACEHOLDER_LIST: datas,
-                INPUT_PLACEHOLDER: e
-            }
+            allowed_actions_map(abbreviations_map),
+            reserved_value_input_mapper(datas, e)
         )
         res.data_source = _data_source
         return res
@@ -152,19 +134,16 @@ class SignalRules:
                 if prop not in allowed_properties:
                     return f"Invalid constraint property {prop} detected in constraint: {rule_constraint}"
 
-        def error_check_constraint(rule_name, rule_constraint):
-            if "" == rule_constraint:
-                return "Constraint cannot be empty: " + rule_name
-            if "" == rule_name:
-                return "Empty name for constraint: " + rule_constraint
-            constraint_lower = rule_constraint.lower()
-            placeholder_found = False
-            for pl in PLACEHOLDERS:
-                placeholder_found = placeholder_found or pl in rule_constraint
+        def error_check_constraint(a_rule_name, a_rule_constraint):
+            if "" == a_rule_constraint:
+                return "Constraint cannot be empty: " + a_rule_name
+            if "" == a_rule_name:
+                return "Empty name for constraint: " + a_rule_constraint
+            placeholder_found = functools.reduce(lambda s, e: s or e in a_rule_constraint, PLACEHOLDERS, False)
             if not placeholder_found:
                 return (
                         "Missing template for entity injection in constraint: "
-                        + rule_constraint
+                        + a_rule_constraint
                 )
             return None
 
@@ -189,19 +168,18 @@ class SignalRules:
         return ruleset
 
     def check(self, entity):
-        res = [
-            r.name for r in self.rules if bool(r.check_rule_violation(entity)) == True
-        ]
-        return res
-    def checkProgram(self, prog):
+        return [r.name for r in self.rules if bool(r.check_rule_violation(entity))]
+
+    def check_program(self, prog):
         res = []
         for r in self.rules:
             res.extend([f"{r.name}: {v}" for v in r.check_against_program(prog)])
         return res
+
     def check_all(self, entity_list):
         return [self.check(e) for e in entity_list]
 
-    def getRuleNames(self):
+    def get_rule_names(self):
         return [r.name for r in self.rules]
 
     def getRules(self):

@@ -1,0 +1,13 @@
+{
+    "DataSource": "VariableNames",
+    "Defines": {
+        "SigLenMin": "10",
+        "SigLenMax": "20",
+        "MaxNrOfSignals": "40"
+    },
+    "Rules": {
+    "TooManySignals": "len(__inputlist__)>##MaxNrOfSignals##",
+    "SignalNameIsTooShort": "len(__input__)<##SigLenMin##",
+    "SignalNameIsIsTooLong": "len(__input__)>##SigLenMax##"
+    }
+}
