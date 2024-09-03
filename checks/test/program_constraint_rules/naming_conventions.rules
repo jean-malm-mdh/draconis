@@ -14,13 +14,13 @@
             "T": "Train",
             "C": "Car",
             "H": "HorseCart"
-        }
+        },
         "Core":
         {
             "Ab": "Aborted",
             "Abs": "Absolute",
             "Acc": "Acceleration"
-        },
+        }
     },
     "Rules":
     {

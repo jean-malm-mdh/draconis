@@ -5,18 +5,16 @@ import re
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
 
-import regex
-
 from checks.rule_utility_functions import unique
-from .point import Point
-from .ast_typing import DataflowDirection, ParameterType, SafeClass, ValueType
+from utility_classes.point import Point
+from .ast_typing import DataflowDirection, ParameterType, SafeClass
 from .blocks import FBD_Block, VarBlock
 from .path import PathDivide
 from .comment_box import CommentBox
 from .utilities import indexOrNone
 from .variables import VariableWorkSheet, VariableLine
 from .block_port import Port
-from .delta import ChangeType, Delta
+from utility_classes.delta import ChangeType, Delta
 
 
 def dropWhile(aList: list, p):
@@ -239,7 +237,7 @@ class Program:
         result = []
         # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
         flow = b.getFlow(DataflowDirection.Backward, trace_from_portID)
-        if flow == []:
+        if not flow:
             return [bID]
         elif len(flow) == 1:  # The number of output ports is one
             startPort, connectionPorts = flow[0]
@@ -828,7 +826,8 @@ class Program:
         outputs_to_st_statements = outputs_to_ST_statements()
         return f"""
                 Function_Block {self.progName}
-                {varheader_transform_to_st}{outputs_to_st_statements}
+                {varheader_transform_to_st}
+                {outputs_to_st_statements}
                 End_Function_Block"""
 
 

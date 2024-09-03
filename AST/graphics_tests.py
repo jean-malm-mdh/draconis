@@ -1,6 +1,6 @@
 import unittest
 
-from .point import Point
+from utility_classes.point import Point
 from .rectangle import Rectangle
 
 

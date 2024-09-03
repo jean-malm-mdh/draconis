@@ -1,4 +1,4 @@
-from .point import Point
+from utility_classes.point import Point
 from .connections import ConnectionDirection
 from typing import Set
 from dataclasses import dataclass

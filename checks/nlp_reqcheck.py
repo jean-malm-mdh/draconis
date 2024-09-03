@@ -32,6 +32,10 @@ def get_stub_pairs():
 
 
 def iter_partition(pred, iterable):
+    """
+    Given a predicate and an iterable datasource
+    partition the input based on if the predicate holds or not
+    """
     _in, _out = [], []
     for e in iterable:
         if pred(e):
@@ -162,7 +166,6 @@ def classify(req_text: str):
             if n is not None
         ]
     )
-    issue_level_qualifier = [n for n, t in tagged_words if t == "MD"]
     print(tagged_words)
     if len(numbers):
         res = classify_as_metric_check(tagged_words, numbers)

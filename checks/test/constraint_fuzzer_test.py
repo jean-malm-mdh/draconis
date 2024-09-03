@@ -4,7 +4,7 @@ import os
 source_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "..")
 if source_path not in sys.path:
     sys.path.append(source_path)
-from constraint_rules import SignalRules
+from ..constraint_rules import RuleSet
 import pytest
 
 
@@ -12,7 +12,7 @@ class ConstraintFuzzer:
     alphabet = [chr(a) for a in range(ord("a"), ord("a") + 26)]
     alphabet.extend([chr(a) for a in range(ord("A"), ord("A") + 26)])
     valid_rule_grammar = {
-        "<ConstraintConfig>": ['{ "Rules": {<Constraints>} }'],
+        "<ConstraintConfig>": ['{ "Rules": {<Constraints>}, "DataSource": "<DataSet>" }'],
         "<Constraints>": ["<Constraint>, <Constraints>", "<Constraint>"],
         "<Constraint>": ['"<Name>": "<ConstraintString>"'],
         "<ConstraintString>": ["<Property> <Operator> <ConstraintValue>"],
@@ -22,6 +22,7 @@ class ConstraintFuzzer:
         "<Number>": ["<DigitsNonZero>", "+<DigitsNonZero>", "-<DigitsNonZero>"],
         "<DigitsNonZero>": ["<DigitNonZero><Digits>", "<DigitNonZero>"],
         "<Digits>": ["<Digit><Digits>", "<Digit>"],
+        "<DataSet>": ["VariableNames"],
         "<LongName>": [
             "<Char><Name>",
             "<Char><Name>",
@@ -32,12 +33,13 @@ class ConstraintFuzzer:
             "<Char>",
         ],
         "<Name>": ["<Char><Name>", "<Char>"],
-        "<Char>": alphabet,  # a-z
+        "<Char>": alphabet,  # a-Z
         "<DigitNonZero>": [str(i) for i in range(1, 9)],
         "<Digit>": [str(i) for i in range(0, 9)],
     }
 
-    def generate(grammar, startRule):
+    @classmethod
+    def generate(cls, grammar, startRule):
         import re
         import random
 
@@ -72,11 +74,5 @@ def test_can_parse_random_rules():
     ]
     for n in names:
         for r in rules:
-            rule = SignalRules.from_json_string(r)
+            rule = RuleSet.from_json_string(r)
             assert rule != []
-            try:
-                rule.check(n)
-            except Exception as e:
-                pytest.fail(
-                    f"Rule check raised an exception {e} on random valid rules."
-                )

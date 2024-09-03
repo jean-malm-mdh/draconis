@@ -17,7 +17,7 @@ from draconis_parser import (
     ConnectionPoint,
 )
 from draconis_parser import FormalParam, ParamList
-from draconis_parser import make_absolute_position, make_relative_position
+from utility_classes.position import make_absolute_position, make_relative_position
 
 
 class MyXMLVisitor(XMLParserVisitor):
@@ -267,30 +267,6 @@ class MyXMLVisitor(XMLParserVisitor):
         return result
 
     def ppx_parse_Connection(self, connData: XMLParser.ContentContext, attrs):
-        """
-          <connection refLocalId="16" formalParameter="ADD">
-              <addData>
-                <data name="redacted" handleUnknown="preserve">
-                  <connectedFormalparameter refLocalId="12" />
-                </data>
-              </addData>
-              <position x="154" y="44" />
-              <position x="144" y="44" />
-        </connection>
-        """
-        """
-          <connection refLocalId="6">
-            <position x="120" y="48" />
-            <position x="112" y="48" />
-          </connection>
-        """
-        """        
-        <connectionPointIn>
-          <relPosition x="0" y="16" />
-          <connection refLocalId="8" /> <--
-        </connectionPointIn>
-        """
-
         def hasNoExtraData():
             return connData is None or len(connData.element()) == 0
 

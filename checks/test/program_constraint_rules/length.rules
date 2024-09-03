@@ -1,8 +1,8 @@
 {
     "DataSource": "VariableNames",
     "Rules": {
-    "TooManySignals": "len(__inputlist__)>40",
-    "SignalNameIsTooShort": "len(__input__)<10",
-    "SignalNameIsIsTooLong": "len(__input__)>20"
+        "TooManySignals": "len(__inputlist__)>40",
+        "SignalNameIsTooShort": "len(__input__)<10",
+        "SignalNameIsIsTooLong": "len(__input__)>20"
     }
 }

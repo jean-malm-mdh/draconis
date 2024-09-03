@@ -11,7 +11,7 @@ from functools import partial
 logging.basicConfig(level=logging.DEBUG)
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from checks.check_interface import PLACEHOLDERS, allowed_actions_map, \
+from checks.check_interface import PLACEHOLDERS, ALLOWED_ACTIONS_NAMES, allowed_actions_map, \
     reserved_value_input_mapper
 
 from AST.program import extract_from_program
@@ -28,8 +28,12 @@ class Rule:
         self.constraint = constraint
         self.aCheck = lambda cons, prog: None
         self.data_source = lambda prog: []
-
     def check_against_program(self, prog):
+        """
+        Runs the rule against the provided program.
+
+        returns: The list of data elements that failed the rule
+        """
         datas = self.data_source(prog)
         to_check = partial(self.aCheck, datas)
         rule_failed_on_data = []
@@ -50,6 +54,9 @@ class Rule:
             cls, rule_name, rule_constraint, data_source_str, _defines_map=None, abbreviations_map=None
     ):
         def handle_custom_syntax(constraint: str):
+            """
+            Parses some custom syntax related to arguments
+            """
             result = constraint
             for reg_f in ["fullmatch", "any_match", "conforms_to"]:
                 if reg_f in constraint:
@@ -61,6 +68,9 @@ class Rule:
             return result.strip()
 
         def handle_defines(constraint, defines_map):
+            """
+            Replaces all defines with their expansions
+            """
             theDefines = list(re.finditer(r"##(.*?)##", constraint))
             if theDefines and defines_map is None:
                 raise ValueError("Defines have been used but no defines are declared.")
@@ -75,6 +85,10 @@ class Rule:
             return "|>" in constraint
 
         def parse_func_style(constraint: str):
+            """
+            Replaces functional style (pipe-based) function
+            with sequence of partial applications
+            """
             split_on_pipe = constraint.split("|>")
             result = split_on_pipe[0]
             split_on_pipe = map(handle_custom_syntax, split_on_pipe[1:])
@@ -103,36 +117,26 @@ class Rule:
         return res
 
 
-class SignalRules:
+class RuleSet:
     def __init__(self) -> None:
         self.rules = []
 
     @classmethod
     def parse_rule_file(cls, aRuleFile: os.PathLike):
-        return SignalRules.from_json_string(Path.read_text(Path(aRuleFile)))
+        """
+        Wrapper around reading rule from json file
+        """
+        return RuleSet.from_json_string(Path.read_text(Path(aRuleFile)))
 
     @classmethod
     def from_json_string(cls, json_string: str):
         def check_valid_properties(rule_constraint):
-            allowed_properties = [
-                "len",
-                "not",
-                "any_match",
-                "fullmatch",
-                "unique",
-                "map",
-                "list",
-                "conforms_to",
-                "lower",
-                "AND",
-                "OR",
-                "in_list",
-            ]
             found_properties = re.finditer(r"([a-zA-Z_]+)\(", rule_constraint)
             for m in found_properties:
                 prop = m.group(1)
-                if prop not in allowed_properties:
-                    return f"Invalid constraint property {prop} detected in constraint: {rule_constraint}"
+                if prop not in ALLOWED_ACTIONS_NAMES:
+                    return f"Invalid property {prop} detected in constraint: {rule_constraint}"
+            return None
 
         def error_check_constraint(a_rule_name, a_rule_constraint):
             if "" == a_rule_constraint:
@@ -148,23 +152,22 @@ class SignalRules:
             return None
 
         data = json.loads(json_string)
-        ruleset = SignalRules()
+        ruleset = RuleSet()
         rules = data.get("Rules", None)
         defines_map = data.get("Defines", None)
         abbreviations_map = data.get("Abbreviations", None)
         data_source_map = data.get("DataSource", None)
-        assert rules is not None
+        assert rules is not None and rules != {}
 
         for rule_name, rule_constraint in rules.items():
-            err = error_check_constraint(rule_name, rule_constraint)
-            if err:
-                raise ValueError(err)
-            err = check_valid_properties(rule_constraint)
+            err = "\n".join(e for e in [error_check_constraint(rule_name, rule_constraint),
+                                        check_valid_properties(rule_constraint)] if e)
             if err:
                 raise ValueError(err)
             ruleset.rules.append(
                 Rule.parse(rule_name, rule_constraint, data_source_map, defines_map, abbreviations_map)
             )
+        assert data_source_map is not None and data_source_map != {}
         return ruleset
 
     def check(self, entity):
@@ -176,11 +179,5 @@ class SignalRules:
             res.extend([f"{r.name}: {v}" for v in r.check_against_program(prog)])
         return res
 
-    def check_all(self, entity_list):
-        return [self.check(e) for e in entity_list]
-
     def get_rule_names(self):
         return [r.name for r in self.rules]
-
-    def getRules(self):
-        return self.rules

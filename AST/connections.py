@@ -4,7 +4,7 @@ from enum import IntEnum
 from typing import Optional
 
 from .ast_typing import DataflowDirection
-from .position import GUIPosition, make_absolute_position
+from utility_classes.position import GUIPosition, make_absolute_position
 
 from .utilities import swap_in_string
 

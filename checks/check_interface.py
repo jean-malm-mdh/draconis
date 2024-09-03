@@ -9,13 +9,16 @@ PLACEHOLDERS = [INPUT_PLACEHOLDER, INPUT_PLACEHOLDER_LIST, METRIC_PLACEHOLDER]
 
 
 def allowed_actions_map(abbreviations_map):
-    """"""
+    """
+    Mapping of the list of properties to their functional implementation.
+    """
     return {
         "unique": unique,
         "any_match": any_match,
-        "fullmatch": full_match,
+        "full_match": full_match,
         "conforms_to": partial(conforms_to, abbreviations_map),
         "partial": partial,
+        "len": len,
         "AND": bool.__and__,
         "OR": bool.__or__,
         "is_magic_named_constant": is_magic_named_constant,
@@ -23,8 +26,12 @@ def allowed_actions_map(abbreviations_map):
     }
 
 
+# Expose the allowed actions to other classes
+ALLOWED_ACTIONS_NAMES = [k for k in allowed_actions_map({}).keys()]
+
+
 def reserved_value_input_mapper(data_source, data_source_element):
     return {
-                INPUT_PLACEHOLDER_LIST: data_source,
-                INPUT_PLACEHOLDER: data_source_element
+        INPUT_PLACEHOLDER_LIST: data_source,
+        INPUT_PLACEHOLDER: data_source_element
     }
