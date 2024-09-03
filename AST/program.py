@@ -17,13 +17,6 @@ from .block_port import Port
 from utility_classes.delta import ChangeType, Delta
 
 
-def dropWhile(aList: list, p):
-    for i in range(len(aList)):
-        if not (p(aList[i])):
-            return aList[i:]
-    return []
-
-
 @dataclass()
 class Program:
     progName: str
@@ -757,78 +750,6 @@ class Program:
         result.append(evaluate_initialization_rule())
 
         return result
-
-    def transform_to_ST(self):
-        def path_to_ST_expression(path):
-            """
-
-            Args:
-                path: The path to generate expression for
-
-            Returns:
-                ST representation of the path
-            """
-
-            def consume_path_within_block(block, _path):
-                """
-
-                Args:
-                    block: The related block
-                    _path: The path to remove from
-
-                Returns:
-                    The path starting from the first element not connected to the block
-                """
-                blockID = block.getID()
-                return dropWhile(
-                    _path, lambda portID: self.ports[portID].blockID == blockID
-                )
-
-            potential_block = self.behaviour_id_map[self.ports[path[0]].blockID]
-            if potential_block.getBlockType() == "FunctionBlock":
-                # Recursive case
-                _path = dropWhile(
-                    path[1:],
-                    lambda e: not (
-                            "PathDivide" in str(e.__class__) or "Block" in str(e.__class__)
-                    ),
-                )
-                if "PathDivide" in str(_path[0].__class__):
-                    pathdivide_paths = _path[0].paths
-                    # Recursive call for each path
-                    args_in_ST_form = map(
-                        lambda p: path_to_ST_expression(
-                            consume_path_within_block(potential_block, p)
-                        ),
-                        pathdivide_paths,
-                    )
-                    arglist = ", ".join(args_in_ST_form)
-                else:
-                    arglist = path_to_ST_expression(_path)
-                return f"{potential_block.data.type}({arglist})"
-            else:
-                return potential_block.getVarExpr()
-
-        def outputs_to_ST_statements():
-            out_dataflow = self.getBackwardTrace()
-            if not out_dataflow:
-                return ""
-            result = ""
-            for outVar, path in out_dataflow.items():
-                result += "\t" + f"{outVar} := "
-                # Remove output variable from path list
-                _path = path[1:]
-                result += f"{path_to_ST_expression(_path)};\n"
-
-            return result
-
-        varheader_transform_to_st = self.varHeader.transform_to_ST()
-        outputs_to_st_statements = outputs_to_ST_statements()
-        return f"""
-                Function_Block {self.progName}
-                {varheader_transform_to_st}
-                {outputs_to_st_statements}
-                End_Function_Block"""
 
 
 def extract_from_program(value: str, target_program: Program):
