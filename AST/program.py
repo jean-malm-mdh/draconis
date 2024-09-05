@@ -377,6 +377,9 @@ class Program:
 
         return sum([map_variable_to_complexity_number(v) for v in self.varHeader.getAllVariables()])
 
+    def getVarByName(self, varName:str) -> Optional[VariableLine]:
+        return self.varHeader.getFirstVariableByName(varName)
+
     def getMetrics(self):
 
         res = dict()
@@ -466,6 +469,7 @@ class Program:
             # at this point, we have processed all common variables and those found in first set.
             # The remaining variables represent additions during the change
             _res.extend([Delta.CreateAddition(v) for v in variable_changes_new_to_old.values()])
+            _res.extend([Delta.CreateDeletion(v) for v in variable_changes_old_to_new.values() if v not in _res])
 
             return _res
 
@@ -498,11 +502,10 @@ class Program:
                             _result.append(
                                 f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
 
-        res = []
-
+        res = find_variable_changes()
         return res
 
-    def compute_delta(self, other_program):
+    def compute_delta(self, other_program) -> List[str]:
         def find_variable_changes():
             vars_1 = set(self.varHeader.getAllVariables())
             vars_2 = set(other_program.varHeader.getAllVariables())
@@ -525,8 +528,9 @@ class Program:
 
             return _res
 
-        def find_changes_in_blocks():
-            def identify_block_difference(_diff_id, _result):
+        def find_changes_in_blocks() -> List[str]:
+            def identify_block_difference(_diff_id):
+                _result = []
                 # if the ID exists in both programs, it's likely a change
                 pot_block1 = self.behaviour_id_map.get(_diff_id, None)
                 pot_block2 = other_program.behaviour_id_map.get(_diff_id, None)
@@ -541,18 +545,19 @@ class Program:
                             f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'."
                             f"\nRe-run functional checks"
                         )
-                if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
-                    assert isinstance(pot_block1, VarBlock)
-                    assert isinstance(pot_block2, VarBlock)
-                    expr1 = pot_block1.getVarExpr()
-                    expr2 = pot_block2.getVarExpr()
-                    if expr1 != expr2:
-                        if "#" in expr1:
-                            _result.append(
-                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
-                        else:
-                            _result.append(
-                                f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+                    if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
+                        assert isinstance(pot_block1, VarBlock)
+                        assert isinstance(pot_block2, VarBlock)
+                        expr1 = pot_block1.getVarExpr()
+                        expr2 = pot_block2.getVarExpr()
+                        if expr1 != expr2:
+                            if "#" in expr1:
+                                _result.append(
+                                    f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+                            else:
+                                _result.append(
+                                    f"Expression in constant block {expr1} has changed to {expr2} - rerun IO tests")
+                return _result
 
             """
 
@@ -564,7 +569,7 @@ class Program:
             blocks2 = set(other_program.behaviourElements)
             differences = {b.getID() for b in blocks1.difference(blocks2)}
             for diff_id in differences:
-                identify_block_difference(diff_id, result)
+                result.extend(identify_block_difference(diff_id))
 
             return result
 
@@ -578,10 +583,8 @@ class Program:
             # Slightly nuclear option for determining programs should not be compared. For now it works with intended
             # use case.
             return [
-                (
                     "Program names are different. Delta analysis will not continue",
-                    f"{self.progName} != {other_program.progName}",
-                )
+                    f"{self.progName} != {other_program.progName}"
             ]
         res = []
         res.extend(find_variable_changes())
