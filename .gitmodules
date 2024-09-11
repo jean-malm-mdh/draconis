@@ -1,0 +1,3 @@
+[submodule "External_Tools/TIQVA"]
+	path = External_Tools/TIQVA
+	url = https://github.com/jean-malm-mdh/fbd-complexity-tool.git
