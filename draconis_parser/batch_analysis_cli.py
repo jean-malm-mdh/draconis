@@ -37,7 +37,7 @@ def main():
     for ignore_pattern in args.ignore_files:
         files_to_process = [f for f in files_to_process if re.match(ignore_pattern, os.path.basename(f)) == None]
     if args.dry_run:
-        print("The following files would be analysed:")
+        print("Dry run mode - The following files would be analysed:")
         print("\n".join(files_to_process))
     else:
         results = [parse_or_except(f) for f in files_to_process]

@@ -116,3 +116,4 @@ def test_deletion_reporting(
     actual = Delta.CreateDeletion(prog_addition.getVarByName("IsInSafeState")).summarize()
 
     assert "VariableLine IsInSafeState was removed" in actual
+

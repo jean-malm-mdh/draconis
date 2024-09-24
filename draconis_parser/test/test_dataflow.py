@@ -7,19 +7,19 @@ from .test_programanalysis import programs
 
 def test_can_get_dataflow_from_var_block(programs):
     inVarBlock = programs["Calc_Even"].behaviour_id_map[3]
-    assert inVarBlock.getFlow(DataflowDirection.Backward) == []
-    assert inVarBlock.getFlow(DataflowDirection.Forward) == [(3, [(3, 6)])]
+    assert inVarBlock.getFlowOverBlock(DataflowDirection.Backward) == []
+    assert inVarBlock.getFlowOverBlock(DataflowDirection.Forward) == [(3, [(3, 6)])]
 
     outVarBlock = programs["Calc_Even"].behaviour_id_map[5]
-    assert outVarBlock.getFlow(DataflowDirection.Forward) == []
-    assert outVarBlock.getFlow(DataflowDirection.Backward) == [(5, [(5, 8)])]
+    assert outVarBlock.getFlowOverBlock(DataflowDirection.Forward) == []
+    assert outVarBlock.getFlowOverBlock(DataflowDirection.Backward) == [(5, [(5, 8)])]
 
 
 def test_can_get_dataflow_from_FBD(programs):
     fbd_block = programs["Calc_Even"].behaviour_id_map[9]
-    assert fbd_block.getFlow(DataflowDirection.Backward) == [(8, [(6, 3), (7, 4)])]
-    assert fbd_block.getFlow(DataflowDirection.Forward) == [(6, [(8, 5)]),
-                                                            (7, [(8, 5)])]
+    assert fbd_block.getFlowOverBlock(DataflowDirection.Backward) == [(8, [(6, 3), (7, 4)])]
+    assert fbd_block.getFlowOverBlock(DataflowDirection.Forward) == [(6, [(8, 5)]),
+                                                                     (7, [(8, 5)])]
 
 
 def test_can_perform_backward_trace_from_block(programs):
@@ -80,10 +80,10 @@ def test_forward_trace_can_handle_single_in_multiple_out_blocks(programs):
 
 def test_can_get_dataflow_from_func_block(programs):
     pytest.skip("Higher priority tests came up")
-    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlowOverBlock(
         DataflowDirection.Backward
     ) == [[8, 6, 3], [8, 7, 4]]
-    assert programs["Calc_Even"].behaviour_id_map[9].getFlow(
+    assert programs["Calc_Even"].behaviour_id_map[9].getFlowOverBlock(
         DataflowDirection.Forward
     ) == [[8, 9, 5]]
 
