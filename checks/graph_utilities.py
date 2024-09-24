@@ -47,3 +47,10 @@ def islands_from_program(prog: Program, display="IDs"):
         return {i: set(map(blockID_to_display_name, v)) for i, v in islands.items()}
     else:
         return islands
+
+
+def cycles_in_program(prog: Program):
+    def cycles_in_graph(graph: nx.Graph):
+        return nx.cycle_basis(graph)
+
+    return cycles_in_graph(graph_from_program(prog))
