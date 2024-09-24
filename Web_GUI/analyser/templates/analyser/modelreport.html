@@ -3,6 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>Model Report Information for {{model.program_name}}</title>
+    <style>
+        {box-sizing: border-box;}
+
+/* Button used to open the contact form - fixed at the bottom of the page */
+.open-button {
+  background-color: #555;
+  color: white;
+  padding: 16px 20px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  position: fixed;
+  bottom: 23px;
+  right: 28px;
+  width: 280px;
+}
+
+/* The popup form - hidden by default */
+.form-popup {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  right: 15px;
+  border: 3px solid #f1f1f1;
+  z-index: 9;
+}
+    </style>
+</head>
+<body>
     <h1>{{model.program_name}}</h1>
     <p>Uploaded: {{model.uploaded_at}}</p>
     {{model.program_variables}}
@@ -12,25 +41,43 @@
         <tr>
             {%if report.report_check_status == 0 %}
             <td>Fail - {{report}}</td>
+            <td><button class="open-justification" onclick="openJustification({{report.id}})">Justify Failure</button></td>
             {% endif %}
 
         </tr>
         {% endfor %}
     </table>
     <h2>Checks Passed</h2>
-    <table>
+    <table>{% for report in reports %}{%if report.report_check_status == 1 %}
+        <tr><td>Pass - {{report}}</td></tr>{% endif %}{% endfor %}
+    </table>
         {% for report in reports %}
-        <tr>
-            {%if report.report_check_status == 1 %}
-            <td>Pass - {{report}}</td>
+            {%if report.report_check_status == 0 %}
+            <div class="form-popup" id="JustificationForm_{{report.id}}">
+              <form action="./report" class="form-container">
+                <p>Justify Failure: {{report}}</p>
+
+                <label for="justification"><b>Justification</b></label>
+                <input type="text" placeholder="Enter Justification" name="justification" required>
+                  <input type="hidden" placeholder="{{report.id}}" value="{{report.id}}" name="report_id" required>
+
+                <button type="submit" class="btn">Submit</button>
+                <button type="button" class="btn cancel" onclick="closeJustification({{report.id}})">Close</button>
+              </form>
+            </div>
             {% endif %}
 
-        </tr>
         {% endfor %}
-    </table>
     <p><a href="../models">Go back to the models list view</a></p>
-</head>
-<body>
 
 </body>
+<script>
+    function openJustification(rep_id) {
+  document.getElementById("JustificationForm_" + rep_id).style.display = "block";
+}
+
+function closeJustification(rep_id) {
+  document.getElementById("JustificationForm_" + rep_id).style.display = "none";
+}
+</script>
 </html>
