@@ -24,6 +24,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home_page, name="home"),
     path("diff/", views.diff_page, name="diff"),
+    path("models/", views.models_page, name="Models"),
     path("<int:model_id>/report", views.reports_page, name="report")
 ]
 

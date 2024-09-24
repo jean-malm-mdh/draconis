@@ -2,8 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Model Report Information</title>
-    {{model}}
+    <title>Model Report Information for {{model.program_name}}</title>
+    <h1>{{model.program_name}}</h1>
+    <p>Uploaded: {{model.uploaded_at}}</p>
+    {{model.program_variables}}
+    <h2>Checks Failed</h2>
+    <table>
+        {% for report in reports %}
+        <tr>
+            {%if report.report_check_status == 0 %}
+            <td>Fail - {{report}}</td>
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+    </table>
+    <h2>Checks Passed</h2>
+    <table>
+        {% for report in reports %}
+        <tr>
+            {%if report.report_check_status == 1 %}
+            <td>Pass - {{report}}</td>
+            {% endif %}
+
+        </tr>
+        {% endfor %}
+    </table>
+    <p><a href="../models">Go back to the models list view</a></p>
 </head>
 <body>
 

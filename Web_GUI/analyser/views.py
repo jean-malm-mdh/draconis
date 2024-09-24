@@ -3,10 +3,10 @@ import sys
 
 from django.forms import formset_factory
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 
 from .forms import BlockModelForm, MetricsModelForm
-from .models import BlockModel
+from .models import BlockModel, ReportModel, MetricsModel
 from .utility_functions import renderToReport, getImageDiffAsSvg, make_and_save_program_model_instance, \
     get_file_content_as_single_string
 
@@ -72,9 +72,13 @@ def home_page(request):
         pageData["metricsForm"] = MetricsModelForm(prefix="metrics")
         return render(request, "analyser/home.html", pageData)
 
+
 def reports_page(request, model_id):
-    try:
-        model_inst = BlockModel.objects.get(pk=model_id)
-    except BlockModel.DoesNotExist:
-        raise Http404("The requested Model does not exist")
-    return render(request, "analyser/modelreport.html", {"model": model_inst})
+    model_inst = get_object_or_404(BlockModel, pk=model_id)
+    reports = get_list_or_404(ReportModel, block_program_id=model_id)
+    return render(request, "analyser/modelreport.html", {"model": model_inst, "reports": reports})
+
+
+def models_page(request):
+    models = BlockModel.objects.all()
+    return render(request, "analyser/model_listview.html", {"models": models})

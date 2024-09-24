@@ -27,7 +27,6 @@ def getImageDiffAsSvg(program1, program2, storage_path: str, renderscale=5.0):
     fpp_diff = os.path.join(storage_path, "images", ".generated", "prog_diff.jpg")
     generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
     generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
-    print(fpp_dir)
     try:
         runresult = subprocess.run(["magick", "compare", "-metric", "AE", "-fuzz", "15%", fpp, fpp2, fpp_diff],
                                    capture_output=True)
@@ -69,14 +68,14 @@ def make_and_save_program_model_instance(_form, additional_metrics_form):
         (ReportModel.create(model_instance,
                             ruleName,
                             report_text=explanation,
-                            it_passed=verdict == "Passed")
+                            it_passed=verdict == "Pass")
          .save())
     # Compute the DRACONIS Core metrics
     metrics = aProgram.getMetrics()
 
     # Add any additional metrics computed
-    additional_metrics = get_file_content_as_single_string(metrics_instance.additional_metrics)
-    the_additional_metrics = json.loads(additional_metrics)
+    additional_metrics = metrics_instance.additional_metrics
+    the_additional_metrics = additional_metrics
     # Create Metrics objects for the core metrics
     (MetricsModel.create(model_instance, metrics, additional_metrics)
      .save())  # then save it
@@ -103,10 +102,10 @@ def get_file_content_as_single_string(file_field: FieldFile):
 
 
 def replace_fst_with_snd(collection, fst, snd):
-    def replaceifmatches(v, replacethis, withthis):
-        if v == replacethis:
-            return withthis
+    def replace_if_matches(v, replace_this, with_this):
+        if v == replace_this:
+            return with_this
         else:
             return v
 
-    return [replaceifmatches(e, fst, snd) for e in collection]
+    return [replace_if_matches(e, fst, snd) for e in collection]

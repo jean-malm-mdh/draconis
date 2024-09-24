@@ -476,7 +476,7 @@ class Program:
                     expr = source.getVarExpr()
                     if not exprIsConsideredSafe(safeness_properties, expr):
                         result.append(
-                            f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')"
+                            f"Unsafe data ('{expr}') flowing to safe output ('{name}')"
                         )
         return result
 

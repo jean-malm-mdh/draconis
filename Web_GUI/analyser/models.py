@@ -12,7 +12,7 @@ class BlockModel(models.Model):
 class MetricsModel(models.Model):
     block_program = models.ForeignKey(BlockModel, on_delete=models.CASCADE)
     core_metrics = models.JSONField(verbose_name="Program Metrics", blank=False)
-    additional_metrics = models.FileField(upload_to="DATASTORE/")
+    additional_metrics = models.JSONField(verbose_name="External Metrics", blank=False, default=dict)
 
     @classmethod
     def create(cls, program_id, core_metrics_json, additional_metrics=None):
@@ -38,6 +38,9 @@ class ReportModel(models.Model):
     report_check_status = models.IntegerField(choices=CheckStatus.choices, default=CheckStatus.FAIL)
     report_review_status = models.IntegerField(choices=ReportReviewStatus.choices, default=ReportReviewStatus.UNVIEWED)
     report_review_notes = models.TextField(default="")
+
+    def __str__(self):
+        return self.report_content
 
     @classmethod
     def create(cls, program_id, check_name, report_text, it_passed=False):
