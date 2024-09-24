@@ -218,6 +218,9 @@ class Program:
         )
         return [getFieldContent(_fields, e) for e in self.varHeader.getAllVariables()]
 
+    def hasPotentialInternalState(self):
+        return len(self.varHeader.getVarsByType(ParameterType.InternalVar)) > 0
+
     def performBackTraceFromBlock(self, bID, trace_from_portID=None):
         def appendIfNotInListEnd(l, elem):
             if not l or l[-1] != elem:
@@ -229,7 +232,7 @@ class Program:
         )
         result = []
         # flow is a list of tuples of (startPort, [(endPorts, end_connection_ports)])
-        flow = b.getFlow(DataflowDirection.Backward, trace_from_portID)
+        flow = b.getFlowOverBlock(DataflowDirection.Backward, trace_from_portID)
         if not flow:
             return [bID]
         elif len(flow) == 1:  # The number of output ports is one
@@ -371,17 +374,39 @@ class Program:
             ]
         return backward_trace
 
-    def computeComplexity(self):
+    def num_of_elements(self):
+        def get_all_connection_pairs():
+            res = set()
+            # Visits both start and end block
+            # => visits both start and end port
+            # => each connection will be added twice
+            for aBlock in self.behaviourElements:
+                for portID, aPort in aBlock.ports.items():
+                    for conn in aPort.connections:
+                        res = res.add((portID, conn))
+
+            return res
+
+        # http://mdh.diva-portal.org/smash/get/diva2:1113035/FULLTEXT01.pdf
+        nr_of_variables = len(self.varHeader.getAllVariables())
+        nr_of_blocks = len(self.behaviourElements)
+
+        # Division to account for duplicated data
+        nr_of_connections = len(get_all_connection_pairs()) // 2
+
+        # Todo: Scale this based on block type complexity factor
+        return nr_of_variables + nr_of_blocks + nr_of_connections
+
+    def compute_variables_complexity(self):
         def map_variable_to_complexity_number(variable: VariableLine):
             return variable.valueType.valueTypeComplexity()
 
         return sum([map_variable_to_complexity_number(v) for v in self.varHeader.getAllVariables()])
 
-    def getVarByName(self, varName:str) -> Optional[VariableLine]:
+    def getVarByName(self, varName: str) -> Optional[VariableLine]:
         return self.varHeader.getFirstVariableByName(varName)
 
     def getMetrics(self):
-
         res = dict()
         res["NrOfVariables"] = len(self.varHeader.getAllVariables())
 
@@ -396,8 +421,8 @@ class Program:
             self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
         backwards_flow = self.getDependencyPathsByName()
-        res["VariableTypeComplexity"] = self.computeComplexity()
-
+        res["VariableTypeComplexity"] = self.compute_variables_complexity()
+        res["IsPotentiallyImpure"] = self.hasPotentialInternalState()
         return res
 
     def getMetricsExplanations(self):
@@ -411,7 +436,9 @@ class Program:
              "Boolean variables: 2",
              "Numeric variables: 5",
              "Subsystems: 10",
-             "Safe variables: +1"])
+             "Safe variables: <complexity of variable>+1"])
+        res["IsPotentiallyImpure"] = ("Whether the POU is potentially representing an impure function\n"
+                                      "E.g., through having internal state")
         return res
 
     def checkSafeDataFlow(self):
@@ -452,6 +479,9 @@ class Program:
                             f"ERROR: Unsafe data ('{expr}') flowing to safe output ('{name}')"
                         )
         return result
+
+    def getLoopedBackBlocks(self):
+        forward_flow = self.forward_flow
 
     def compute_deltas2(self, other_program):
         def find_variable_changes():

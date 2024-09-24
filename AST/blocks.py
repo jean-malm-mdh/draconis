@@ -26,6 +26,9 @@ class Block:
     def getBlockType(self):
         raise NotImplementedError("Implement in Child classes")
 
+    def getBlockComplexity(self):
+        return 1
+
     def getBlockFamily(self):
         return self.data.type
 
@@ -56,7 +59,7 @@ class Block:
             )
         return self.data == other.data
 
-    def getFlow(self, data_flow_dir: DataflowDirection, which_port):
+    def getFlowOverBlock(self, data_flow_dir: DataflowDirection, which_port):
         raise NotImplementedError("Implement in Child classes")
 
     @classmethod
@@ -98,10 +101,13 @@ class VarBlock(Block):
         """
         return json_res
 
+    def getBlockComplexity(self):
+        return 1
+
     def getVarExpr(self):
         return self.expr.expr
 
-    def getFlow(self, data_flow_dir: DataflowDirection, _unused_=None):
+    def getFlowOverBlock(self, data_flow_dir: DataflowDirection, _unused_=None):
         ID = self.getID()
         toPorts = (
             self.getInPorts() if self.data.type == "outVariable" else self.getOutPorts()
@@ -183,6 +189,11 @@ class FBD_Block(Block):
             varLists=[ParamList.FromJSON(p_json) for p_json in d["varLists"]],
         )
 
+    def getBlockComplexity(self):
+        nr_of_ports = len(self.ports)
+        return nr_of_ports
+
+
     def getVariablesOfGivenType(self, queriedType):
         result = []
         _vars = [v for v in self.varLists if v.varType == queriedType]
@@ -190,7 +201,7 @@ class FBD_Block(Block):
             result.extend([] if vL.list is None else vL.list)
         return result
 
-    def getFlow(self, data_flow_dir: DataflowDirection, restrictToPortID=None):
+    def getFlowOverBlock(self, data_flow_dir: DataflowDirection, restrictToPortID=None):
         """
 
         Args:

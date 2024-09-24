@@ -86,11 +86,14 @@ class ValueType(IntEnum):
     def valueTypeComplexity(self):
         if self.value == ValueType.CUSTOM_FBD:
             return 10
+
         result = 1
+
         if "BOOL" in self.name:
             result = 2
-        if "INT" in self.name or "WORD" in self.name or "BYTE" in self.name:
-            result += 4
+        elif "INT" in self.name or "WORD" in self.name or "BYTE" in self.name:
+            result = 5
+
         if "SAFE" in self.name:
             result += 1
         return result
