@@ -23,7 +23,8 @@ from analyser import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home_page, name="home"),
-    path("diff/", views.diff_page, name="diff")
+    path("diff/", views.diff_page, name="diff"),
+    path("<int:model_id>/report", views.reports_page, name="report")
 ]
 
 if settings.DEBUG:

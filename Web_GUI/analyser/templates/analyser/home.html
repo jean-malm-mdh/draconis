@@ -14,8 +14,10 @@
 <p>Select file to analyse:</p>
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    {{form.as_p}}
-    <br/><br/><input type="submit" value="Analyse!">
+    {{modelForm.as_p}}
+    {{metricsForm.as_p}}
+    <br/>
+    <input type="submit" value="Analyse!">
 </form>
 </body>
 </html>

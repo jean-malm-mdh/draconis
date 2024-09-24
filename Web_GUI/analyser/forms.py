@@ -1,5 +1,5 @@
 from django import forms
-from .models import BlockModel
+from .models import BlockModel, MetricsModel
 
 
 class MultipleFileInput(forms.ClearableFileInput):
@@ -28,3 +28,9 @@ class BlockModelForm(forms.ModelForm):
     class Meta:
         model = BlockModel
         fields = ("program_content",)
+
+
+class MetricsModelForm(forms.ModelForm):
+    class Meta:
+        model = MetricsModel
+        fields = ("additional_metrics",)
