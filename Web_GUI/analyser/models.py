@@ -22,10 +22,11 @@ class MetricsModel(models.Model):
 
 class ReportModel(models.Model):
     class ReportReviewStatus(models.IntegerChoices):
-        UNVIEWED = 0
+        UN_VIEWED = 0
         REVIEWED = 1
         CONFIRMED = 2
         FALSE_POSITIVE = 3
+        JUSTIFIED = 4
 
     class CheckStatus(models.IntegerChoices):
         FAIL = 0
@@ -36,8 +37,9 @@ class ReportModel(models.Model):
     check_verbose_name = models.TextField()
     report_content = models.TextField()
     report_check_status = models.IntegerField(choices=CheckStatus.choices, default=CheckStatus.FAIL)
-    report_review_status = models.IntegerField(choices=ReportReviewStatus.choices, default=ReportReviewStatus.UNVIEWED)
+    report_review_status = models.IntegerField(choices=ReportReviewStatus.choices, default=ReportReviewStatus.UN_VIEWED)
     report_review_notes = models.TextField(default="")
+    report_justification_notes = models.TextField(default="")
 
     def __str__(self):
         return self.report_content

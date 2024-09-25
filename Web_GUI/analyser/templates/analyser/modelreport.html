@@ -4,21 +4,29 @@
     <meta charset="UTF-8">
     <title>Model Report Information for {{model.program_name}}</title>
     <style>
-        {box-sizing: border-box;}
-
-/* Button used to open the contact form - fixed at the bottom of the page */
-.open-button {
-  background-color: #555;
-  color: white;
-  padding: 16px 20px;
-  border: none;
-  cursor: pointer;
-  opacity: 0.8;
-  position: fixed;
-  bottom: 23px;
-  right: 28px;
-  width: 280px;
+{
+    box-sizing: border-box;
 }
+
+
+.styled-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.styled-table th, .styled-table td {
+    border: 1px solid black;
+    padding: 8px;
+}
+
+.styled-table th {
+    background-color: #f2f2f2;
+}
+
+.report-entry {
+    border: 1px solid black;
+}
+
 
 /* The popup form - hidden by default */
 .form-popup {
@@ -34,50 +42,112 @@
 <body>
     <h1>{{model.program_name}}</h1>
     <p>Uploaded: {{model.uploaded_at}}</p>
-    {{model.program_variables}}
     <h2>Checks Failed</h2>
-    <table>
-        {% for report in reports %}
-        <tr>
-            {%if report.report_check_status == 0 %}
-            <td>Fail - {{report}}</td>
-            <td><button class="open-justification" onclick="openJustification({{report.id}})">Justify Failure</button></td>
-            {% endif %}
-
-        </tr>
-        {% endfor %}
-    </table>
+    <table class="styled-table">
+    <tr>
+        <th>Check Name</th>
+        <th>Message</th>
+        <th>Review Status</th>
+        <th>Justification</th>
+        <th>Actions</th>
+    </tr>
+    {% for report in reports %}
+    <tr class="report-entry">
+        {% if report.report_check_status == 0 %}
+        <td class="report-entry">{{ report.check_name }}</td>
+        <td class="report-entry">{{ report |safe }}</td>
+        <td class="report-entry">{{report.report_review_status}}</td>
+        <td>{{ report.report_justification_notes }}</td>
+        <td><button class="open-justification" onclick="openForm('JustificationForm_{{ report.id }}')">Justify Failure</button></td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
     <h2>Checks Passed</h2>
-    <table>{% for report in reports %}{%if report.report_check_status == 1 %}
-        <tr><td>Pass - {{report}}</td></tr>{% endif %}{% endfor %}
-    </table>
+    <table class="styled-table">
+    <tr>
+        <th>Check Name</th>
+        <th>Message</th>
+        <th>Review Status</th>
+        <th>Notes</th>
+        <th>Actions</th>
+    </tr>
+    {% for report in reports %}
+    <tr class="report-entry">
+        {% if report.report_check_status == 1 %}
+        <td class="report-entry">{{ report.check_name }}</td>
+        <td class="report-entry">{{ report |safe }}</td>
+        <td class="report-entry">{{report.report_review_status}}</td>
+        <td>{{ report.report_review_notes }}</td>
+        <td><button class="open-note" onclick="openForm('NoteForm_{{ report.id }}')">Add Note</button></td>
+        {% endif %}
+    </tr>
+    {% endfor %}
+</table>
         {% for report in reports %}
             {%if report.report_check_status == 0 %}
             <div class="form-popup" id="JustificationForm_{{report.id}}">
-              <form action="./report" class="form-container">
+              <form action="./report" class="form-container" method="post">
+                {% csrf_token %}
                 <p>Justify Failure: {{report}}</p>
 
                 <label for="justification"><b>Justification</b></label>
-                <input type="text" placeholder="Enter Justification" name="justification" required>
-                  <input type="hidden" placeholder="{{report.id}}" value="{{report.id}}" name="report_id" required>
+                <input type="text" placeholder="" name="{{JUSTIFICATION_NAME}}" required>
+                  <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
 
                 <button type="submit" class="btn">Submit</button>
-                <button type="button" class="btn cancel" onclick="closeJustification({{report.id}})">Close</button>
+                <button type="button" class="btn cancel" onclick="closeForm('JustificationForm_{{report.id}}')">Close</button>
               </form>
             </div>
-            {% endif %}
+        {% else %}
+            <div class="form-popup" id="NoteForm_{{report.id}}">
+              <form action="./report" class="form-container" method="post">
+                {% csrf_token %}
+                <p>Add Note for: {{report}}</p>
+
+                <label for="note"><b>Note</b></label>
+                <input type="text" placeholder="" name="{{NOTE_NAME}}" required>
+                  <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
+
+                <button type="submit" class="btn">Submit</button>
+                <button type="button" class="btn cancel" onclick="closeForm('NoteForm_{{report.id}}')">Close</button>
+              </form>
+            </div>
+
+        {% endif %}
 
         {% endfor %}
     <p><a href="../models">Go back to the models list view</a></p>
 
 </body>
 <script>
-    function openJustification(rep_id) {
-  document.getElementById("JustificationForm_" + rep_id).style.display = "block";
-}
+    function hideElementsBy_Selector_Id(aType, substr) {
+    // Select all forms on the page
+    const selected = document.querySelectorAll(aType);
 
-function closeJustification(rep_id) {
-  document.getElementById("JustificationForm_" + rep_id).style.display = "none";
+    // Iterate through each form
+    selected.forEach(potentialForm => {
+        if (String(potentialForm.id).includes(substr)) {
+            // Hide the form if it matches
+            potentialForm.style.display = 'none';
+        }
+    });
+}
+function openForm(form_id) {
+  // Hide all forms so they don't overlap each other
+  hideElementsBy_Selector_Id("div", "JustificationForm_");
+  hideElementsBy_Selector_Id("div", "NoteForm_");
+  // Then show the new one
+  document.getElementById(form_id).style.display = "block";
+}
+function closeForm(form_id) {document.getElementById(form_id).style.display = "none";}
+
+function validateForm(form_name, form_input) {
+  var x = document.forms[form_name][form_input].value;
+  if (x == "") {
+    alert(form_input + " must be filled in");
+    return false;
+  }
 }
 </script>
 </html>

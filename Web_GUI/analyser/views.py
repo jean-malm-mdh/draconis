@@ -74,9 +74,40 @@ def home_page(request):
 
 
 def reports_page(request, model_id):
+    REPORT_ID_NAME = "report_id"
+    JUSTIFICATION_NAME = "justification"
+    NOTE_NAME = "made_note"
+    def handle_post_requests():
+        data = request.POST
+        justification_text = data.get(JUSTIFICATION_NAME)
+        if justification_text is not None:
+            # It is a justification
+            # The post request should contain the report ID
+            report_id = data.get(REPORT_ID_NAME)
+            the_report = get_object_or_404(ReportModel, pk=report_id)
+            the_report.report_justification_notes = ("\n".join([the_report.report_justification_notes, justification_text])).strip()
+            the_report.report_review_status = ReportModel.ReportReviewStatus.JUSTIFIED
+            the_report.save()
+        note_text = data.get(NOTE_NAME)
+        if note_text is not None:
+            report_id = data.get(REPORT_ID_NAME)
+            the_report = get_object_or_404(ReportModel, pk=report_id)
+            the_report.report_review_notes = ("\n".join([the_report.report_review_notes, note_text])).strip()
+            the_report.report_review_status = ReportModel.ReportReviewStatus.REVIEWED
+            the_report.save()
+
+
+    if request.method == "POST":
+        handle_post_requests()
     model_inst = get_object_or_404(BlockModel, pk=model_id)
     reports = get_list_or_404(ReportModel, block_program_id=model_id)
-    return render(request, "analyser/modelreport.html", {"model": model_inst, "reports": reports})
+    context = {"model": model_inst, "reports": reports,
+               # Some constants to reduce code duplication between template and logic
+               "REPORT_ID_NAME": REPORT_ID_NAME,
+               "JUSTIFICATION_NAME": JUSTIFICATION_NAME,
+               "NOTE_NAME": NOTE_NAME}
+    return render(request, "analyser/modelreport.html",
+                  context)
 
 
 def models_page(request):
