@@ -20,6 +20,23 @@ def renderToReport(reportData, imageName, program, scale=None):
     reportData[imageName] = imageSVGString
     reportData[imageName + "_Size"] = (imageWidth, imageHeight)
 
+def highlight_differences_in_red(img1, img2):
+    diff = ImageChops.difference(img1, img2)
+    red_diff = diff.convert("RGB")
+
+    # Create a new image to store the result
+    result = Image.new("RGB", img1.size)
+
+    # Iterate over pixels and apply the red color for differences
+    for x in range(img1.width):
+        for y in range(img1.height):
+            r, g, b = red_diff.getpixel((x, y))
+            # If there's a difference (non-zero pixel), make it red
+            if r + g + b > 0:
+                result.putpixel((x, y), (255, 0, 0))  # Red color
+            else:
+                result.putpixel((x, y), img1.getpixel((x, y)))  # Original color
+    return result
 
 def getImageDiffAsSvg(program1, program2, storage_path: str, renderscale=5.0):
     fpp_dir = tempfile.gettempdir()
@@ -30,7 +47,7 @@ def getImageDiffAsSvg(program1, program2, storage_path: str, renderscale=5.0):
     generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
     img1 = Image.open(fpp)
     img2 = Image.open(fpp2)
-    diff = ImageChops.difference(img1, img2)
+    diff = highlight_differences_in_red(img1, img2)
     diff.save(fpp_diff)
     return fpp_diff
 

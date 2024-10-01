@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <style>
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 400px;
+            margin: auto;
+        }
+        .button-grid a {
+            display: block;
+            padding: 60px;
+            text-align: center;
+            background-color: black;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button-grid a:hover {
+            background-color: #777777;
+        }
+    </style>
+</head>
+<body>
+
+<div class="button-grid">
+    <a href="{% url 'Model-Upload' %}">Upload Model</a>
+    <a href="{% url 'diff' %}">Diff Page</a>
+    <a href="{% url 'Models' %}">Models</a>
+    <a href="{% url 'False-Positive-Reports' %}">False Positives Page</a>
+</div>
+
+</body>
+</html>

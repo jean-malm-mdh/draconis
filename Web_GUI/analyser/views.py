@@ -46,7 +46,10 @@ def diff_page(request):
         return render(request, "analyser/diff.html", context=diffData)
 
 
-def home_page(request):
+def start_page(request):
+    return render(request, "analyser/index.html")
+
+def model_upload_page(request):
     if request.GET.get("dark", None) is not None:
         pageData = {"darkMode": True}
     else:
