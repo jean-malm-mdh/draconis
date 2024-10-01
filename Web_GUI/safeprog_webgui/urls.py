@@ -25,6 +25,7 @@ urlpatterns = [
     path("", views.home_page, name="home"),
     path("diff/", views.diff_page, name="diff"),
     path("models/", views.models_page, name="Models"),
+    path("dev/false-positives/", views.false_positive_page, name="False Positive Reports"),
     path("<int:model_id>/report", views.reports_page, name="report")
 ]
 

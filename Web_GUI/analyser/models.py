@@ -22,11 +22,16 @@ class MetricsModel(models.Model):
 
 class ReportModel(models.Model):
     class ReportReviewStatus(models.IntegerChoices):
-        UN_VIEWED = 0
-        REVIEWED = 1
-        CONFIRMED = 2
-        FALSE_POSITIVE = 3
-        JUSTIFIED = 4
+        UN_VIEWED = 0, "Unviewed"
+        REVIEWED = 1, "Reviewed"
+        CONFIRMED = 2, "Confirmed"
+        FALSE_POSITIVE = 3, "False Positive"
+        JUSTIFIED = 4, "Justified"
+
+        @classmethod
+        def get_value_to_label_map(cls):
+            """Returns a dictionary mapping values to their string representation."""
+            return {status.value: status.label for status in cls}
 
     class CheckStatus(models.IntegerChoices):
         FAIL = 0
