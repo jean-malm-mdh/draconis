@@ -7,6 +7,7 @@ import sys
 from django.db.models.fields.files import FieldFile
 
 from .models import ReportModel, MetricsModel
+from PIL import Image, ImageChops
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.renderer import render_program_to_svg, generate_image_of_program
@@ -27,16 +28,11 @@ def getImageDiffAsSvg(program1, program2, storage_path: str, renderscale=5.0):
     fpp_diff = os.path.join(storage_path, "images", ".generated", "prog_diff.jpg")
     generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
     generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
-    try:
-        runresult = subprocess.run(["magick", "compare", "-metric", "AE", "-fuzz", "15%", fpp, fpp2, fpp_diff],
-                                   capture_output=True)
-    except Exception as e:
-        print(e)
-        return None
-    if runresult.returncode == 2:
-        print(runresult.stderr)
-        return None
-    return "images/.generated/prog_diff.jpg"
+    img1 = Image.open(fpp)
+    img2 = Image.open(fpp2)
+    diff = ImageChops.difference(img1, img2)
+    diff.save(fpp_diff)
+    return fpp_diff
 
 
 def make_and_save_program_model_instance(_form, additional_metrics_form):

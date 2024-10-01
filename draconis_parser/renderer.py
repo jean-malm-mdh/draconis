@@ -1,5 +1,6 @@
 import dataclasses
 import functools
+import os
 import sys
 from typing import Tuple
 
@@ -9,6 +10,7 @@ from draconis_parser import ConnectionDirection
 from Web_GUI import Point
 from html_sanitizer import Sanitizer
 
+DRACONIS_FONT = os.environ.get("DRACONIS_FONT", None)
 
 def get_text_bb_size(text: str, font:ImageFont.ImageFont, fontCharHeight: int):
     # width = length of longest row * fontCharWidth
@@ -27,8 +29,8 @@ class DrawContext:
         self.image = Image.new("RGB", (img_width, img_height), color=bg_col)
         self.canvas = ImageDraw.Draw(self.image)
         self.fonts = {
-            "__DEFAULT__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 15),
-            "__HEADER__": ImageFont.truetype("/Library/Fonts/Arial Unicode.ttf", 20),
+            "__DEFAULT__": ImageFont.truetype(DRACONIS_FONT, 15),
+            "__HEADER__": ImageFont.truetype(DRACONIS_FONT, 20),
         }
         self.scaler = scaler or (lambda e: e)
 
