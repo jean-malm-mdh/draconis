@@ -6,6 +6,7 @@ rm -fr "$ANTLR_GEN_DIR"
 # To get around this, we generate the files local to the grammar, then move the folder at the end
 pushd grammar_definition > /dev/null || exit
 ANTLR_PY_GEN_DIR="$ANTLR_GEN_DIR/python"
+mkdir -p "$ANTLR_PY_GEN_DIR"
 antlr4 -visitor -Dlanguage=Python3 -o "$ANTLR_PY_GEN_DIR" XMLLexer.g4
 antlr4 -visitor -Dlanguage=Python3 -o "$ANTLR_PY_GEN_DIR" XMLParser.g4
 antlr4 -visitor -Dlanguage=Python3 -o "$ANTLR_PY_GEN_DIR" POU.g4
@@ -16,5 +17,4 @@ echo "" > "./$ANTLR_PY_GEN_DIR/__init__.py"
 
 # Move all the generated files to their actual location
 mv "$ANTLR_GEN_DIR" "../"
-git add -f "../$ANTLR_GEN_DIR"
 popd > /dev/null || exit
