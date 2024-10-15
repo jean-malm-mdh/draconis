@@ -19,6 +19,17 @@ class MetricsModel(models.Model):
         metrics = cls(block_program=program_id, core_metrics=core_metrics_json, additional_metrics=additional_metrics)
         return metrics
 
+class DiffModel(models.Model):
+    prog1 = models.ForeignKey(BlockModel, on_delete=models.CASCADE, related_name="firstProg")
+    prog2 = models.ForeignKey(BlockModel, on_delete=models.CASCADE, related_name="secondProg")
+
+    diff_report_infotext = models.TextField(verbose_name="Diff Info")
+    # The picture is in SVG format, so represent using text
+    diff_picture = models.TextField(verbose_name="Diff Image")
+
+    @classmethod
+    def create(cls, prog1, prog2, report_info, diff_picture):
+        return cls(prog1=prog1, prog2=prog2, diff_report_infotext=report_info, diff_picture=diff_picture)
 
 class ReportModel(models.Model):
     class ReportReviewStatus(models.IntegerChoices):

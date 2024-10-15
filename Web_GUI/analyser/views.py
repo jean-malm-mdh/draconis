@@ -1,13 +1,14 @@
+import itertools
 import os.path
 import sys
 
 from django.forms import formset_factory
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 
 from .forms import BlockModelForm, MetricsModelForm
-from .models import BlockModel, ReportModel, MetricsModel
-from .utility_functions import renderToReport, getImageDiffAsSvg, make_and_save_program_model_instance, \
+from .models import BlockModel, ReportModel, MetricsModel, DiffModel
+from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
     get_file_content_as_single_string
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
@@ -26,28 +27,50 @@ def diff_page(request):
         diffData = dict()
 
     if request.method == "POST":
-        fileHandles = request.FILES.values()
-        programs = [parse_pou_content(get_file_content_as_single_string(f)) for f in fileHandles]
-        prog1 = programs[0]
-        prog2 = programs[1]
-        diffData["data"] = "\n".join(prog1.compute_delta(prog2)).replace("\n", "<br>")
+        selected_models = request.POST.getlist("diff_selections[]")
         renderScale = 5.0
-        renderToReport(diffData, "ImageSVG1", programs[0], renderScale)
-        renderToReport(diffData, "ImageSVG2", programs[1], renderScale)
-        diffpath = getImageDiffAsSvg(programs[0], programs[1], ANALYSER_DATA_STORE_PATH, renderscale=renderScale)
-        if diffpath:
-            diffData["diffPath"] = diffpath
-        return render(request, "analyser/diff_result.html",
-                      context=diffData)
+        if selected_models is not None:
+            fileHandles = [get_object_or_404(BlockModel, pk=int(ID)) for ID in selected_models]
+            programs = dict((f.id, parse_pou_content(get_file_content_as_single_string(f.program_content))) for f in fileHandles)
+            all_pairs = itertools.combinations(fileHandles, 2)
+            diffData["data"] = []
+            for p1, p2 in all_pairs:
+                new_diff = None
+                # TODO: The lookup should be symmetric. For now we don't care
+                diff_entry = DiffModel.objects.filter(prog1=p1, prog2=p2)
+                prog1 = programs.get(p1.pk)
+                prog2 = programs.get(p2.pk)
+                if len(diff_entry) == 0:
+                    # No diff has been done between these two program instances
+                    # Generate diff, then save in DB
+                    delta_report = "\n".join(prog1.compute_delta(prog2)).replace("\n", "<br>")
 
+                    diff_img_path = make_and_save_diff_image(prog1, prog2, ANALYSER_DATA_STORE_PATH,
+                                                             renderscale=renderScale,
+                                                             name_postfix=f"_{p1.pk}_{p2.pk}")
+                    new_diff = DiffModel.create(
+                        p1, p2, delta_report, diff_img_path
+                    )
+                    new_diff.save()
+                else:
+                    assert len(diff_entry) == 1
+                    new_diff = diff_entry[0]
+                assert isinstance(new_diff, DiffModel)
+
+                diffData["data"].append((new_diff.diff_report_infotext,
+                                         (renderToReport("ImageSVG_" + str(p1.pk), prog1, renderScale),
+                                          renderToReport("ImageSVG_" + str(p2.pk), prog2, renderScale)),
+                                         new_diff.diff_picture))
+
+            return render(request, "analyser/diff_result.html",
+                          context=diffData)
     else:
-        # Create the formset
-        diffData["modelFormSet"] = BlockModelFormset_Differ()
-        return render(request, "analyser/diff.html", context=diffData)
+        return HttpResponseBadRequest("Only accepts POST requests")
 
 
 def start_page(request):
     return render(request, "analyser/index.html")
+
 
 def model_upload_page(request):
     if request.GET.get("dark", None) is not None:
@@ -81,8 +104,6 @@ def reports_page(request, model_id):
     JUSTIFICATION_NAME = "justification"
     NOTE_NAME = "made_note"
     FALSE_POSITIVE_NAME = "false_positive"
-
-
 
     def handle_post_requests():
         data = request.POST
@@ -126,9 +147,10 @@ def reports_page(request, model_id):
                "REPORT_ID_NAME": REPORT_ID_NAME,
                "JUSTIFICATION_NAME": JUSTIFICATION_NAME,
                "NOTE_NAME": NOTE_NAME,
-               "FALSE_POSITIVE_NAME": FALSE_POSITIVE_NAME,}
+               "FALSE_POSITIVE_NAME": FALSE_POSITIVE_NAME, }
     return render(request, "analyser/modelreport.html",
                   context)
+
 
 def false_positive_page(request):
     def handle_post_response():
@@ -136,11 +158,13 @@ def false_positive_page(request):
         ##
         # Send report to Admin
         pass
+
     if request.method == "POST":
         handle_post_response()
     reports = get_list_or_404(ReportModel, report_review_status=ReportModel.ReportReviewStatus.FALSE_POSITIVE)
     report_model_pairs = [(rep, rep.block_program) for rep in reports]
     return render(request, "analyser/falsepositives.html", {"report_models": report_model_pairs})
+
 
 def models_page(request):
     models = BlockModel.objects.all()

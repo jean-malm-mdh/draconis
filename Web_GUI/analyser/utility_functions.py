@@ -14,11 +14,10 @@ from draconis_parser.renderer import render_program_to_svg, generate_image_of_pr
 from draconis_parser.helper_functions import parse_pou_content
 
 
-def renderToReport(reportData, imageName, program, scale=None):
+def renderToReport(imageName, program, scale=None):
     _scale = scale or 7.0
     imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, _scale)
-    reportData[imageName] = imageSVGString
-    reportData[imageName + "_Size"] = (imageWidth, imageHeight)
+    return imageSVGString, imageWidth, imageHeight
 
 def highlight_differences_in_red(img1, img2):
     diff = ImageChops.difference(img1, img2)
@@ -38,17 +37,17 @@ def highlight_differences_in_red(img1, img2):
                 result.putpixel((x, y), img1.getpixel((x, y)))  # Original color
     return result
 
-def getImageDiffAsSvg(program1, program2, storage_path: str, renderscale=5.0):
+def make_and_save_diff_image(program1, program2, storage_path: str, renderscale=5.0, name_postfix=""):
     fpp_dir = tempfile.gettempdir()
     fpp = os.path.join(fpp_dir, "prog1.jpg")
     fpp2 = os.path.join(fpp_dir, "prog2.jpg")
-    fpp_diff = os.path.join(storage_path, "images", ".generated", "prog_diff.jpg")
+    fpp_diff = f"prog_diff{name_postfix}.jpg"
     generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
     generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
     img1 = Image.open(fpp)
     img2 = Image.open(fpp2)
     diff = highlight_differences_in_red(img1, img2)
-    diff.save(fpp_diff)
+    diff.save(os.path.join(storage_path, "images", ".generated", fpp_diff))
     return fpp_diff
 
 

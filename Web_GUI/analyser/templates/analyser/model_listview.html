@@ -3,14 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Models Analysed</title>
-    <h1>Models Analysed</h1>
-    <table>
-    {% for model in models %}
-        <tr><td><a href="http://127.0.0.1:8000/{{model.id}}/report">{{model.program_name}} --- {{model.uploaded_at}}</a></td></tr>
-        {% endfor %}
-    </table>
 </head>
 <body>
+    <h1>Models Analysed</h1>
 
+    <form method="POST" action="{% url 'diff' %}">
+        {% csrf_token %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Uploaded At</th>
+                    <th>Diff</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for model in models %}
+                <tr>
+                    <td><a href="http://127.0.0.1:8000/{{ model.id }}/report">
+                        {{ model.program_name }}
+                    </a></td>
+                    <td>{{ model.uploaded_at }}</td>
+                    <td><div><input type="checkbox" name="diff_selections[]" value="{{ model.id }}"></div></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <button type="submit">Run Diff</button>
+    </form>
 </body>
 </html>
