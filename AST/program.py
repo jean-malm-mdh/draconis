@@ -28,6 +28,13 @@ class Program:
     lines: List[Tuple[Point, Point]]
     comments: List[CommentBox]
 
+    @classmethod
+    def VERSION(cls):
+        MAJOR = 0
+        MINOR = 4
+        REVISION = 0
+        return (MAJOR, MINOR, REVISION)
+
     def toJSON(self):
         import json
 
