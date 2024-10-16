@@ -7,7 +7,6 @@ if this_dirname not in sys.path:
     sys.path.insert(0, this_dirname)
 from draconis_parser import Program, ParameterType, VariableWorkSheet, VariableLine, VariableGroup
 from AST import strToValType, strToVariableType
-print(sys.path)
 from antlr_generated.python.POUVisitor import POUVisitor
 from antlr_generated.python.POUParser import POUParser
 
