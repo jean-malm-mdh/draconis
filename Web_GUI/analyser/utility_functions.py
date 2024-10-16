@@ -1,12 +1,15 @@
+import io
 import json
+import logging
 import os
 import subprocess
 import tempfile
 import sys
+from typing import List
 
 from django.db.models.fields.files import FieldFile
 
-from .models import ReportModel, MetricsModel
+from .models import ReportModel, MetricsModel, BlockModel
 from PIL import Image, ImageChops
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
@@ -18,6 +21,7 @@ def renderToReport(imageName, program, scale=None):
     _scale = scale or 7.0
     imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, _scale)
     return imageSVGString, imageWidth, imageHeight
+
 
 def highlight_differences_in_red(img1, img2):
     diff = ImageChops.difference(img1, img2)
@@ -36,6 +40,7 @@ def highlight_differences_in_red(img1, img2):
             else:
                 result.putpixel((x, y), img1.getpixel((x, y)))  # Original color
     return result
+
 
 def make_and_save_diff_image(program1, program2, storage_path: str, renderscale=5.0, name_postfix=""):
     fpp_dir = tempfile.gettempdir()
@@ -121,3 +126,48 @@ def replace_fst_with_snd(collection, fst, snd):
             return v
 
     return [replace_if_matches(e, fst, snd) for e in collection]
+
+
+def make_excel_report(model: BlockModel, metrics: MetricsModel, reports: List[ReportModel]):
+    import xlsxwriter as xls
+    # Create report file
+    output = io.BytesIO()
+    workbook = xls.Workbook(output,
+                            {
+                                'in_memory': True,
+                                'strings_to_numbers': True})
+    metrics_sheet = workbook.add_worksheet("Metrics")
+    core_metrics = metrics.core_metrics
+    additional_metrics = metrics.additional_metrics
+    metrics_sheet.write(0, 0, model.program_name)
+    row = 1
+    for k, v in core_metrics.items():
+        metrics_sheet.write(row, 0, k)
+
+        metrics_sheet.write(row, 1, v)
+        row += 1
+    for k, v in additional_metrics.items():
+        metrics_sheet.write(row, 0, k)
+        metrics_sheet.write(row, 1, v)
+        row += 1
+    report_sheet = workbook.add_worksheet("Reports")
+    header_strs = ["Check ID", "Content", "Status",
+                   "Review Notes", "Review Status", "Justifications"]
+    for i, s in enumerate(header_strs):
+        report_sheet.write(0, i, s)
+
+    row = 1
+    for rep in reports:
+        for i, v in enumerate(rep.get_stringified_fields()):
+            report_sheet.write(row, i, v)
+
+        row += 1
+
+    metrics_sheet.autofit()
+    report_sheet.autofit()
+
+    workbook.close()
+    output.seek(0)
+    filename = f"{model.program_name}_Report.xlsx"
+    return output, filename
+

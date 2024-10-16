@@ -1,15 +1,16 @@
 import itertools
 import os.path
 import sys
+from wsgiref.util import FileWrapper
 
 from django.forms import formset_factory
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 
 from .forms import BlockModelForm, MetricsModelForm
 from .models import BlockModel, ReportModel, MetricsModel, DiffModel
 from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
-    get_file_content_as_single_string
+    get_file_content_as_single_string, make_excel_report
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.helper_functions import parse_pou_content
@@ -31,7 +32,8 @@ def diff_page(request):
         renderScale = 5.0
         if selected_models is not None:
             fileHandles = [get_object_or_404(BlockModel, pk=int(ID)) for ID in selected_models]
-            programs = dict((f.id, parse_pou_content(get_file_content_as_single_string(f.program_content))) for f in fileHandles)
+            programs = dict(
+                (f.id, parse_pou_content(get_file_content_as_single_string(f.program_content))) for f in fileHandles)
             all_pairs = itertools.combinations(fileHandles, 2)
             diffData["data"] = []
             for p1, p2 in all_pairs:
@@ -108,35 +110,53 @@ def reports_page(request, model_id):
     def handle_post_requests():
         data = request.POST
 
-        # Helper function to update the report based on the provided field and status
-        def update_report(report_id, text, field_name, status):
-            if text is not None:
-                the_report = get_object_or_404(ReportModel, pk=report_id)
-                current_notes = getattr(the_report, field_name)
-                updated_notes = "\n".join([current_notes, text]).strip()
-                setattr(the_report, field_name, updated_notes)
-                the_report.report_review_status = status
-                the_report.save()
+        def handle_review_update(post_data):
+            # Helper function to update the report based on the provided field and status
+            def update_report(report_id, text, field_name, status):
+                if text is not None:
+                    the_report = get_object_or_404(ReportModel, pk=report_id)
+                    current_notes = getattr(the_report, field_name)
+                    updated_notes = "\n".join([current_notes, text]).strip()
+                    setattr(the_report, field_name, updated_notes)
+                    the_report.report_review_status = status
+                    the_report.save()
 
-        # Retrieve report ID once, as it's used for all updates
-        report_id = data.get(REPORT_ID_NAME)
+            # Retrieve report ID once, as it's used for all updates
+            report_id = post_data.get(REPORT_ID_NAME)
+            # Handle justification
+            justification_text = post_data.get(JUSTIFICATION_NAME)
+            update_report(report_id, justification_text, 'report_justification_notes',
+                          ReportModel.ReportReviewStatus.JUSTIFIED)
+            # Handle review notes
+            note_text = post_data.get(NOTE_NAME)
+            update_report(report_id, note_text, 'report_review_notes', ReportModel.ReportReviewStatus.REVIEWED)
+            # Handle false positive
+            false_positive_text = post_data.get(FALSE_POSITIVE_NAME)
+            update_report(report_id, false_positive_text, 'report_review_notes',
+                          ReportModel.ReportReviewStatus.FALSE_POSITIVE)
 
-        # Handle justification
-        justification_text = data.get(JUSTIFICATION_NAME)
-        update_report(report_id, justification_text, 'report_justification_notes',
-                      ReportModel.ReportReviewStatus.JUSTIFIED)
+        def handle_actions(post_data):
+            if post_data.get("Download", None) is not None:
+                model = get_object_or_404(BlockModel, pk=model_id)
+                metrics = get_object_or_404(MetricsModel, block_program=model_id)
+                the_reports = get_list_or_404(ReportModel, block_program_id=model_id)
 
-        # Handle review notes
-        note_text = data.get(NOTE_NAME)
-        update_report(report_id, note_text, 'report_review_notes', ReportModel.ReportReviewStatus.REVIEWED)
+                report_file, file_name = make_excel_report(model, metrics, the_reports)
+                response = FileResponse(report_file,
+                                        as_attachment=True,
+                                        filename=file_name)
+                return response
 
-        # Handle false positive
-        false_positive_text = data.get(FALSE_POSITIVE_NAME)
-        update_report(report_id, false_positive_text, 'report_review_notes',
-                      ReportModel.ReportReviewStatus.FALSE_POSITIVE)
+            return None
+
+        handle_review_update(data)
+        return handle_actions(data)
 
     if request.method == "POST":
-        handle_post_requests()
+        resp = handle_post_requests()
+        if resp is not None:
+            # Handle response
+            return resp
     model_inst = get_object_or_404(BlockModel, pk=model_id)
     reports = get_list_or_404(ReportModel, block_program_id=model_id)
     mapper = ReportModel.ReportReviewStatus.get_value_to_label_map()

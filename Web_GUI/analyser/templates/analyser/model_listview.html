@@ -20,7 +20,7 @@
             <tbody>
             {% for model in models %}
                 <tr>
-                    <td><a href="http://127.0.0.1:8000/{{ model.id }}/report">
+                    <td><a href="{% url 'report' model.id %}">
                         {{ model.program_name }}
                     </a></td>
                     <td>{{ model.uploaded_at }}</td>
