@@ -17,7 +17,7 @@ from draconis_parser.renderer import render_program_to_svg, generate_image_of_pr
 from draconis_parser.helper_functions import parse_pou_content
 
 
-def renderToReport(imageName, program, scale=None):
+def renderToReport(program, scale=None):
     _scale = scale or 7.0
     imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, _scale)
     return imageSVGString, imageWidth, imageHeight

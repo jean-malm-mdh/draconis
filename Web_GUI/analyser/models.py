@@ -94,3 +94,4 @@ class ReportModel(models.Model):
                      report_check_status=int(it_passed),
                      report_review_notes="")
         return report
+

@@ -1,4 +1,5 @@
 import itertools
+import json
 import os.path
 import sys
 from wsgiref.util import FileWrapper
@@ -138,10 +139,10 @@ def reports_page(request, model_id):
         def handle_actions(post_data):
             if post_data.get("Download", None) is not None:
                 model = get_object_or_404(BlockModel, pk=model_id)
-                metrics = get_object_or_404(MetricsModel, block_program=model_id)
+                the_metrics = get_object_or_404(MetricsModel, block_program=model_id)
                 the_reports = get_list_or_404(ReportModel, block_program_id=model_id)
 
-                report_file, file_name = make_excel_report(model, metrics, the_reports)
+                report_file, file_name = make_excel_report(model, the_metrics, the_reports)
                 response = FileResponse(report_file,
                                         as_attachment=True,
                                         filename=file_name)
@@ -159,15 +160,21 @@ def reports_page(request, model_id):
             return resp
     model_inst = get_object_or_404(BlockModel, pk=model_id)
     reports = get_list_or_404(ReportModel, block_program_id=model_id)
+    metrics = get_object_or_404(MetricsModel, block_program=model_id)
     mapper = ReportModel.ReportReviewStatus.get_value_to_label_map()
     report_status_pairs = [(rep, mapper.get(rep.report_review_status))
                            for rep in reports]
+
     context = {"model": model_inst, "reports": report_status_pairs,
                # Some constants to reduce code duplication between template and logic
                "REPORT_ID_NAME": REPORT_ID_NAME,
                "JUSTIFICATION_NAME": JUSTIFICATION_NAME,
                "NOTE_NAME": NOTE_NAME,
-               "FALSE_POSITIVE_NAME": FALSE_POSITIVE_NAME, }
+               "FALSE_POSITIVE_NAME": FALSE_POSITIVE_NAME,
+               "Variables": json.loads(model_inst.program_variables),
+               "Dependencies": json.loads(model_inst.variable_dependencies),
+               "metrics": metrics.core_metrics,
+               "additional_metrics": metrics.additional_metrics}
     return render(request, "analyser/modelreport.html",
                   context)
 
