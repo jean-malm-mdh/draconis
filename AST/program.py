@@ -432,7 +432,8 @@ class Program:
         res["IsPotentiallyImpure"] = self.hasPotentialInternalState()
         return res
 
-    def getMetricsExplanations(self):
+    @classmethod
+    def getMetricsExplanations(cls):
         res = dict()
         res["NrOfVariables"] = "The total number of variables in the program's variable sheet"
         res["NrOfFuncBlocks"] = "The total number of function blocks in the program's work sheet"
