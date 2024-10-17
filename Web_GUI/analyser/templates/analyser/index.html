@@ -7,7 +7,7 @@
     <style>
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(1, 1fr);
             gap: 20px;
             max-width: 400px;
             margin: auto;
@@ -29,10 +29,9 @@
 <body>
 
 <div class="button-grid">
-    <a href="{% url 'Model-Upload' %}">Upload Model</a>
-    <a href="{% url 'diff' %}">Diff Page</a>
-    <a href="{% url 'Models' %}">Models</a>
-    <a href="{% url 'False-Positive-Reports' %}">False Positives Page</a>
+    <a href="{% url 'Model-Upload' %}">Analyse New Model</a>
+    <a href="{% url 'Models' %}">View all Models</a>
+    <a href="{% url 'False-Positive-Reports' %}">View False Positives Page</a>
 </div>
 
 </body>

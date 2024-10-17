@@ -9,7 +9,7 @@ from typing import List
 
 from django.db.models.fields.files import FieldFile
 
-from .models import ReportModel, MetricsModel, BlockModel
+from .models import ReportModel, MetricsModel, BlockModel, SVGModel
 from PIL import Image, ImageChops
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
@@ -97,6 +97,8 @@ def make_and_save_program_model_instance(_form, additional_metrics_form):
     (MetricsModel.create(model_instance, metrics, additional_metrics)
      .save())  # then save it
 
+    SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+    SVGModel.create(model_instance, SVG_content, width, height).save()
     variable_info = [replace_fst_with_snd(replace_fst_with_snd(vList, "UNINIT", ""),
                                           None, "") for vList in variable_info]
     metrics_info = metrics.copy()
@@ -111,7 +113,7 @@ def make_and_save_program_model_instance(_form, additional_metrics_form):
         "backward_trace": backward_trace,
         "variable_info": variable_info,
     }
-    return aProgram, report_data
+    return aProgram, report_data, model_instance.id
 
 
 def get_file_content_as_single_string(file_field: FieldFile):

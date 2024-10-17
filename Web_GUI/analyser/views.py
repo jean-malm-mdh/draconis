@@ -9,7 +9,7 @@ from django.http import Http404, HttpResponseBadRequest, HttpResponse, FileRespo
 from django.shortcuts import render, get_object_or_404, get_list_or_404
 
 from .forms import BlockModelForm, MetricsModelForm
-from .models import BlockModel, ReportModel, MetricsModel, DiffModel
+from .models import BlockModel, ReportModel, MetricsModel, DiffModel, SVGModel
 from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
     get_file_content_as_single_string, make_excel_report
 
@@ -61,8 +61,8 @@ def diff_page(request):
                 assert isinstance(new_diff, DiffModel)
 
                 diffData["data"].append((new_diff.diff_report_infotext,
-                                         (renderToReport("ImageSVG_" + str(p1.pk), prog1, renderScale),
-                                          renderToReport("ImageSVG_" + str(p2.pk), prog2, renderScale)),
+                                         (renderToReport(prog1, renderScale),
+                                          renderToReport(prog2, renderScale)),
                                          new_diff.diff_picture))
 
             return render(request, "analyser/diff_result.html",
@@ -85,12 +85,9 @@ def model_upload_page(request):
         modelform = BlockModelForm(request.POST, request.FILES, prefix="model")
         metricsform = MetricsModelForm(request.POST, request.FILES, prefix="metrics")
         if all([modelform.is_valid(), metricsform.is_valid()]):
-            program, reportData = make_and_save_program_model_instance(modelform, metricsform)
+            program, reportData, _model_instance = make_and_save_program_model_instance(modelform, metricsform)
             for k, v in reportData.items():
                 pageData[k] = v
-            shouldRenderImage = True
-            if shouldRenderImage:
-                renderToReport(pageData, "ImageSVG", program)
             return render(request, "analyser/pou_report.html", pageData)
         else:
             pageData["modelForm"] = modelform
@@ -175,6 +172,19 @@ def reports_page(request, model_id):
                "Dependencies": json.loads(model_inst.variable_dependencies),
                "metrics": metrics.core_metrics,
                "additional_metrics": metrics.additional_metrics}
+    SVG = SVGModel.objects.filter(block_program=model_id)
+    if len(SVG) == 0:
+        # Legacy - no SVG exists for model
+        # Some error handling should exist in the render template
+        program_content = get_file_content_as_single_string(model_inst.program_content)
+        aProgram = parse_pou_content(program_content)
+        SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+        SVGModel.create(model_inst, SVG_content, width, height).save()
+        pass
+    else:
+        assert len(SVG) == 1
+        context["modelSVG"] = (SVG[0].svg_content,
+                              SVG[0].svg_width, SVG[0].svg_height)
     return render(request, "analyser/modelreport.html",
                   context)
 

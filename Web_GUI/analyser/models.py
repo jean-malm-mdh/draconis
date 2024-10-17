@@ -13,7 +13,7 @@ class BlockModel(models.Model):
 class MetricsModel(models.Model):
     block_program = models.ForeignKey(BlockModel, on_delete=models.CASCADE)
     core_metrics = models.JSONField(verbose_name="Program Metrics", blank=False)
-    additional_metrics = models.JSONField(verbose_name="External Metrics", blank=False, default=dict)
+    additional_metrics = models.JSONField(verbose_name="External Metrics", blank=True, default=dict)
 
     @classmethod
     def create(cls, program_id, core_metrics_json, additional_metrics=None):
@@ -73,7 +73,6 @@ class ReportModel(models.Model):
     def __str__(self):
         return self.report_content
 
-
     def get_stringified_fields(self):
         return [
             self.check_name,
@@ -95,3 +94,17 @@ class ReportModel(models.Model):
                      report_review_notes="")
         return report
 
+
+class SVGModel(models.Model):
+    block_program = models.ForeignKey(BlockModel, on_delete=models.CASCADE)
+    svg_content = models.TextField()
+    svg_width = models.IntegerField()
+    svg_height = models.IntegerField()
+
+    @classmethod
+    def create(cls, prog_id, svg_content, width, height):
+        svg_model = cls(block_program=prog_id,
+                        svg_content=svg_content,
+                        svg_width=width,
+                        svg_height=height)
+        return svg_model
