@@ -1,17 +1,22 @@
+import http
+import io
 import itertools
 import json
+import logging
 import os.path
 import sys
-from wsgiref.util import FileWrapper
 
 from django.forms import formset_factory
 from django.http import Http404, HttpResponseBadRequest, HttpResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, get_list_or_404
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils.datastructures import MultiValueDict
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import BlockModelForm, MetricsModelForm
 from .models import BlockModel, ReportModel, MetricsModel, DiffModel, SVGModel
 from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
-    get_file_content_as_single_string, make_excel_report
+    get_file_content_as_single_string, make_excel_report, from_model_content_create_and_add_model_in_db
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.helper_functions import parse_pou_content
@@ -75,15 +80,47 @@ def start_page(request):
     return render(request, "analyser/index.html")
 
 
+@csrf_exempt
+def batch_page(request):
+    """
+    The view/entrypoint used for serving programmatically uploaded files
+    """
+    # Check if user has provided the files
+    the_program_file = request.FILES.get("program_file_path", None)
+    the_metrics_file = request.FILES.get("metrics_file_path", None)
+    if the_program_file is not None:
+        files = MultiValueDict()
+        files.setlist('program_content', [the_program_file])
+
+        # But the metrics file is optional, otherwise defaults to an empty dict
+        if the_metrics_file is not None:
+            files.setlist('additional_metrics', [the_metrics_file])
+
+        else:
+            metrics_file_mem = InMemoryUploadedFile(io.BytesIO("{}".encode(encoding="utf-8")),
+                                                    'file', "___metric_empty___.json",
+                                                    None, len("{}"), None)
+            files.setlist('additional_metrics', [metrics_file_mem])
+
+        additional_metrics_json = get_file_content_as_single_string(files.getlist('additional_metrics')[0])
+        print(additional_metrics_json)
+        program, prog_model_id = from_model_content_create_and_add_model_in_db(the_program_file,
+                                                                      additional_metrics_json)
+        return HttpResponse(f"<p>Models are uploaded and analysed</p>",
+                            status=http.HTTPStatus.OK)
+
+    return HttpResponseBadRequest()
+
+
 def model_upload_page(request):
     if request.GET.get("dark", None) is not None:
         pageData = {"darkMode": True}
     else:
         pageData = dict()
-
     if request.method == "POST":
         modelform = BlockModelForm(request.POST, request.FILES, prefix="model")
         metricsform = MetricsModelForm(request.POST, request.FILES, prefix="metrics")
+
         if all([modelform.is_valid(), metricsform.is_valid()]):
             program, reportData, _model_instance = make_and_save_program_model_instance(modelform, metricsform)
             for k, v in reportData.items():
@@ -184,7 +221,7 @@ def reports_page(request, model_id):
     else:
         assert len(SVG) == 1
         context["modelSVG"] = (SVG[0].svg_content,
-                              SVG[0].svg_width, SVG[0].svg_height)
+                               SVG[0].svg_width, SVG[0].svg_height)
     return render(request, "analyser/modelreport.html",
                   context)
 

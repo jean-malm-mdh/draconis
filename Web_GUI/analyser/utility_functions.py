@@ -56,6 +56,49 @@ def make_and_save_diff_image(program1, program2, storage_path: str, renderscale=
     return fpp_diff
 
 
+def from_model_content_create_and_add_model_in_db(program_file, additional_metrics_json_str):
+
+    program_content = get_file_content_as_single_string(program_file)
+    aProgram = parse_pou_content(program_content)
+
+    reports = [[v0, v1, v2.replace("\n", "<br>")] for [v0, v1, v2] in (aProgram.check_rules())]
+
+    variable_info = aProgram.getVarDataColumns(
+        "name", "paramType", "valueType", "initVal", "description"
+    )
+    backward_trace = aProgram.getDependencyPathsByName()
+
+    # Populate model instance object based on analysis
+    model_instance = BlockModel.create(aProgram.progName,
+                                       program_file,
+                                       json.dumps(variable_info),
+                                       json.dumps(backward_trace))
+
+    # Finally, save the analysed model instance to DB
+    # We do this first to generate the primary key value
+    # As this is needed for the report generation step
+    model_instance.save()
+    # Create ReportModel objects for each report
+    # Note: model_instance.id is the primary key for the model
+    for (ruleName, verdict, explanation) in reports:
+        (ReportModel.create(model_instance,
+                            ruleName,
+                            report_text=explanation,
+                            it_passed=verdict == "Pass")
+         .save())
+    # Compute the DRACONIS Core metrics
+    metrics = aProgram.getMetrics()
+
+    # Create Metrics objects for the core metrics
+    (MetricsModel.create(model_instance, metrics, additional_metrics_json_str)
+     .save())  # then save it
+
+    # Finally, we create the SVG model
+    SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+    SVGModel.create(model_instance, SVG_content, width, height).save()
+
+    return aProgram, model_instance.id
+
 def make_and_save_program_model_instance(_form, additional_metrics_form):
     model_instance = _form.save(commit=False)
     metrics_instance = additional_metrics_form.save(commit=False)

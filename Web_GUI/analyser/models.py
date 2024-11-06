@@ -9,6 +9,12 @@ class BlockModel(models.Model):
     program_variables = models.JSONField(verbose_name="Program Variables", blank=False)
     variable_dependencies = models.JSONField("Dependency analysis", blank=False)
 
+    @classmethod
+    def create(cls, program_name, program_content, program_variables, variable_dependencies):
+        program = cls(program_name=program_name, program_content=program_content,
+                      program_variables=program_variables, variable_dependencies=variable_dependencies)
+        return program
+
 
 class MetricsModel(models.Model):
     block_program = models.ForeignKey(BlockModel, on_delete=models.CASCADE)
