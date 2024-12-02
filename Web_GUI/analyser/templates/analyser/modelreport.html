@@ -73,6 +73,7 @@
         <td class="report-entry">{{status_str}}</td>
         <td>{{ report.report_justification_notes }}</td>
         <td>
+            <button class="open-note" onclick="openForm('NoteForm_{{ report.id }}')">Add Note</button>
             <button class="open-justification" onclick="openForm('JustificationForm_{{ report.id }}')">Justify Failure</button>
             <button class="open-false-positive" onclick="openForm('FalsePositiveForm_{{ report.id }}')">Alert As False Positive</button>
         </td>
@@ -98,7 +99,8 @@
             {{status_str}}
         </td>
         <td>{{ report.report_review_notes }}</td>
-        <td><button class="open-note" onclick="openForm('NoteForm_{{ report.id }}')">Add Note</button>
+        <td>
+            <button class="open-note" onclick="openForm('NoteForm_{{ report.id }}')">Add Note</button>
             <button class="open-false-positive" onclick="openForm('FalsePositiveForm_{{ report.id }}')">Alert As False Positive</button>
         </td>
         {% endif %}
@@ -208,44 +210,43 @@
               <form action="./report" class="form-container" method="post">
                 {% csrf_token %}
                 <p>Justify Failure: {{report}}</p>
-
                 <label for="justification"><b>Justification</b></label>
                 <input type="text" placeholder="" name="{{JUSTIFICATION_NAME}}" required>
-                  <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
+                <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
 
                 <button type="submit" class="btn">Submit</button>
-                <button type="button" class="btn cancel" onclick="closeForm('JustificationForm_{{report.id}}')">Close</button>
+                <button type="button" class="btn cancel"
+                        onclick="closeForm('JustificationForm_{{report.id}}')">Close</button>
               </form>
             </div>
-        {% else %}
+        {% endif %}
             <div class="form-popup" id="NoteForm_{{report.id}}">
               <form action="./report" class="form-container" method="post">
                 {% csrf_token %}
                 <p>Add Note for: {{report}}</p>
-
                 <label for="note"><b>Note</b></label>
                 <input type="text" placeholder="" name="{{NOTE_NAME}}" required>
-                  <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
+                <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
 
                 <button type="submit" class="btn">Submit</button>
-                <button type="button" class="btn cancel" onclick="closeForm('NoteForm_{{report.id}}')">Close</button>
+                <button type="button" class="btn cancel"
+                        onclick="closeForm('NoteForm_{{report.id}}')">Close</button>
               </form>
             </div>
 
-        {% endif %}
             <div class="form-popup" id="FalsePositiveForm_{{report.id}}">
               <form action="./report" class="form-container" method="post">
                 {% csrf_token %}
                 <p>Note for Marking Report as False Positive: {{report}}</p>
                 <label for="note"><b>False Positive</b></label>
                 <input type="text" placeholder="" name="{{FALSE_POSITIVE_NAME}}" required>
-                  <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
+                <input type="hidden" value="{{report.id}}" name="{{REPORT_ID_NAME}}" required>
 
                 <button type="submit" class="btn">Submit</button>
-                <button type="button" class="btn cancel" onclick="closeForm('FalsePositiveForm_{{report.id}}')">Close</button>
+                <button type="button" class="btn cancel"
+                        onclick="closeForm('FalsePositiveForm_{{report.id}}')">Close</button>
               </form>
             </div>
-
         {% endfor %}
     <p><a href="../models">Go back to the models list view</a></p>
 

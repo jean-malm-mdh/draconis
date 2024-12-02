@@ -28,7 +28,9 @@ urlpatterns = [
     path("models/", views.models_page, name="Models"),
     path("dev/false-positives/", views.false_positive_page, name="False-Positive-Reports"),
     path("<int:model_id>/report", views.reports_page, name="report"),
+    path("<int:model_id>/append_metrics", views.append_metrics, name="Metrics-Append"),
     path("batch", views.batch_page, name="Batch-Upload"),
+
 ]
 
 if settings.DEBUG:

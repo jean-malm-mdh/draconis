@@ -394,7 +394,6 @@ class Program:
 
             return res
 
-        # http://mdh.diva-portal.org/smash/get/diva2:1113035/FULLTEXT01.pdf
         nr_of_variables = len(self.varHeader.getAllVariables())
         nr_of_blocks = len(self.behaviourElements)
 
@@ -524,7 +523,8 @@ class Program:
                         )
                     if pot_block1.data.type != pot_block2.data.type:
                         _result.append(
-                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'. Re-run functional checks"
+                            f"Block '{pot_block1.data.type}' changed to '{pot_block2.data.type}'."
+                            f"Re-run functional checks"
                         )
                 if pot_block1.getBlockType() == "Port" and pot_block2.getBlockType() == "Port":
                     assert isinstance(pot_block1, VarBlock)
@@ -715,7 +715,7 @@ class Program:
         def evaluate_initialization_rule():
             ruleName = "FBD.Variables.Initialization"
             verdict = "Pass"
-            justification = "No useless initializations are done"
+            justification = "Given that the memory always starts zeroed out, no useless initializations are done"
 
             return evaluate_rule(
                 ruleName, verdict, justification, functools.partial(check_useless_initializations, self)

@@ -81,6 +81,29 @@ def start_page(request):
 
 
 @csrf_exempt
+def append_metrics(request, model_id):
+    if request.method == "POST":
+        additional_metrics = request.FILES.get("additional_metrics", None)
+        if model_id is None or additional_metrics is None:
+            resp = HttpResponseBadRequest()
+            resp.content = "Both model id and additional metrics file needs to be provided"
+            return resp
+
+        target_metrics_model = get_object_or_404(MetricsModel, block_program=model_id)
+        new_metrics = json.load(additional_metrics)
+
+        # add any metrics that do not already exist
+        # If they are different, assume newer is better => overwrite all
+        for metrics_id, metrics_value in new_metrics.items():
+            target_metrics_model.additional_metrics[metrics_id] = metrics_value
+
+        target_metrics_model.save()
+        return HttpResponse(content=f"<p>New Metrics added to model {model_id})</p>",
+                            status=200)
+    else:
+        return HttpResponseBadRequest("Only accepts POST requests")
+
+@csrf_exempt
 def batch_page(request):
     """
     The view/entrypoint used for serving programmatically uploaded files
@@ -242,4 +265,5 @@ def false_positive_page(request):
 
 def models_page(request):
     models = BlockModel.objects.all()
-    return render(request, "analyser/model_listview.html", {"models": models})
+    context_data = {"models": models}
+    return render(request, "analyser/model_listview.html", context_data)
