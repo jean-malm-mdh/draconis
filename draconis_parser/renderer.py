@@ -12,13 +12,15 @@ from html_sanitizer import Sanitizer
 
 DRACONIS_FONT = os.environ.get("DRACONIS_FONT", None)
 
-def get_text_bb_size(text: str, font:ImageFont.ImageFont, fontCharHeight: int):
+
+def get_text_bb_size(text: str, font: ImageFont.ImageFont, fontCharHeight: int):
     # width = length of longest row * fontCharWidth
     if text == "":
-        return (0,0)
+        return (0, 0)
     rows = "\n".split(text.replace("\t", "    "))
     longest_row = functools.reduce(max, [font.getlength(s) for s in rows])
     return (longest_row, fontCharHeight * len(rows))
+
 
 @dataclasses.dataclass
 class DrawContext:
@@ -49,7 +51,7 @@ class DrawContext:
             self, msg, position: Tuple[int, int], font_name, col="black"
     ):
         font = self.fonts.get(font_name, None) or self.fonts["__DEFAULT__"]
-        text_width, text_height = font.getbbox(msg)#self.canvas.textsize(msg, font)
+        text_width, text_height = font.getbbox(msg)  # self.canvas.textsize(msg, font)
         p_x, p_y = position
         p_x -= text_width // 2
         p_y -= text_height // 2
@@ -344,7 +346,105 @@ def render_block(aBlock, scalerFunc, font: ImageFont.FreeTypeFont, canvas: Image
         render_port_block(aBlock)
 
 
-def render_program_to_svg(aProgram, scale=1.0):
+def self_contained_style_header():
+    return """
+    <style>
+        body {
+background-color: white;
+}
+
+h1, h2, h3, p{
+    color: black;
+}
+
+svg {
+color: black;
+fill: black;
+}
+.diff-report-text {
+    font-size: 1.45em;
+}
+.error {
+    font-size: 1.45em;
+    stroke:red;
+    stroke-width:2;
+}
+.variant {
+    border-style: solid;
+}
+.inport {
+    fill:black;
+}
+.outport {
+    fill:black;
+}
+
+.block {
+    stroke:black;
+    stroke-width:2;
+    fill:none;
+}
+.comment_box {
+    stroke:green;
+    stroke-width:2;
+    fill:yellow;
+    opacity:0.4;
+}
+
+.signal_line {
+    stroke:black;
+    stroke-width:2;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 4px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 240px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 30%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: black transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}</style>
+        """
+
+
+def render_program_to_svg(aProgram, scale=1.0, use_dedicated_css=False):
     def scaler(int_val):
         return int(int_val * scale)
 
@@ -406,11 +506,11 @@ def render_block_to_svg(block, scalerFunc):
                 f'<rect class="{className}" x="{inp_pos_x - (port_box_width // 2)}" y="{inp_pos_y - (port_box_height // 2)}" '
                 f'width="{port_box_width}" height="{port_box_height}" />')
 
-        result = "<!-- Input ports --!>\n"
+        result = "<!-- Input ports -->\n"
         # Draw ports
         result += "\n".join([
             draw_port_box(in_port.connectionPoint, left, top) for in_port in block.getInputVars()])
-        #result += "\n<!-- Output ports --!>\n"
+        # result += "\n<!-- Output ports -->\n"
         result += "\n".join([
             draw_port_box(out_port.connectionPoint, left, top) for out_port in block.getOutputVars()])
 
@@ -421,7 +521,7 @@ def render_block_to_svg(block, scalerFunc):
         return f'<text x="{left + 5}" y="{top + 15}">{block.getVarExpr()}</text>'
 
     left, top, right, bottom = map(scalerFunc, block.data.boundary_box.getAsTuple())
-    result = f"<!-- Rendering Block {block.data.type} --!>\n"
+    result = f"<!-- Rendering Block {block.data.type} -->\n"
     result += f'<rect class="block" x="{left}" y="{top}" width="{right - left}" height="{bottom - top}"/>'
     if block.getBlockType() == "FunctionBlock":
         result += "\n" + render_as_func_block()

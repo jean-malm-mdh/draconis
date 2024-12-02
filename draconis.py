@@ -5,7 +5,8 @@ import tempfile
 
 import requests
 
-from draconis_parser.renderer import render_program_to_svg
+from draconis_parser.helper_functions import parse_pou_file
+from draconis_parser.renderer import render_program_to_svg, self_contained_style_header
 
 
 def upload(target_data, server):
@@ -41,11 +42,17 @@ def upload(target_data, server):
 
 
 def render_model(model_file, result_svg_path):
-    if not(os.path.isfile(model_file)):
+    if not (os.path.isfile(model_file)):
         return None
 
-    aProgram =
-    render_program_to_svg(aProgram, scale=7.0)
+    aProgram = parse_pou_file(model_file)
+    w, h, svg_content = render_program_to_svg(aProgram, scale=7.0)
+    style_css = self_contained_style_header()
+    result_fp = result_svg_path + ".html"
+    with open(result_fp, "w") as svg_file:
+        svg_file.write(f'<html><head>{style_css}</head><body>\n<svg width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg">{svg_content}</svg></body></html>')
+    return result_fp
+
 
 def add_metrics(target_model_id, target_metrics_json_file, server):
     if os.path.isfile(target_metrics_json_file):
@@ -67,6 +74,7 @@ def add_metrics(target_model_id, target_metrics_json_file, server):
         except requests.exceptions.RequestException as e:
             print(f"Request error: {e}")
 
+
 def main():
     parser = argparse.ArgumentParser(description="DRACONIS Command Line Tool")
     parser.add_argument("--server", default="localhost:8000", help="Server IP (defaults to localhost:8000)")
@@ -78,6 +86,12 @@ def main():
     add_metrics_parser = subparsers.add_parser("add-metric", help="Add additional metrics to existing model")
     add_metrics_parser.add_argument("--model", required=True, help="Model ID")
     add_metrics_parser.add_argument("--metrics-file", required=True, help="Metrics file to upload")
+
+    render_parser = subparsers.add_parser("render")
+    render_parser.add_argument('--model-path', required=True, help="Path to model file")
+    render_parser.add_argument('--output-path', required=True,
+                               help="Path to SVG output file. Will be overwritten if it exists")
+
     args = parser.parse_args()
 
     if args.command == "upload":
@@ -91,6 +105,12 @@ def main():
     if args.command == "add-metric":
         add_metrics(args.model, args.metrics_file, args.server)
 
+    if args.command == "render":
+        res_path = render_model(args.model_path, args.output_path)
+        if res_path is not None:
+            print("Render created at " + res_path)
+        else:
+            print("Something has gone wrong during the rendering")
 
 if __name__ == "__main__":
     main()
