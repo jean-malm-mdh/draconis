@@ -92,6 +92,9 @@ def main():
     render_parser.add_argument('--output-path', required=True,
                                help="Path to SVG output file. Will be overwritten if it exists")
 
+    render_parser = subparsers.add_parser("render-all")
+    render_parser.add_argument('--models-directory', required=True, help="Path to model file")
+
     args = parser.parse_args()
 
     if args.command == "upload":
@@ -111,6 +114,16 @@ def main():
             print("Render created at " + res_path)
         else:
             print("Something has gone wrong during the rendering")
+
+    if args.command == "render-all":
+        all_files = os.listdir(args.models_directory)
+        pou_files = [f for f in all_files if os.path.splitext(f)[1] == ".pou"]
+        for pou in pou_files:
+            res_path = render_model(os.path.join(args.models_directory, pou), os.path.join(args.models_directory, pou + ".svg"))
+            if res_path is None:
+                print(f"Failed during render of {pou}")
+                continue
+
 
 if __name__ == "__main__":
     main()
