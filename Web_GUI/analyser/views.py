@@ -14,7 +14,7 @@ from django.utils.datastructures import MultiValueDict
 from django.views.decorators.csrf import csrf_exempt
 
 from .forms import BlockModelForm, MetricsModelForm
-from .models import BlockModel, ReportModel, MetricsModel, DiffModel, SVGModel
+from .models import BlockModel, ReportModel, MetricsModel, DiffModel, SVGModel, ProjectModel
 from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
     get_file_content_as_single_string, make_excel_report, from_model_content_create_and_add_model_in_db
 
@@ -103,14 +103,25 @@ def append_metrics(request, model_id):
     else:
         return HttpResponseBadRequest("Only accepts POST requests")
 
+
 @csrf_exempt
 def batch_page(request):
     """
     The view/entrypoint used for serving programmatically uploaded files
     """
+    if request.method != "POST":
+        return HttpResponseBadRequest()
     # Check if user has provided the files
     the_program_file = request.FILES.get("program_file_path", None)
     the_metrics_file = request.FILES.get("metrics_file_path", None)
+
+    project_name = request.POST.get("project_name", None)
+    project_model = ProjectModel.objects.filter(project_name=project_name)
+    if not project_model:
+        # Project does not exist, we create it
+        project_model = ProjectModel.create(project_name).save()
+    else:
+        project_model = get_object_or_404(ProjectModel, project_name=project_name)
     if the_program_file is not None:
         files = MultiValueDict()
         files.setlist('program_content', [the_program_file])
@@ -126,9 +137,8 @@ def batch_page(request):
             files.setlist('additional_metrics', [metrics_file_mem])
 
         additional_metrics_json = get_file_content_as_single_string(files.getlist('additional_metrics')[0])
-        print(additional_metrics_json)
         program, prog_model_id = from_model_content_create_and_add_model_in_db(the_program_file,
-                                                                      additional_metrics_json)
+                                                                               additional_metrics_json, project_model)
         return HttpResponse(f"<p>Models are uploaded and analysed</p>",
                             status=http.HTTPStatus.OK)
 
@@ -263,7 +273,40 @@ def false_positive_page(request):
     return render(request, "analyser/falsepositives.html", {"report_models": report_model_pairs})
 
 
+def show_models(request, models, project_name=None):
+    context_data = {"models": models}
+    if project_name is not None:
+        context_data["project"] = project_name
+    return render(request, "analyser/model_listview.html", context_data)
+
+
 def models_page(request):
     models = BlockModel.objects.all()
-    context_data = {"models": models}
-    return render(request, "analyser/model_listview.html", context_data)
+    return show_models(request, models, project_name=None)
+
+
+def projects_page(request):
+    projects = ProjectModel.objects.all()
+    context_data = {"projects": projects}
+    return render(request, "analyser/projects_listview.html", context_data)
+
+
+def single_project_page(request, project_id):
+    project = get_object_or_404(ProjectModel, id=project_id)
+    models = get_list_or_404(BlockModel, project=project_id)
+    return show_models(request, models, project.project_name)
+
+def metrics_page(request):
+    all_models = BlockModel.objects.all()
+    all_metrics = [m.core_metrics for m in MetricsModel.objects.all()]
+    total_nr_of_models = len(all_models)
+    total_nr_potentially_impure_blocks = len([m for m in all_metrics if m["IsPotentiallyImpure"]])
+    metrics_total = {
+        "total_amount_impure_FBDs": total_nr_potentially_impure_blocks
+    }
+    for metrics in all_metrics:
+        for k,v in metrics.items():
+            thetype = type(v)
+            if type(v) is int:
+                metrics_total[k] = metrics_total.get(k, 0) + v
+    return render(request, "analyser/metrics_view.html", {"metrics": metrics_total})

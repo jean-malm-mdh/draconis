@@ -7,7 +7,7 @@
     <style>
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(1, 1fr);
+            grid-template-columns: repeat(3, 2fr);
             gap: 20px;
             max-width: 400px;
             margin: auto;
@@ -27,12 +27,14 @@
     </style>
 </head>
 <body>
-
+<h1>DRACONIS</h1>
 <div class="button-grid">
     <a href="{% url 'Model-Upload' %}">Analyse New Model</a>
     <a href="{% url 'Models' %}">View all Models</a>
+    <a href="{% url 'Projects' %}">View all Projects</a>
+    <a href="{% url 'Metrics' %}">View Metrics</a>
     <a href="{% url 'False-Positive-Reports' %}">View False Positives Page</a>
-</div>
 
+</div>
 </body>
 </html>

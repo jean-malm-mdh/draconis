@@ -1,6 +1,15 @@
 from django.db import models
 
 
+class ProjectModel(models.Model):
+    project_name = models.TextField(default="UNKNOWN")
+
+    @classmethod
+    def create(cls, project_name):
+        project = cls(project_name=project_name)
+        return project
+
+
 # Create your models here.
 class BlockModel(models.Model):
     program_name = models.TextField(blank=False)
@@ -9,10 +18,13 @@ class BlockModel(models.Model):
     program_variables = models.JSONField(verbose_name="Program Variables", blank=False)
     variable_dependencies = models.JSONField("Dependency analysis", blank=False)
 
+    project = models.ForeignKey(ProjectModel, null=True, on_delete=models.SET_NULL)
+
     @classmethod
-    def create(cls, program_name, program_content, program_variables, variable_dependencies):
+    def create(cls, program_name, program_content, program_variables, variable_dependencies, project):
         program = cls(program_name=program_name, program_content=program_content,
-                      program_variables=program_variables, variable_dependencies=variable_dependencies)
+                      program_variables=program_variables, variable_dependencies=variable_dependencies,
+                      project=project)
         return program
 
 

@@ -56,8 +56,7 @@ def make_and_save_diff_image(program1, program2, storage_path: str, renderscale=
     return fpp_diff
 
 
-def from_model_content_create_and_add_model_in_db(program_file, additional_metrics_json_str):
-
+def from_model_content_create_and_add_model_in_db(program_file, additional_metrics_json_str, project):
     program_content = get_file_content_as_single_string(program_file)
     aProgram = parse_pou_content(program_content)
 
@@ -72,7 +71,8 @@ def from_model_content_create_and_add_model_in_db(program_file, additional_metri
     model_instance = BlockModel.create(aProgram.progName,
                                        program_file,
                                        json.dumps(variable_info),
-                                       json.dumps(backward_trace))
+                                       json.dumps(backward_trace),
+                                       project)
 
     # Finally, save the analysed model instance to DB
     # We do this first to generate the primary key value
@@ -183,14 +183,17 @@ def make_excel_report(model: BlockModel, metrics: MetricsModel, reports: List[Re
                                 'strings_to_numbers': True})
     metrics_sheet = workbook.add_worksheet("Metrics")
     core_metrics = metrics.core_metrics
-    additional_metrics = metrics.additional_metrics
+    additional_metrics = json.loads(metrics.additional_metrics)
     metrics_sheet.write(0, 0, model.program_name)
+
+    # Header is row 0, hence start at one
     row = 1
     for k, v in core_metrics.items():
         metrics_sheet.write(row, 0, k)
 
         metrics_sheet.write(row, 1, v)
         row += 1
+
     for k, v in additional_metrics.items():
         metrics_sheet.write(row, 0, k)
         metrics_sheet.write(row, 1, v)

@@ -30,6 +30,9 @@ urlpatterns = [
     path("<int:model_id>/report", views.reports_page, name="report"),
     path("<int:model_id>/append_metrics", views.append_metrics, name="Metrics-Append"),
     path("batch", views.batch_page, name="Batch-Upload"),
+    path("projects/", views.projects_page, name="Projects"),
+    path("projects/<int:project_id>", views.single_project_page, name="Single-Project"),
+    path("metrics/", views.metrics_page, name="Metrics")
 
 ]
 

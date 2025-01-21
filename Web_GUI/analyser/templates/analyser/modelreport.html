@@ -118,6 +118,31 @@
 {% endif %}
 
 <h2>Additional Data</h2>
+<div style="display: inline-block; vertical-align: top;">
+    <h3>Variable Info</h3>
+    <table id="id_var_table">
+        <thead>
+        <tr>
+            <th>Variable name</th>
+            <th>Variable Type</th>
+            <th>Data Type</th>
+            <th>Initialized Value</th>
+            <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for value in Variables %}
+        <tr>
+            <td>{{value.0}}</td>
+            <td>{{value.1}}</td>
+            <td>{{value.2}}</td>
+            <td>{{value.3}}</td>
+            <td>{{value.4}}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 <div style="display: inline-block; margin-left: 30px; vertical-align: top;">
     <h3>Core Metrics</h3>
     <table id="id_metrics_table">
@@ -155,31 +180,6 @@
         <tr>
             <td>{{key}}</td>
             <td>{{value}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
-<div style="display: inline-block; vertical-align: top;">
-    <h3>Variable Info</h3>
-    <table id="id_var_table">
-        <thead>
-        <tr>
-            <th>Variable name</th>
-            <th>Variable Type</th>
-            <th>Data Type</th>
-            <th>Initialized Value</th>
-            <th>Description</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for value in Variables %}
-        <tr>
-            <td>{{value.0}}</td>
-            <td>{{value.1}}</td>
-            <td>{{value.2}}</td>
-            <td>{{value.3}}</td>
-            <td>{{value.4}}</td>
         </tr>
         {% endfor %}
         </tbody>

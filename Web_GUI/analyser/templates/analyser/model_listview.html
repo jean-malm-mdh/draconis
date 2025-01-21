@@ -5,8 +5,11 @@
     <title>Models Analysed</title>
 </head>
 <body>
+    {% if project %}
+    <h1>Models Analysed in Project {{ project }}</h1>
+    {% else %}
     <h1>Models Analysed</h1>
-
+    {% endif %}
     <form method="POST" action="{% url 'diff' %}">
         {% csrf_token %}
         <table>
