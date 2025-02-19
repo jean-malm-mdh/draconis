@@ -64,6 +64,10 @@ class ReportModel(models.Model):
         def get_value_to_label_map(cls):
             """Returns a dictionary mapping values to their string representation."""
             return {status.value: status.label for status in cls}
+        @classmethod
+        def get_label_to_value_map(cls):
+            """Returns a dictionary mapping strings to their values"""
+            return {status.label: status.value for status in cls}
 
         def __str__(self):
             return self.get_value_to_label_map()[self.value]

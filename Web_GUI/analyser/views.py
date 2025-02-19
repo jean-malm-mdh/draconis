@@ -174,6 +174,7 @@ def reports_page(request, model_id):
     JUSTIFICATION_NAME = "justification"
     NOTE_NAME = "made_note"
     FALSE_POSITIVE_NAME = "false_positive"
+    REVIEWS_CLEAR_NAME = "clear_reviews"
 
     def handle_post_requests():
         data = request.POST
@@ -189,6 +190,14 @@ def reports_page(request, model_id):
                     the_report.report_review_status = status
                     the_report.save()
 
+
+            def clear_reviews(report_id):
+                the_report = get_object_or_404(ReportModel, pk=report_id)
+                the_report.report_review_status = ReportModel.ReportReviewStatus.UN_VIEWED
+                the_report.report_review_notes = ""
+                the_report.report_justification_notes = ""
+                the_report.save()
+
             # Retrieve report ID once, as it's used for all updates
             report_id = post_data.get(REPORT_ID_NAME)
             # Handle justification
@@ -202,6 +211,9 @@ def reports_page(request, model_id):
             false_positive_text = post_data.get(FALSE_POSITIVE_NAME)
             update_report(report_id, false_positive_text, 'report_review_notes',
                           ReportModel.ReportReviewStatus.FALSE_POSITIVE)
+            report_clear_click = post_data.get(REVIEWS_CLEAR_NAME)
+            if report_clear_click:
+                clear_reviews(report_id)
 
         def handle_actions(post_data):
             if post_data.get("Download", None) is not None:
@@ -238,6 +250,7 @@ def reports_page(request, model_id):
                "JUSTIFICATION_NAME": JUSTIFICATION_NAME,
                "NOTE_NAME": NOTE_NAME,
                "FALSE_POSITIVE_NAME": FALSE_POSITIVE_NAME,
+               "REVIEWS_CLEAR_NAME": REVIEWS_CLEAR_NAME,
                "Variables": json.loads(model_inst.program_variables),
                "Dependencies": json.loads(model_inst.variable_dependencies),
                "metrics": metrics.core_metrics,
@@ -320,10 +333,25 @@ def dashboard_page(request):
     for rep in all_reports:
         check_names.add(rep.check_name)
 
+    report_label_map = ReportModel.ReportReviewStatus.get_label_to_value_map()
+    REVIEW_STATUS_UNVIEWED  = report_label_map["Unviewed"]
+    REVIEW_STATUS_REVIEWED  = report_label_map["Reviewed"]
+    REVIEW_STATUS_CONFIRMED = report_label_map["Confirmed"]
+    REVIEW_STATUS_FALSEPOS = report_label_map["False Positive"]
+    REVIEW_STATUS_JUSTIFIED = report_label_map["Justified"]
+
     check_status = {"reports": {}}
     for name in check_names:
         theReps = ReportModel.objects.filter(check_name=name)
         checks_failed = len(list(filter(lambda e: e.report_check_status == 0, theReps)))
         checks_passed = len(list(filter(lambda e: e.report_check_status == 1, theReps)))
-        check_status["reports"][name] = (checks_passed, checks_failed)
+        checks_unreviewed = len(list(filter(lambda e: e.report_review_status == REVIEW_STATUS_UNVIEWED, theReps)))
+        checks_reviewed = len(list(filter(lambda e: e.report_review_status == REVIEW_STATUS_REVIEWED, theReps)))
+        checks_confirmed = len(list(filter(lambda e: e.report_review_status == REVIEW_STATUS_CONFIRMED, theReps)))
+        checks_false_positive = len(list(filter(lambda e: e.report_review_status == REVIEW_STATUS_FALSEPOS, theReps)))
+        checks_justified = len(list(filter(lambda e: e.report_review_status == REVIEW_STATUS_JUSTIFIED, theReps)))
+        check_status["reports"][name] = (checks_passed, checks_failed,
+                                         checks_unreviewed, checks_reviewed, checks_confirmed,
+                                         checks_false_positive,
+                                         checks_justified)
     return render(request, "analyser/dashboard.html", check_status)

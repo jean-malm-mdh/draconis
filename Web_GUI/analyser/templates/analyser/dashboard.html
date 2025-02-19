@@ -15,6 +15,9 @@
 <div>
 <canvas id="passingReports" width="500" height="300"></canvas>
 </div>
+<div>
+<canvas id="review_status" width="500" height="300"></canvas>
+</div>
 </div>
 </body>
 <script>
@@ -51,11 +54,35 @@
     let names = [];
     let passes = [];
     let fails = [];
-    {% for rep_name, pass_fails in reports.items %}
+    let unviewed = [];
+    let reviewed = [];
+    let confirmed = [];
+    let false_pos = [];
+    let justified = [];
+    {% for rep_name, report_amounts in reports.items %}
     names.push("{{ rep_name }}");
-    passes.push({{ pass_fails.0 }});
-    fails.push({{ pass_fails.1 }});
+    passes.push({{ report_amounts.0 }});
+    fails.push({{ report_amounts.1 }});
+    unviewed.push({{ report_amounts.2 }});
+    reviewed.push({{ report_amounts.3 }});
+    confirmed.push({{ report_amounts.4 }});
+    false_pos.push({{ report_amounts.5 }});
+    justified.push({{ report_amounts.6 }});
     {% endfor %}
+
+    let blueish = "#79AEC8"
+    let blueish2 = "#79DEC8"
+    let redish = "#CE2020"
+    let orangeish = "#FFAE42"
+    let purplish = "#BA55FF"
+    makeChart(
+        "bar",
+        "review_status",
+        names,
+        [unviewed, reviewed, confirmed, false_pos, justified],
+        ["Report Unreviewed", "Report Reviewed", "Issue Confirmed", "False Positive", "Justified"],
+        "Number of reports per status",
+        [blueish, blueish2, redish, orangeish, purplish]);
     makeChart(
         "bar",
         "passingReports",
@@ -63,7 +90,7 @@
         [passes, fails],
         ["Passing the check", "Failing the check"],
         "Number of models passing/failing checks",
-        ["#79AEC8","#CE2020"] );
+        [blueish,redish] );
 </script>
 
 </html>
