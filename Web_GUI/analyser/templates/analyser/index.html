@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
     <style>
+        h1 {
+            text-align: center;
+        }
         .button-grid {
             display: grid;
             grid-template-columns: repeat(3, 2fr);
@@ -27,7 +30,7 @@
     </style>
 </head>
 <body>
-<h1>DRACONIS</h1>
+<h1>DRACONIS Front Page</h1>
 <div class="button-grid">
     <a href="{% url 'Model-Upload' %}">Analyse New Model</a>
     <a href="{% url 'Models' %}">View all Models</a>

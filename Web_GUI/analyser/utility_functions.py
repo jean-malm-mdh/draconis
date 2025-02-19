@@ -16,39 +16,78 @@ sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."
 from draconis_parser.renderer import render_program_to_svg, generate_image_of_program
 from draconis_parser.helper_functions import parse_pou_content
 
+DEFAULT_RENDER_SCALE = 5.0
 
 def renderToReport(program, scale=None):
-    _scale = scale or 7.0
+    _scale = scale or DEFAULT_RENDER_SCALE
     imageWidth, imageHeight, imageSVGString = render_program_to_svg(program, _scale)
     return imageSVGString, imageWidth, imageHeight
 
 
 def highlight_differences_in_red(img1, img2):
+    def isInImgRect(w, h, px, py):
+        return px <= w and py <= h
+
     diff = ImageChops.difference(img1, img2)
+    # diff's size seems to based on smallest image.
+
     red_diff = diff.convert("RGB")
+    dummy_pixel = diff.getpixel((0, 0))
 
     # Create a new image to store the result
-    result = Image.new("RGB", img1.size)
+    # This needs to be the size of the biggest image
+    maxSize = (max(img1.width, img2.width), max(img1.height, img2.height))
+    result = Image.new("RGB", maxSize)
 
-    # Iterate over pixels and apply the red color for differences
-    for x in range(img1.width):
-        for y in range(img1.height):
+    # Starting from top left corner, iterate over the difference
+    for x in range(red_diff.width):
+        for y in range(red_diff.height):
             r, g, b = red_diff.getpixel((x, y))
             # If there's a difference (non-zero pixel), make it red
             if r + g + b > 0:
                 result.putpixel((x, y), (255, 0, 0))  # Red color
             else:
                 result.putpixel((x, y), img1.getpixel((x, y)))  # Original color
+
+    if red_diff.width < maxSize[0]:
+        blendColor, theWidestImage = ((0, 0, 50), img1) if img1.width > img2.width else ((0, 50, 0), img2)
+
+        # Right-most column is not filled in
+        # Fill it with some blend of the image and a hue color
+        for y in range(red_diff.height):
+            for x in range(red_diff.width, maxSize[0]):
+                thePixel = theWidestImage.getpixel((x, y))
+                result.putpixel((x, y), (
+                thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
+    if red_diff.height < maxSize[1]:
+        blendColor, theTallestImage = ((0, 0, 50), img1) if img1.height > img2.height else ((0, 50, 0), img2)
+
+        # Right-most column is not filled in
+        # Fill it with some blend of the image and a hue color
+        for y in range(red_diff.height, maxSize[1]):
+            for x in range(red_diff.width):
+                thePixel = theTallestImage.getpixel((x, y))
+                result.putpixel((x, y), (
+                thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
+
+    if red_diff.width < maxSize[0] and red_diff.height < maxSize[1]:
+        px, py = (red_diff.width + maxSize[0] / 2, red_diff.height + maxSize[1] / 2)
+        for img in [i for i in [img1, img2] if isInImgRect(i.width, i.height, px, py)]:
+            for y in range(red_diff.height, img.height):
+                for x in range(red_diff.width, img.width):
+                    result.putpixel((x, y), img.getpixel((x, y)))
     return result
 
 
-def make_and_save_diff_image(program1, program2, storage_path: str, renderscale=5.0, name_postfix=""):
+def make_and_save_diff_image(program1, program2, storage_path: str, render_scale=2.0, name_postfix=""):
     fpp_dir = tempfile.gettempdir()
     fpp = os.path.join(fpp_dir, "prog1.jpg")
     fpp2 = os.path.join(fpp_dir, "prog2.jpg")
     fpp_diff = f"prog_diff{name_postfix}.jpg"
-    generate_image_of_program(program1, fpp, scale=renderscale, generate_report_in_image=False)
-    generate_image_of_program(program2, fpp2, scale=renderscale, generate_report_in_image=False)
+    generate_image_of_program(program1, fpp, scale=render_scale, generate_report_in_image=False,
+                              surpress_components=["comments"])
+    generate_image_of_program(program2, fpp2, scale=render_scale, generate_report_in_image=False,
+                              surpress_components=["comments"])
     img1 = Image.open(fpp)
     img2 = Image.open(fpp2)
     diff = highlight_differences_in_red(img1, img2)
@@ -94,10 +133,11 @@ def from_model_content_create_and_add_model_in_db(program_file, additional_metri
      .save())  # then save it
 
     # Finally, we create the SVG model
-    SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+    SVG_content, width, height = renderToReport(aProgram, scale=DEFAULT_RENDER_SCALE)
     SVGModel.create(model_instance, SVG_content, width, height).save()
 
     return aProgram, model_instance.id
+
 
 def make_and_save_program_model_instance(_form, additional_metrics_form):
     model_instance = _form.save(commit=False)
@@ -140,7 +180,7 @@ def make_and_save_program_model_instance(_form, additional_metrics_form):
     (MetricsModel.create(model_instance, metrics, additional_metrics)
      .save())  # then save it
 
-    SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+    SVG_content, width, height = renderToReport(aProgram, scale=DEFAULT_RENDER_SCALE)
     SVGModel.create(model_instance, SVG_content, width, height).save()
     variable_info = [replace_fst_with_snd(replace_fst_with_snd(vList, "UNINIT", ""),
                                           None, "") for vList in variable_info]
@@ -218,4 +258,3 @@ def make_excel_report(model: BlockModel, metrics: MetricsModel, reports: List[Re
     output.seek(0)
     filename = f"{model.program_name}_Report.xlsx"
     return output, filename
-

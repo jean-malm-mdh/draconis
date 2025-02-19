@@ -32,7 +32,8 @@ urlpatterns = [
     path("batch", views.batch_page, name="Batch-Upload"),
     path("projects/", views.projects_page, name="Projects"),
     path("projects/<int:project_id>", views.single_project_page, name="Single-Project"),
-    path("metrics/", views.metrics_page, name="Metrics")
+    path("metrics/", views.metrics_page, name="Metrics"),
+    path("dashboard/", views.dashboard_page, name="Dashboard")
 
 ]
 

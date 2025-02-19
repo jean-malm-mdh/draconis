@@ -23,7 +23,7 @@
 
 .styled-table th, .styled-table td {
     border: 1px solid black;
-    padding: 8px;
+    padding: 5px;
 }
 
 .styled-table th {
@@ -32,6 +32,20 @@
 
 .report-entry {
     border: 1px solid black;
+    text-wrap: wrap;
+    width: 300px;
+}
+.container {
+    display: flex;
+}
+.sidebar {
+    width: 40%;
+    padding: 10px;
+    border-right: 2px solid #ccc;
+    overflow-y: auto;
+}
+.content {
+    width: 60%;
 }
 
 
@@ -55,7 +69,9 @@
         <input type="hidden" value="1" name="Download" required>
         <button type="submit" class="btn">Make and Download Report</button>
     </form>
-
+    <p><a href="../models">Go back to the models list view</a></p>
+    <div class="container">
+    <div class="sidebar">
     <h2>Checks Failed</h2>
     <table class="styled-table">
     <tr>
@@ -108,14 +124,6 @@
     {% endfor %}
 </table>
 
-
-{% if modelSVG %}
-<h2>Rendering of Model</h2>
-<svg width="{{modelSVG.1}}" height="{{modelSVG.2}}">
-    {{ modelSVG.0|safe }}
-    Sorry, your browser does not support inline SVG.
-</svg>
-{% endif %}
 
 <h2>Additional Data</h2>
 <div style="display: inline-block; vertical-align: top;">
@@ -202,8 +210,17 @@
     {% endfor %}
     </tbody>
 </table>
-
 </div>
+<div class="content">
+{% if modelSVG %}
+<h2>Rendering of Model</h2>
+<svg width="{{modelSVG.1}}" height="{{modelSVG.2}}">
+    {{ modelSVG.0|safe }}
+    Sorry, your browser does not support inline SVG.
+</svg>
+{% endif %}
+</div>
+    </div>
         {% for report, status_str in reports %}
             {%if report.report_check_status == 0 %}
             <div class="form-popup" id="JustificationForm_{{report.id}}">
@@ -248,7 +265,6 @@
               </form>
             </div>
         {% endfor %}
-    <p><a href="../models">Go back to the models list view</a></p>
 
 </body>
 <script>

@@ -54,7 +54,7 @@ def diff_page(request):
                     delta_report = "\n".join(prog1.compute_delta(prog2)).replace("\n", "<br>")
 
                     diff_img_path = make_and_save_diff_image(prog1, prog2, ANALYSER_DATA_STORE_PATH,
-                                                             renderscale=renderScale,
+                                                             render_scale=renderScale,
                                                              name_postfix=f"_{p1.pk}_{p2.pk}")
                     new_diff = DiffModel.create(
                         p1, p2, delta_report, diff_img_path
@@ -296,6 +296,7 @@ def single_project_page(request, project_id):
     models = get_list_or_404(BlockModel, project=project_id)
     return show_models(request, models, project.project_name)
 
+
 def metrics_page(request):
     all_models = BlockModel.objects.all()
     all_metrics = [m.core_metrics for m in MetricsModel.objects.all()]
@@ -305,8 +306,24 @@ def metrics_page(request):
         "total_amount_impure_FBDs": total_nr_potentially_impure_blocks
     }
     for metrics in all_metrics:
-        for k,v in metrics.items():
+        for k, v in metrics.items():
             thetype = type(v)
             if type(v) is int:
                 metrics_total[k] = metrics_total.get(k, 0) + v
     return render(request, "analyser/metrics_view.html", {"metrics": metrics_total})
+
+
+def dashboard_page(request):
+    all_reports = ReportModel.objects.all()
+    # Get all reports, divide them into check name, and then whether they passed or failed.
+    check_names = set()
+    for rep in all_reports:
+        check_names.add(rep.check_name)
+
+    check_status = {"reports": {}}
+    for name in check_names:
+        theReps = ReportModel.objects.filter(check_name=name)
+        checks_failed = len(list(filter(lambda e: e.report_check_status == 0, theReps)))
+        checks_passed = len(list(filter(lambda e: e.report_check_status == 1, theReps)))
+        check_status["reports"][name] = (checks_passed, checks_failed)
+    return render(request, "analyser/dashboard.html", check_status)

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+<style>
+    #container {
+        width: 60%;
+    }
+</style>
+</head>
+<body>
+<div id="container">
+<div>
+<canvas id="passingReports" width="500" height="300"></canvas>
+</div>
+</div>
+</body>
+<script>
+    function makeChart(type, canvasID, labels, datas, labelTexts, title, barCols) {
+    let ctx = document.getElementById(canvasID).getContext("2d");
+
+    let theDatasets = [];
+    for(let i = 0; i < datas.length; ++i)
+    {
+        theDatasets.push({
+            label: labelTexts[i],
+            backgroundColor: barCols[i],
+            borderColor: "#417690",
+            data: datas[i]});
+    }
+
+    let chart = new Chart(ctx,
+    {
+    type: type,
+    data: {
+        labels: labels,
+        datasets: theDatasets
+    },
+    options : {
+        title: {
+            text: title,
+            display: true,
+        }
+    }
+    });
+    return chart;
+}
+
+    let names = [];
+    let passes = [];
+    let fails = [];
+    {% for rep_name, pass_fails in reports.items %}
+    names.push("{{ rep_name }}");
+    passes.push({{ pass_fails.0 }});
+    fails.push({{ pass_fails.1 }});
+    {% endfor %}
+    makeChart(
+        "bar",
+        "passingReports",
+        names,
+        [passes, fails],
+        ["Passing the check", "Failing the check"],
+        "Number of models passing/failing checks",
+        ["#79AEC8","#CE2020"] );
+</script>
+
+</html>

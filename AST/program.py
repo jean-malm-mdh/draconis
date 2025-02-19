@@ -5,6 +5,8 @@ import re
 from dataclasses import dataclass
 from typing import List, Dict, Tuple, Optional
 
+from langdetect import DetectorFactory, detect, detect_langs
+
 from checks.rule_utility_functions import unique
 from utility_classes.point import Point
 from .ast_typing import DataflowDirection, ParameterType, SafeClass
@@ -678,6 +680,39 @@ class Program:
                 justification = "\n".join(results)
             return [ruleName, verdict, justification]
 
+        def check_language_of_strings_is(strings_to_check, lang):
+            DetectorFactory.seed = 0
+            all_content = " ".join(strings_to_check)
+            detected_lang = detect(all_content)  # Try to detect the language of the description
+            if detected_lang != lang:  # If it's not same as lang
+                return [i for i in range(strings_to_check) if detect(strings_to_check[i]) != lang]
+            return None
+
+        def evaluate_language_rule_variables():
+            ruleName = "FBD.DesignRule.VariableDescriptionLang"
+            verdict = "Pass"
+            justification = f"The descriptions of variables are written in English"
+            all_vars = self.varHeader.getAllVariables()
+            test = check_language_of_strings_is([v.description for v in all_vars], lang="en")
+            if test: # if test is not none, and test is not empty list
+                verdict = "Fail"
+                justification = (f"The following variables have descriptions that are not in english:\n" +
+                                 "\n".join([all_vars[i].description for i in test]))
+            return [ruleName, verdict, justification]
+
+        def evaluate_language_rule_comments():
+            ruleName = "FBD.DesignRule.CommentLang"
+            verdict = "Pass"
+            justification = f"The comments are written in English"
+            all_comments = self.comments
+            test = check_language_of_strings_is([c.content for c in all_comments], lang="en")
+            if test: # if test is not none, and test is not empty list
+                verdict = "Fail"
+                justification = (f"The following variables have descriptions that are not in english:\n" +
+                                 "\n".join([all_comments[i].content for i in test]))
+            return [ruleName, verdict, justification]
+
+
         def evaluate_variable_limit_rule(metrics, varLimit):
             ruleName = "FBD.MetricRule.TooManyVariables"
             verdict = "Pass"
@@ -789,6 +824,8 @@ class Program:
         result.append(evaluate_var_group_structure_rules())
         result.append(evaluate_variable_uniqueness_rules())
         result.append(evaluate_initialization_rule())
+        result.append(evaluate_language_rule_variables())
+        result.append(evaluate_language_rule_comments())
 
         return result
 

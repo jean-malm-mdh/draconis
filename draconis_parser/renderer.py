@@ -191,7 +191,9 @@ def render_blocks_to_draw_context(blocks, draw_context):
 
 
 def generate_image_of_program(
-        program: Program, img_result_path: str, scale=1.0, generate_report_in_image=False
+        program: Program, img_result_path: str, scale=1.0,
+        generate_report_in_image=False,
+        surpress_components=None
 ):
     """
     Generate an image of the program
@@ -210,6 +212,7 @@ def generate_image_of_program(
 
     boundary = 25
     margin_size = 300 if generate_report_in_image else 0
+    surpressions = [] or surpress_components
     _height, _width = get_program_width_height(program, min_size=100)
     width = scaler(_width)
     height = scaler(_height)
@@ -222,14 +225,18 @@ def generate_image_of_program(
     text = program.progName
     text_x = (width - margin_size) // 2
 
-    # render the FBD blocks
-    render_blocks_to_draw_context(program.behaviourElements, draw_context)
+    if "blocks" not in surpressions:
+        # render the FBD blocks
+        render_blocks_to_draw_context(program.behaviourElements, draw_context)
 
-    render_lines_to_draw_context(program.lines, draw_context)
+    if "lines" not in surpressions:
+        render_lines_to_draw_context(program.lines, draw_context)
 
-    # Render comment boxes
-    render_comments_to_draw_context(draw_context, program, scaler)
+    if "comments" not in surpressions:
+        # Render comment boxes
+        render_comments_to_draw_context(draw_context, program, scaler)
 
+    # If debugger is running
     if sys.gettrace() is not None:
         draw_context.render_checker_grid_background(_grid_box_size=10)
     if generate_report_in_image:
@@ -276,6 +283,10 @@ def get_program_width_height(program, min_size=100):
         s_p, e_p = l
         _width = max(_width, s_p.x, e_p.x)
         _height = max(_height, s_p.y, e_p.y)
+    for c in program.comments:
+        _x, _y = c.bounding_box.bot_right.getAsTuple()
+        _width = max(_width, _x)
+        _height = max(_height, _y)
     return _height, _width
 
 
