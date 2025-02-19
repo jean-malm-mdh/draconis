@@ -14,9 +14,10 @@ from PIL import Image, ImageChops
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.renderer import render_program_to_svg, generate_image_of_program
-from draconis_parser.helper_functions import parse_pou_content
+from draconis_parser.helper_functions import parse_pou_content, parse_pou_file
 
 DEFAULT_RENDER_SCALE = 5.0
+
 
 def renderToReport(program, scale=None):
     _scale = scale or DEFAULT_RENDER_SCALE
@@ -58,7 +59,7 @@ def highlight_differences_in_red(img1, img2):
             for x in range(red_diff.width, maxSize[0]):
                 thePixel = theWidestImage.getpixel((x, y))
                 result.putpixel((x, y), (
-                thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
+                    thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
     if red_diff.height < maxSize[1]:
         blendColor, theTallestImage = ((0, 0, 50), img1) if img1.height > img2.height else ((0, 50, 0), img2)
 
@@ -68,7 +69,7 @@ def highlight_differences_in_red(img1, img2):
             for x in range(red_diff.width):
                 thePixel = theTallestImage.getpixel((x, y))
                 result.putpixel((x, y), (
-                thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
+                    thePixel[0], int(thePixel[1] / 2 + blendColor[1]), int(thePixel[2] / 2 + blendColor[2])))
 
     if red_diff.width < maxSize[0] and red_diff.height < maxSize[1]:
         px, py = (red_diff.width + maxSize[0] / 2, red_diff.height + maxSize[1] / 2)
@@ -250,6 +251,24 @@ def make_excel_report(model: BlockModel, metrics: MetricsModel, reports: List[Re
             report_sheet.write(row, i, v)
 
         row += 1
+    IMAGE_OFFSET_FROM_REPORT_END = 2
+    fpp_dir = tempfile.gettempdir()
+    fpp = os.path.join(fpp_dir, "report_img.jpg")
+    #try:
+    theProgram = parse_pou_content(get_file_content_as_single_string(model.program_content))
+    result_path = generate_image_of_program(theProgram,
+                                            img_result_path=fpp,
+                                            scale=5.0)
+    print("Got past image generation")
+    print(result_path)
+    report_sheet.insert_image(row=row+IMAGE_OFFSET_FROM_REPORT_END,
+                              col=0,
+                              filename=result_path)
+
+    #except Exception as e:
+        # Image generation was not successful
+        #print(e)
+        #print(e.args)
 
     metrics_sheet.autofit()
     report_sheet.autofit()

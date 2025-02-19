@@ -38,11 +38,12 @@ def getWatchDogHandler(source_path):
     return observer
 
 
-argParser = argparse.ArgumentParser()
-argParser.add_argument("--base-path", action="store", required=True)
 
 
 def main():
+    argParser = argparse.ArgumentParser()
+    argParser.add_argument("--base-path", action="store", required=True)
+
     args = argParser.parse_args()
     observer = getWatchDogHandler(args.base_path)
     print("Analyser watchdog now listening to changes in path ", args.base_path)

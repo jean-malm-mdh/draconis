@@ -212,7 +212,7 @@ def generate_image_of_program(
 
     boundary = 25
     margin_size = 300 if generate_report_in_image else 0
-    surpressions = [] or surpress_components
+    surpressions = surpress_components if surpress_components else []
     _height, _width = get_program_width_height(program, min_size=100)
     width = scaler(_width)
     height = scaler(_height)
@@ -236,13 +236,11 @@ def generate_image_of_program(
         # Render comment boxes
         render_comments_to_draw_context(draw_context, program, scaler)
 
-    # If debugger is running
-    if sys.gettrace() is not None:
-        draw_context.render_checker_grid_background(_grid_box_size=10)
     if generate_report_in_image:
         render_reports_to_draw_context(program, margin_size, draw_context)
 
     draw_context.save_image_to_file(img_result_path)
+    return img_result_path
 
 
 def render_comments_to_draw_context(draw_context, program, scaler):
