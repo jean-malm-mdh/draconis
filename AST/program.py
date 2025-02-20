@@ -454,6 +454,7 @@ class Program:
 
         def block_is_safe_filter(aBlock: Block):
             return "EN_IN" in aBlock.getName()
+
         def exprIsConsideredSafe(safenessProperties, candidate_expr):
             # it is a constant
             if "#" in candidate_expr:
@@ -469,6 +470,7 @@ class Program:
                     # We have no info, err on the side of caution, it is considered unsafe
                     return False
                 return res
+
         def safeness_is_filtered(pathIDs: List[int]):
             # going backwards from the source, if one of the IDs maps to a unsafe->safe conversion
             blocks_on_path = [self.behaviour_id_map.get(i) for i in pathIDs]
@@ -632,8 +634,8 @@ class Program:
             # Slightly nuclear option for determining programs should not be compared. For now it works with intended
             # use case.
             return [
-                    "Program names are different. Delta analysis will not continue",
-                    f"{self.progName} != {other_program.progName}"
+                "Program names are different. Delta analysis will not continue",
+                f"{self.progName} != {other_program.progName}"
             ]
         res = []
         res.extend(find_variable_changes())
@@ -703,7 +705,7 @@ class Program:
             justification = f"The descriptions of variables are written in English"
             all_vars = self.varHeader.getAllVariables()
             test = check_language_of_strings_is([v.description for v in all_vars], lang="en")
-            if test: # if test is not none, and test is not empty list
+            if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
                 justification = (f"The following variables have descriptions that are not in english:\n" +
                                  "\n".join([all_vars[i].description for i in test]))
@@ -715,12 +717,11 @@ class Program:
             justification = f"The comments are written in English"
             all_comments = self.comments
             test = check_language_of_strings_is([c.content for c in all_comments], lang="en")
-            if test: # if test is not none, and test is not empty list
+            if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
                 justification = (f"The following variables have descriptions that are not in english:\n" +
                                  "\n".join([all_comments[i].content for i in test]))
             return [ruleName, verdict, justification]
-
 
         def evaluate_variable_limit_rule(metrics, varLimit):
             ruleName = "FBD.MetricRule.TooManyVariables"
@@ -846,12 +847,11 @@ def extract_from_program(value: str, target_program: Program):
     def extract_interface(request_value):
         vars = target_program.getVarInfo()
         return {
-            "VarGroupNames":  [g.groupName for g in target_program.getVarGroups()],
+            "VarGroupNames": [g.groupName for g in target_program.getVarGroups()],
             "InputVariables": [v for v in vars["InputVariables"]],
             "OuputVariables": [v for v in vars["OutputVariables"]],
             "VariableNames": [v.getName() for v in target_program.varHeader.getAllVariables()]
         }.get(request_value, [])
-
 
     value_without_dunder = value.strip("__")
     metric_match = re.match(r"^metric\[(.*?)\]$", value_without_dunder)
