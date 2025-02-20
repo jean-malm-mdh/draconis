@@ -6,38 +6,18 @@
     <title>DRACONIS Entrypoint</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'styles/classless.css' %}">
-    <style>
-        h1 {text-align:center}
-        .button-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 3fr);
-            gap: 5px;
-            max-width: 400px;
-            margin: auto;
-        }
-        .button-grid a {
-            display: block;
-            padding: 30px;
-            text-align: center;
-            background-color: black;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .button-grid a:hover {
-            background-color: #777777;
-        }
-    </style>
 </head>
 <body>
 <h1>DRACONIS Front Page</h1>
-<div class="button-grid">
-    <a href="{% url 'Model-Upload' %}">Analyse New Model</a>
-    <a href="{% url 'Models' %}">View all Models</a>
-    <a href="{% url 'Projects' %}">View all Projects</a>
-    <a href="{% url 'Metrics' %}">View Metrics</a>
-    <a href="{% url 'False-Positive-Reports' %}">View False Positives Page</a>
-    <a href="{% url 'Dashboard' %}">Dashboard</a>
+<div class="row">
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'Model-Upload' %}';">Analyse New Model</button></div>
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'Models' %}';">View all Models</button></div>
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'Projects' %}';">View all Projects</button></div>
+</div>
+<div class="row">
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'Metrics' %}'">View Metrics</button></div>
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'False-Positive-Reports' %}'">View False Positives Page</button></div>
+    <div class="col-3"><button class="bg-primary text-white" onclick="window.location='{% url 'Dashboard' %}'">Dashboard</button></div>
 
 </div>
 </body>
