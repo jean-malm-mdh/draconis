@@ -10,7 +10,7 @@ from langdetect import DetectorFactory, detect, detect_langs
 from checks.rule_utility_functions import unique
 from utility_classes.point import Point
 from .ast_typing import DataflowDirection, ParameterType, SafeClass
-from .blocks import FBD_Block, VarBlock
+from .blocks import FBD_Block, VarBlock, Block
 from .path import PathDivide
 from .comment_box import CommentBox
 from .utilities import indexOrNone
@@ -451,6 +451,9 @@ class Program:
         return res
 
     def checkSafeDataFlow(self):
+
+        def block_is_safe_filter(aBlock: Block):
+            return "EN_IN" in aBlock.getName()
         def exprIsConsideredSafe(safenessProperties, candidate_expr):
             # it is a constant
             if "#" in candidate_expr:
@@ -466,6 +469,10 @@ class Program:
                     # We have no info, err on the side of caution, it is considered unsafe
                     return False
                 return res
+        def safeness_is_filtered(pathIDs: List[int]):
+            # going backwards from the source, if one of the IDs maps to a unsafe->safe conversion
+            blocks_on_path = [self.behaviour_id_map.get(i) for i in pathIDs]
+            return any([block_is_safe_filter(b) for b in blocks_on_path])
 
         safeness_properties = self.getVarInfo()["Safeness"]
         outDependencies = self.getBackwardTrace()
@@ -484,6 +491,8 @@ class Program:
                 if source.getBlockType() == "Port":
                     expr = source.getVarExpr()
                     if not exprIsConsideredSafe(safeness_properties, expr):
+                        if safeness_is_filtered(p):
+                            continue
                         result.append(
                             f"Unsafe data ('{expr}') flowing to safe output ('{name}')"
                         )
