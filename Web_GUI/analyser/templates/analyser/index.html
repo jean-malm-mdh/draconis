@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>DRACONIS Entrypoint</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles/classless.css' %}">
     <style>
-        h1 {
-            text-align: center;
-        }
+        h1 {text-align:center}
         .button-grid {
             display: grid;
-            grid-template-columns: repeat(3, 2fr);
-            gap: 20px;
+            grid-template-columns: repeat(2, 3fr);
+            gap: 5px;
             max-width: 400px;
             margin: auto;
         }
         .button-grid a {
             display: block;
-            padding: 60px;
+            padding: 30px;
             text-align: center;
             background-color: black;
             color: white;
@@ -37,6 +37,7 @@
     <a href="{% url 'Projects' %}">View all Projects</a>
     <a href="{% url 'Metrics' %}">View Metrics</a>
     <a href="{% url 'False-Positive-Reports' %}">View False Positives Page</a>
+    <a href="{% url 'Dashboard' %}">Dashboard</a>
 
 </div>
 </body>
