@@ -49,4 +49,4 @@ word2number==1.1
 wsproto==1.2.0
 html-sanitizer==2.4.2
 xlsxwriter==3.2.0
-requests==2.32.3
+requests==2.32.4
