@@ -9,7 +9,8 @@ from langdetect import DetectorFactory, detect, detect_langs
 
 from checks.rule_utility_functions import unique
 from utility_classes.point import Point
-from .ast_typing import DataflowDirection, ParameterType, SafeClass
+from . import ast_typing
+from .ast_typing import DataflowDirection, ParameterType, SafeClass, ValueType
 from .blocks import FBD_Block, VarBlock, Block
 from .path import PathDivide
 from .comment_box import CommentBox
@@ -428,6 +429,8 @@ class Program:
         res["NrOutputVariables"] = len(
             self.varHeader.getVarsByType(ParameterType.OutputVar)
         )
+        res["NrOfFeedbackVariables"] = len([v for v in self.varHeader.getAllVariables() if v.isFeedback])
+
         backwards_flow = self.getDependencyPathsByName()
         res["VariableTypeComplexity"] = self.compute_variables_complexity()
         res["IsPotentiallyImpure"] = self.hasPotentialInternalState()
@@ -473,7 +476,8 @@ class Program:
 
         def safeness_is_filtered(pathIDs: List[int]):
             # going backwards from the source, if one of the IDs maps to a unsafe->safe conversion
-            blocks_on_path = [self.behaviour_id_map.get(i) for i in pathIDs]
+            blocks_on_path = [actualBlock for actualBlock in [self.behaviour_id_map.get(i) for i in pathIDs]
+                              if actualBlock is not None]
             return any([block_is_safe_filter(b) for b in blocks_on_path])
 
         safeness_properties = self.getVarInfo()["Safeness"]
@@ -643,13 +647,24 @@ class Program:
 
         return res
 
+    @classmethod
+    def filter_values_on_predicate(cls, vals: List, predicate):
+        return [v for v in vals if predicate(v)]
+
     def get_dependencies_names(self):
         backward_trace = {}
+        all_input_variable_names = [v.getName() for v in
+                                    self.varHeader.getVarsByType(ParameterType.InputVar)]
+
         for name, paths in self.getBackwardTrace().items():
-            backward_trace[name] = [
+            deps_candidates = [
                 self.behaviour_id_map[e[-1]].expr.expr
                 for e in PathDivide.unpack_pathlist([paths])
             ]
+            filtered_candidates = Program.filter_values_on_predicate(deps_candidates,
+                                                                     functools.partial(
+                                                                         lambda v: v in all_input_variable_names))
+            backward_trace[name] = filtered_candidates
         return backward_trace
 
     def __str__(self):
@@ -694,6 +709,9 @@ class Program:
         def check_language_of_strings_is(strings_to_check, lang):
             DetectorFactory.seed = 0
             all_content = " ".join(strings_to_check)
+            if all_content.strip() == "":
+                # If there is not content, the language cannot be verified
+                return None
             detected_lang = detect(all_content)  # Try to detect the language of the description
             if detected_lang != lang:  # If it's not same as lang
                 return [i for i in range(strings_to_check) if detect(strings_to_check[i]) != lang]
@@ -707,7 +725,8 @@ class Program:
             test = check_language_of_strings_is([v.description for v in all_vars], lang="en")
             if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
-                justification = (f"The following variables have descriptions that are not in english:\n" +
+                justification = (f"The following variables have descriptions "
+                                 f"that are not in english:\n" +
                                  "\n".join([all_vars[i].description for i in test]))
             return [ruleName, verdict, justification]
 
@@ -719,17 +738,22 @@ class Program:
             test = check_language_of_strings_is([c.content for c in all_comments], lang="en")
             if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
-                justification = (f"The following variables have descriptions that are not in english:\n" +
+                justification = (f"The following variables have descriptions "
+                                 f"that are not in english:\n" +
                                  "\n".join([all_comments[i].content for i in test]))
             return [ruleName, verdict, justification]
 
         def evaluate_variable_limit_rule(metrics, varLimit):
-            ruleName = "FBD.MetricRule.TooManyVariables"
+            ruleName = "FBD.MetricRule.TooManyInterfaceVariables"
             verdict = "Pass"
-            justification = f"The number of variables ({metrics['NrOfVariables']}) does not exceed chosen limit of {varLimit}"
-            if metrics["NrOfVariables"] > varLimit:
+            interface_variables = metrics["NrInputVariables"] + metrics["NrOutputVariables"]
+            justification = (f"The number of interface variables ({interface_variables}) "
+                             f"does not exceed chosen limit of {varLimit}")
+
+            if interface_variables > varLimit:
                 verdict = "Fail"
-                justification = f"number of variables ({metrics['NrOfVariables']}) exceeds chosen limit of {varLimit}"
+                justification = (f"number of interface variables ({interface_variables}) "
+                                 f"exceeds chosen limit of {varLimit}")
             return [ruleName, verdict, justification]
 
         def evaluate_safeness_data_flow():
@@ -751,7 +775,7 @@ class Program:
                                      v.initVal is not None]
             zero_initialized_variables = [name for name, init in name_initializer_list if
                                           expression_is_equal_to_zeroed(init)]
-            if zero_initialized_variables == []:
+            if not zero_initialized_variables:
                 return []
             result = ["The following variables are unnecessarily initialized to zero:\n"]
             result.append("\n\t".join(zero_initialized_variables))
@@ -827,12 +851,45 @@ class Program:
                 functools.partial(check_variable_naming_uniqueness, self,
                                   30))
 
+        def evaluate_variables_unused_rule():
+            def find_unused_variables():
+                # Get value names from the forwards flow, join together to string S
+                dependency_path_names = self.getDependencyPathsByName()
+                res = set()
+                for k, v in dependency_path_names.items():
+                    # Key by definition is a variable name
+                    res.add(k)
+                    for paths in v:
+                        inputval = paths[0]
+                        if "#" in inputval:
+                            continue
+                        res.add(inputval)
+                # Get all variable names that are of primitive type
+                all_vars_prim = set()
+                all_vars = self.varHeader.getAllVariables()
+                for v in all_vars:
+                    if v.valueType == ValueType.CUSTOM_FBD:
+                        continue
+                    all_vars_prim.add(v.getName())
+
+                # Variable is unused if its name does not appear in S
+                difference = all_vars_prim - res
+                return difference
+
+            vars_unused = find_unused_variables()
+
+            rulename = "FBD.Variable.UnusedVariables"
+            verdict = "Fail" if vars_unused else "Pass"
+            justification = f"The following variables are unused:\n{'<br>'.join(vars_unused)}" if vars_unused else "No variables are unused"
+            return [rulename, verdict, justification]
+
         result = []
         result.append(evaluate_variable_limit_rule(metrics, 40))
         result.append(evaluate_safeness_data_flow())
         result.append(evaluate_var_group_cohesion_rules())
         result.append(evaluate_var_group_structure_rules())
         result.append(evaluate_variable_uniqueness_rules())
+        result.append(evaluate_variables_unused_rule())
         result.append(evaluate_initialization_rule())
         result.append(evaluate_language_rule_variables())
         result.append(evaluate_language_rule_comments())

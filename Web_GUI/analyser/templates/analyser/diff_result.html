@@ -10,6 +10,9 @@
     {% else %}
     <link rel="stylesheet" href="{% static 'styles/report.css' %}">
     {% endif %}
+    <style>
+        .content {display: flex;}
+    </style>
 </head>
 <body>
 <h1>Diff Report for the Selected Programs</h1>
@@ -20,17 +23,20 @@
     {{info |safe }}
 </p>
 <h2>Variants</h2>
+    <div class="content">
 <div>
 <svg class="variant" width="{{SVGs.0.1}}" height="{{SVGs.0.2}}">
     {{ SVGs.0.0|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>
+    </div>
+        <div>
 <svg class="variant" width="{{SVGs.1.1}}" height="{{SVGs.1.2}}">
     {{ SVGs.1.0|safe }}
     Sorry, your browser does not support inline SVG.
 </svg>
 </div>
-
+</div>
 <h2>Visual Difference</h2>
 {% if diff_picture_path %}
 <p class="diff-report-text">
