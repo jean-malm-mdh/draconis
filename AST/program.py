@@ -871,7 +871,9 @@ class Program:
                     # Key by definition is a variable name
                     res.add(k)
                     for paths in v:
-                        inputval = paths[0]
+                        inputval = paths
+
+                        # Remove constants
                         if "#" in inputval:
                             continue
                         res.add(inputval)
@@ -882,7 +884,6 @@ class Program:
                     if v.valueType == ValueType.CUSTOM_FBD:
                         continue
                     all_vars_prim.add(v.getName())
-
                 # Variable is unused if its name does not appear in S
                 difference = all_vars_prim - res
                 return difference
