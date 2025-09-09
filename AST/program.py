@@ -378,10 +378,10 @@ class Program:
     def getDependencyPathsByName(self):
         backward_trace = dict()
         for name, paths in self.getBackwardTrace().items():
-            backward_trace[name] = [
+            backward_trace[name] = list(set([
                 self.behaviour_id_map[e[-1]].expr.expr
                 for e in PathDivide.unpack_pathlist([paths])
-            ]
+            ]))
         return backward_trace
 
     def num_of_elements(self):
