@@ -20,6 +20,16 @@ from .block_port import Port
 from utility_classes.delta import ChangeType, Delta
 
 
+def remove_dups_preserve_order(aList: List):
+    res = []
+    adds = {}
+    for e in aList:
+        if adds.get(e, None) is None:
+            res.append(e)
+            adds[e] = 1
+    return res
+
+
 @dataclass()
 class Program:
     progName: str
@@ -378,10 +388,10 @@ class Program:
     def getDependencyPathsByName(self):
         backward_trace = dict()
         for name, paths in self.getBackwardTrace().items():
-            backward_trace[name] = list(set([
+            backward_trace[name] = remove_dups_preserve_order([
                 self.behaviour_id_map[e[-1]].expr.expr
                 for e in PathDivide.unpack_pathlist([paths])
-            ]))
+            ])
         return backward_trace
 
     def num_of_elements(self):
@@ -706,15 +716,16 @@ class Program:
                 justification = "\n".join(results)
             return [ruleName, verdict, justification]
 
-        def check_language_of_strings_is(strings_to_check, lang):
+        def string_is_in_language(strings_to_check, lang):
             DetectorFactory.seed = 0
             all_content = " ".join(strings_to_check)
             if all_content.strip() == "":
                 # If there is not content, the language cannot be verified
                 return None
             detected_lang = detect(all_content)  # Try to detect the language of the description
+
             if detected_lang != lang:  # If it's not same as lang
-                return [i for i in range(strings_to_check) if detect(strings_to_check[i]) != lang]
+                return [i for i in range(len(strings_to_check)) if detect(strings_to_check[i]) != lang]
             return None
 
         def evaluate_language_rule_variables():
@@ -722,7 +733,7 @@ class Program:
             verdict = "Pass"
             justification = f"The descriptions of variables are written in English"
             all_vars = self.varHeader.getAllVariables()
-            test = check_language_of_strings_is([v.description for v in all_vars], lang="en")
+            test = string_is_in_language([v.description for v in all_vars if v.description is not None], lang="en")
             if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
                 justification = (f"The following variables have descriptions "
@@ -735,7 +746,7 @@ class Program:
             verdict = "Pass"
             justification = f"The comments are written in English"
             all_comments = self.comments
-            test = check_language_of_strings_is([c.content for c in all_comments], lang="en")
+            test = string_is_in_language([c.content for c in all_comments], lang="en")
             if test:  # if test is not none, and test is not empty list
                 verdict = "Fail"
                 justification = (f"The following variables have descriptions "

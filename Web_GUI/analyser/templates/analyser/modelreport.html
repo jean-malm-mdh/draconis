@@ -69,6 +69,11 @@
         <input type="hidden" value="1" name="Download" required>
         <button type="submit" class="btn">Make and Download Report</button>
     </form>
+    <form action="./report" class="form-container" method="post">
+        {% csrf_token %}
+        <input type="hidden" value="1" name="Reanalyse" required>
+        <button type="submit" class="btn">Re-analyse -- Not reversible! For DEV use only. </button>
+    </form>
     <p><a href="../models">Go back to the models list view</a></p>
     <div class="container">
     <div class="sidebar">

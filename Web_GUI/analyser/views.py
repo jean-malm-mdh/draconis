@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .forms import BlockModelForm, MetricsModelForm
 from .models import BlockModel, ReportModel, MetricsModel, DiffModel, SVGModel, ProjectModel
 from .utility_functions import renderToReport, make_and_save_diff_image, make_and_save_program_model_instance, \
-    get_file_content_as_single_string, make_excel_report, from_model_content_create_and_add_model_in_db
+    get_file_content_as_single_string, make_excel_report, add_modelfile_to_db, analyse_model
 
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), "../.."))
 from draconis_parser.helper_functions import parse_pou_content
@@ -137,8 +137,8 @@ def batch_page(request):
             files.setlist('additional_metrics', [metrics_file_mem])
 
         additional_metrics_json = get_file_content_as_single_string(files.getlist('additional_metrics')[0])
-        program, prog_model_id = from_model_content_create_and_add_model_in_db(the_program_file,
-                                                                               additional_metrics_json, project_model)
+        program, prog_model_id = add_modelfile_to_db(the_program_file,
+                                                     additional_metrics_json, project_model)
         return HttpResponse(f"<p>Models are uploaded and analysed</p>",
                             status=http.HTTPStatus.OK)
 
@@ -190,7 +190,6 @@ def reports_page(request, model_id):
                     the_report.report_review_status = status
                     the_report.save()
 
-
             def clear_reviews(report_id):
                 the_report = get_object_or_404(ReportModel, pk=report_id)
                 the_report.report_review_status = ReportModel.ReportReviewStatus.UN_VIEWED
@@ -226,6 +225,38 @@ def reports_page(request, model_id):
                                         as_attachment=True,
                                         filename=file_name)
                 return response
+
+            if post_data.get("Reanalyse", None) is not None:
+                model = get_object_or_404(BlockModel, pk=model_id)
+                the_metrics = get_object_or_404(MetricsModel, block_program=model_id)
+                the_reports = get_list_or_404(ReportModel, block_program_id=model_id)
+                report_dict = {str(r.report_content): r for r in the_reports}
+                # Re-read the cached data from model
+                _aProgram, backward_trace, _reports, _, _ = analyse_model(model)
+                model.save()
+                # Replace old metrics
+                # Additional metrics initially uploaded by the user are left as is
+                the_metrics.coreMetrics = _aProgram.getMetrics()
+                the_metrics.save()
+
+                for (ruleName, verdict, explanation) in _reports:
+                    the_old_report = report_dict.get(ruleName, None)
+                    new_report_obj = ReportModel.create(model,
+                                                        ruleName,
+                                                        report_text=explanation,
+                                                        checkPassed=verdict == "Pass")
+                    if the_old_report is None:
+                        # Save new report
+                        new_report_obj.save()
+
+                    # TODO: This should call ReportModel.__eq__ ..
+                    elif the_old_report == new_report_obj:
+                        # The old report is essentially equivalent
+                        pass
+                    else:
+                        # Replace the old report with the new
+                        new_report_obj.save()
+                        the_old_report.delete()
 
             return None
 
@@ -334,8 +365,8 @@ def dashboard_page(request):
         check_names.add(rep.check_name)
 
     report_label_map = ReportModel.ReportReviewStatus.get_label_to_value_map()
-    REVIEW_STATUS_UNVIEWED  = report_label_map["Unviewed"]
-    REVIEW_STATUS_REVIEWED  = report_label_map["Reviewed"]
+    REVIEW_STATUS_UNVIEWED = report_label_map["Unviewed"]
+    REVIEW_STATUS_REVIEWED = report_label_map["Reviewed"]
     REVIEW_STATUS_CONFIRMED = report_label_map["Confirmed"]
     REVIEW_STATUS_FALSEPOS = report_label_map["False Positive"]
     REVIEW_STATUS_JUSTIFIED = report_label_map["Justified"]

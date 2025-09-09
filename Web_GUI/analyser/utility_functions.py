@@ -96,7 +96,7 @@ def make_and_save_diff_image(program1, program2, storage_path: str, render_scale
     return fpp_diff
 
 
-def from_model_content_create_and_add_model_in_db(program_file, additional_metrics_json_str, project):
+def add_modelfile_to_db(program_file, additional_metrics_json_str, project):
     program_content = get_file_content_as_single_string(program_file)
     aProgram = parse_pou_content(program_content)
 
@@ -124,7 +124,7 @@ def from_model_content_create_and_add_model_in_db(program_file, additional_metri
         (ReportModel.create(model_instance,
                             ruleName,
                             report_text=explanation,
-                            it_passed=verdict == "Pass")
+                            checkPassed=verdict == "Pass")
          .save())
     # Compute the DRACONIS Core metrics
     metrics = aProgram.getMetrics()
@@ -140,45 +140,30 @@ def from_model_content_create_and_add_model_in_db(program_file, additional_metri
     return aProgram, model_instance.id
 
 
+
 def make_and_save_program_model_instance(_form, additional_metrics_form):
     model_instance = _form.save(commit=False)
     metrics_instance = additional_metrics_form.save(commit=False)
 
-    program_content = get_file_content_as_single_string(model_instance.program_content)
-    aProgram = parse_pou_content(program_content)
+    aProgram, backward_trace, reports, variable_info, model = analyse_model(model_instance)
 
-    reports = [[v0, v1, v2.replace("\n", "<br>")] for [v0, v1, v2] in (aProgram.check_rules())]
+    # save the analysed model instance to DB
+    model.save()
 
-    variable_info = aProgram.getVarDataColumns(
-        "name", "paramType", "valueType", "initVal", "description"
-    )
-    backward_trace = aProgram.getDependencyPathsByName()
-
-    # Populate model instance object based on analysis
-    model_instance.program_name = aProgram.progName
-    model_instance.program_variables = json.dumps(variable_info)
-    model_instance.variable_dependencies = json.dumps(backward_trace)
-
-    # Finally, save the analysed model instance to DB
-    # We do this first to generate the primary key value
-    # As this is needed for the report generation step
-    model_instance.save()
     # Create ReportModel objects for each report
-    # Note: model_instance.id is the primary key for the model
     for (ruleName, verdict, explanation) in reports:
         (ReportModel.create(model_instance,
                             ruleName,
                             report_text=explanation,
-                            it_passed=verdict == "Pass")
+                            checkPassed=verdict == "Pass")
          .save())
     # Compute the DRACONIS Core metrics
     metrics = aProgram.getMetrics()
 
     # Add any additional metrics computed
-    additional_metrics = metrics_instance.additional_metrics
-    the_additional_metrics = additional_metrics
+    the_additional_metrics = metrics_instance.additional_metrics
     # Create Metrics objects for the core metrics
-    (MetricsModel.create(model_instance, metrics, additional_metrics)
+    (MetricsModel.create(model_instance, metrics, metrics_instance.additional_metrics)
      .save())  # then save it
 
     SVG_content, width, height = renderToReport(aProgram, scale=DEFAULT_RENDER_SCALE)
@@ -198,6 +183,26 @@ def make_and_save_program_model_instance(_form, additional_metrics_form):
         "variable_info": variable_info,
     }
     return aProgram, report_data, model_instance.id
+
+
+def analyse_model(model_instance):
+    program_content = get_file_content_as_single_string(model_instance.program_content)
+    aProgram, backward_trace, reports, variable_info = analyse(program_content)
+    # Populate model instance object based on analysis
+    model_instance.program_name = aProgram.progName
+    model_instance.program_variables = json.dumps(variable_info)
+    model_instance.variable_dependencies = json.dumps(backward_trace)
+    return aProgram, backward_trace, reports, variable_info, model_instance
+
+
+def analyse(program_content):
+    aProgram = parse_pou_content(program_content)
+    reports = [[v0, v1, v2.replace("\n", "<br>")] for [v0, v1, v2] in (aProgram.check_rules())]
+    variable_info = aProgram.getVarDataColumns(
+        "name", "paramType", "valueType", "initVal", "description"
+    )
+    backward_trace = aProgram.getDependencyPathsByName()
+    return aProgram, backward_trace, reports, variable_info
 
 
 def get_file_content_as_single_string(file_field: FieldFile):

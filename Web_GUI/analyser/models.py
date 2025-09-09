@@ -64,6 +64,7 @@ class ReportModel(models.Model):
         def get_value_to_label_map(cls):
             """Returns a dictionary mapping values to their string representation."""
             return {status.value: status.label for status in cls}
+
         @classmethod
         def get_label_to_value_map(cls):
             """Returns a dictionary mapping strings to their values"""
@@ -95,6 +96,13 @@ class ReportModel(models.Model):
     def __str__(self):
         return self.report_content
 
+    def __eq__(self, other):
+        return isinstance(other, ReportModel) and \
+            all([self.block_program == other.block_program,
+                 self.report_content == other.report_content,
+                 self.report_check_status == other.report_check_status
+            ])
+
     def get_stringified_fields(self):
         return [
             self.check_name,
@@ -108,11 +116,11 @@ class ReportModel(models.Model):
         ]
 
     @classmethod
-    def create(cls, program_id, check_name, report_text, it_passed=False):
+    def create(cls, program_id, check_name, report_text, checkPassed=False):
         report = cls(block_program=program_id,
                      check_name=check_name,
                      report_content=report_text,
-                     report_check_status=int(it_passed),
+                     report_check_status=int(checkPassed),
                      report_review_notes="")
         return report
 
