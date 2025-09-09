@@ -25,6 +25,7 @@ ANALYSER_DATA_STORE_PATH = os.path.abspath(os.path.dirname(__file__)) + "/static
 
 BlockModelFormset_Differ = formset_factory(BlockModelForm, min_num=2, max_num=2, absolute_max=4, can_delete_extra=True)
 
+DEFAULT_RENDER_SIZE = 5.0
 
 # Create your views here.
 def diff_page(request):
@@ -35,7 +36,6 @@ def diff_page(request):
 
     if request.method == "POST":
         selected_models = request.POST.getlist("diff_selections[]")
-        renderScale = 5.0
         if selected_models is not None:
             fileHandles = [get_object_or_404(BlockModel, pk=int(ID)) for ID in selected_models]
             programs = dict(
@@ -54,7 +54,7 @@ def diff_page(request):
                     delta_report = "\n".join(prog1.compute_delta(prog2)).replace("\n", "<br>")
 
                     diff_img_path = make_and_save_diff_image(prog1, prog2, ANALYSER_DATA_STORE_PATH,
-                                                             render_scale=renderScale,
+                                                             render_scale=DEFAULT_RENDER_SIZE,
                                                              name_postfix=f"_{p1.pk}_{p2.pk}")
                     new_diff = DiffModel.create(
                         p1, p2, delta_report, diff_img_path
@@ -66,8 +66,8 @@ def diff_page(request):
                 assert isinstance(new_diff, DiffModel)
 
                 diffData["data"].append((new_diff.diff_report_infotext,
-                                         (renderToReport(prog1, renderScale),
-                                          renderToReport(prog2, renderScale)),
+                                         (renderToReport(prog1, DEFAULT_RENDER_SIZE),
+                                          renderToReport(prog2, DEFAULT_RENDER_SIZE)),
                                          new_diff.diff_picture))
 
             return render(request, "analyser/diff_result.html",
@@ -229,8 +229,6 @@ def reports_page(request, model_id):
             if post_data.get("Reanalyse", None) is not None:
                 model = get_object_or_404(BlockModel, pk=model_id)
                 the_metrics = get_object_or_404(MetricsModel, block_program=model_id)
-                the_reports = get_list_or_404(ReportModel, block_program_id=model_id)
-                report_dict = {str(r.report_content): r for r in the_reports}
                 # Re-read the cached data from model
                 _aProgram, backward_trace, _reports, _, _ = analyse_model(model)
                 model.save()
@@ -238,6 +236,10 @@ def reports_page(request, model_id):
                 # Additional metrics initially uploaded by the user are left as is
                 the_metrics.coreMetrics = _aProgram.getMetrics()
                 the_metrics.save()
+
+                deleted = ReportModel.objects.filter(block_program=model).delete()
+                the_reports = ReportModel.objects.filter(block_program_id=model_id)
+                report_dict = {str(r.check_name): r for r in the_reports}
 
                 for (ruleName, verdict, explanation) in _reports:
                     the_old_report = report_dict.get(ruleName, None)
@@ -292,9 +294,8 @@ def reports_page(request, model_id):
         # Some error handling should exist in the render template
         program_content = get_file_content_as_single_string(model_inst.program_content)
         aProgram = parse_pou_content(program_content)
-        SVG_content, width, height = renderToReport(aProgram, scale=7.0)
+        SVG_content, width, height = renderToReport(aProgram, scale=DEFAULT_RENDER_SIZE)
         SVGModel.create(model_inst, SVG_content, width, height).save()
-        pass
     else:
         assert len(SVG) == 1
         context["modelSVG"] = (SVG[0].svg_content,

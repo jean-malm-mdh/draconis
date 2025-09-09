@@ -39,13 +39,10 @@
     display: flex;
 }
 .sidebar {
-    width: 60%;
+    width: 80%;
     padding: 10px;
     border-right: 2px solid #ccc;
     overflow-y: auto;
-}
-.content {
-    width: 40%;
 }
 
 
@@ -64,6 +61,7 @@
 <body>
     <h1>{{model.program_name}}</h1>
     <p>Uploaded: {{model.uploaded_at}}</p>
+    <div id="header">
     <form action="./report" class="form-container" method="post">
         {% csrf_token %}
         <input type="hidden" value="1" name="Download" required>
@@ -75,6 +73,7 @@
         <button type="submit" class="btn">Re-analyse -- Not reversible! For DEV use only. </button>
     </form>
     <p><a href="../models">Go back to the models list view</a></p>
+    </div>
     <div class="container">
     <div class="sidebar">
     <h2>Checks Failed</h2>
@@ -220,6 +219,7 @@
     </tbody>
 </table>
 </div>
+    </div>
 <div class="content">
 {% if modelSVG %}
 <h2>Rendering of Model</h2>
@@ -229,7 +229,6 @@
 </svg>
 {% endif %}
 </div>
-    </div>
         {% for report, status_str in reports %}
             {%if report.report_check_status == 0 %}
             <div class="form-popup" id="JustificationForm_{{report.id}}">
