@@ -140,7 +140,6 @@ def add_modelfile_to_db(program_file, additional_metrics_json_str, project):
     return aProgram, model_instance.id
 
 
-
 def make_and_save_program_model_instance(_form, additional_metrics_form):
     model_instance = _form.save(commit=False)
     metrics_instance = additional_metrics_form.save(commit=False)
@@ -259,21 +258,21 @@ def make_excel_report(model: BlockModel, metrics: MetricsModel, reports: List[Re
     IMAGE_OFFSET_FROM_REPORT_END = 2
     fpp_dir = tempfile.gettempdir()
     fpp = os.path.join(fpp_dir, "report_img.jpg")
-    #try:
+    # try:
     theProgram = parse_pou_content(get_file_content_as_single_string(model.program_content))
     result_path = generate_image_of_program(theProgram,
                                             img_result_path=fpp,
                                             scale=5.0)
     print("Got past image generation")
     print(result_path)
-    report_sheet.insert_image(row=row+IMAGE_OFFSET_FROM_REPORT_END,
+    report_sheet.insert_image(row=row + IMAGE_OFFSET_FROM_REPORT_END,
                               col=0,
                               filename=result_path)
 
-    #except Exception as e:
-        # Image generation was not successful
-        #print(e)
-        #print(e.args)
+    # except Exception as e:
+    # Image generation was not successful
+    # print(e)
+    # print(e.args)
 
     metrics_sheet.autofit()
     report_sheet.autofit()
