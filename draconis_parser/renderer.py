@@ -105,7 +105,8 @@ class DrawContext:
             header_message_offset_height = 10
             message_max_width = max(header_width, message_width)
             r, b = (
-                l + message_max_width,
+                # TODO: BUG!
+                l + maxWidth,
                 t + header_height + message_height + header_message_offset_height,
             )
             return (
@@ -246,7 +247,7 @@ def generate_image_of_program(
 def render_comments_to_draw_context(draw_context, program, scaler):
     for comment in program.comments:
         draw_context.render_message_box(
-            (comment.bounding_box.top_left.x, comment.bounding_box.top_left.y),
+            (scaler(comment.bounding_box.top_left.x), scaler(comment.bounding_box.top_left.y)),
             message=comment.content,
             color="lightblue",
             header_msg="",
@@ -552,12 +553,12 @@ def render_comment_to_svg(comment, scaler):
 
     comment_content = comment.content
     comment_sanitised = sanitizer.sanitize(comment_content)
-
+    comment_lines = "".join(['<div>'+e+'</div>' for e in comment_sanitised.split("&lt;br /&gt;")])
     return \
         f'''<g>
         <rect class="comment_box" x="{Left}" y="{Top}" width="{Width}" height="{Height}" />
         <foreignObject x="{Left}" y="{Top}" width="{Width}" height="{Height}">
-            <div>{comment_sanitised}</div>
+            {comment_lines}
         </foreignObject>
         </g>'''
 

@@ -237,6 +237,10 @@ def reports_page(request, model_id):
                 the_metrics.coreMetrics = _aProgram.getMetrics()
                 the_metrics.save()
 
+                # Redo rendering
+                update_rendering(_aProgram, model)
+
+                # TODO: FOR PRODUCTION, this should not remove all reports!!
                 deleted = ReportModel.objects.filter(block_program=model).delete()
                 the_reports = ReportModel.objects.filter(block_program_id=model_id)
                 report_dict = {str(r.check_name): r for r in the_reports}
@@ -261,6 +265,14 @@ def reports_page(request, model_id):
                         the_old_report.delete()
 
             return None
+
+        def update_rendering(_aProgram, model):
+            svg = SVGModel.objects.filter(block_program=model)[0]
+            rendSVG, rendW, rendH = renderToReport(_aProgram)
+            svg.svg_content = rendSVG
+            svg.svg_width = rendW
+            svg.svg_height = rendH
+            svg.save()
 
         handle_review_update(data)
         return handle_actions(data)
