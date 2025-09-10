@@ -2,7 +2,7 @@ import dataclasses
 import functools
 import os
 import sys
-from typing import Tuple
+from typing import Tuple, List
 
 from PIL import Image, ImageDraw, ImageFont
 from draconis_parser import Program
@@ -13,14 +13,56 @@ from html_sanitizer import Sanitizer
 DRACONIS_FONT = os.environ.get("DRACONIS_FONT", None)
 
 
-def get_text_bb_size(text: str, font: ImageFont.ImageFont, fontCharHeight: int):
-    # width = length of longest row * fontCharWidth
-    if text == "":
-        return (0, 0)
-    rows = "\n".split(text.replace("\t", "    "))
-    longest_row = functools.reduce(max, [font.getlength(s) for s in rows])
-    return (longest_row, fontCharHeight * len(rows))
+def isWS_Or_Punct(c):
+    return not c.isalnum()
 
+
+def position_message(font, header_font, header_msg, maxWidth, message, pos_left_up):
+    _message_rows, message_width, message_height = trimMessageToWidth(
+        message, font, maxWidth
+    )
+    _header_msg_rows, header_width, header_height = trimMessageToWidth(
+        header_msg, header_font, maxWidth
+    )
+    l, t = pos_left_up
+    header_message_offset_height = 10 if header_msg != '' else 0
+    message_max_width = max(header_width, message_width)
+    r, b = (
+        # TODO: BUG!
+        l + maxWidth,
+        t + header_height + message_height + header_message_offset_height,
+    )
+    return (
+        t,
+        l,
+        b,
+        r,
+        header_height,
+        header_message_offset_height,
+        _header_msg_rows,
+        _message_rows,
+    )
+
+def get_text_bb_size(rows: List[str], font: ImageFont.ImageFont, fontCharHeight: int):
+
+    # width = length of longest row * fontCharWidth
+    if not rows:
+        return 0, 0
+    longest_row_width = functools.reduce(max, [font.getlength(s) for s in rows])
+    return longest_row_width, fontCharHeight * len(rows)
+
+
+def trimMessageToWidth(_message: str, _font: ImageFont.ImageFont, _maxWidth: int):
+    if _message == '':
+        return '', 0, 0
+    l,t,r, b = _font.getbbox(_message)
+    rendered_text_height = b - t
+    the_message = _message.replace("\t", "    ")
+    rows = the_message.split("&lt;br /&gt;")
+    if "&lt;br /&gt;" in the_message:
+        print(rows)
+    _msg_width, _msg_height = get_text_bb_size(rows, _font, rendered_text_height)
+    return rows, _msg_width, _msg_height
 
 @dataclasses.dataclass
 class DrawContext:
@@ -31,7 +73,7 @@ class DrawContext:
         self.image = Image.new("RGB", (img_width, img_height), color=bg_col)
         self.canvas = ImageDraw.Draw(self.image)
         self.fonts = {
-            "__DEFAULT__": ImageFont.truetype(DRACONIS_FONT, 15),
+            "__DEFAULT__": ImageFont.truetype(DRACONIS_FONT, 12),
             "__HEADER__": ImageFont.truetype(DRACONIS_FONT, 20),
         }
         self.scaler = scaler or (lambda e: e)
@@ -70,77 +112,31 @@ class DrawContext:
     def render_message_box(
             self, pos_left_up: Tuple[int, int], header_msg, message, color, maxWidth
     ):
-        def isWS_Or_Punct(c):
-            return not c.isalnum()
-
-        def trimMessageToWidth(_message, _font: ImageFont.ImageFont, _maxWidth):
-            _msg_width, _msg_height = get_text_bb_size(_message, _font, _font.getbbox(_message)[3])
-            while _msg_width > _maxWidth:
-                message_len = len(_message)
-                msg_split_point = message_len // 2
-                while msg_split_point < message_len and not isWS_Or_Punct(
-                        _message[msg_split_point]
-                ):
-                    msg_split_point += 1
-                if msg_split_point == message_len:
-                    msg_split_point = message_len // 2
-                    while msg_split_point >= 0 and not isWS_Or_Punct(
-                            _message[msg_split_point]
-                    ):
-                        msg_split_point -= 1
-                _message = (
-                        _message[:msg_split_point].strip() + "\n" + _message[msg_split_point:]
-                )
-                _msg_width, _msg_height = get_text_bb_size(_message, _font, _font.getbbox(_message)[3])
-            return _message, _msg_width, _msg_height
-
-        def position_message(font, header_font, header_msg, maxWidth, message):
-            message, message_width, message_height = trimMessageToWidth(
-                message, font, maxWidth
-            )
-            header_msg, header_width, header_height = trimMessageToWidth(
-                header_msg, header_font, maxWidth
-            )
-            l, t = pos_left_up
-            header_message_offset_height = 10
-            message_max_width = max(header_width, message_width)
-            r, b = (
-                # TODO: BUG!
-                l + maxWidth,
-                t + header_height + message_height + header_message_offset_height,
-            )
-            return (
-                b,
-                header_height,
-                header_message_offset_height,
-                header_msg,
-                l,
-                message,
-                r,
-                t,
-            )
-
         draw = self.canvas
         header_font = self.fonts["__HEADER__"]
         font = self.fonts["__DEFAULT__"]
         (
-            b,
-            header_height,
-            header_message_offset_height,
-            header_msg,
-            l,
-            message,
-            r,
             t,
-        ) = position_message(font, header_font, header_msg, maxWidth, message)
-        self.draw_rect_filled(pos_left_up, (r, b), col=color)
-        draw.text((l, t), header_msg, fill="black", font=header_font)
-        draw.text(
-            (l, t + header_height + header_message_offset_height),
-            message,
-            fill="black",
-            font=font,
-        )
+            l,
+            b,
+            r,
+            header_height,
+            message_row_offset,
+            header_msg_rows,
+            message_rows,
+        ) = position_message(font, header_font, header_msg, maxWidth, message, pos_left_up)
+        row_height = 12
+        self.draw_rect_filled((l,t), (r, b+row_height//2), col=color)
+        if header_msg_rows:
+            draw.text((l, t), header_msg[0], fill="black", font=header_font)
+        for message in message_rows:
+            draw.text(
+                (l, t + header_height + message_row_offset),
+                message,
+                fill="black",
+                font=font,
+            )
+            message_row_offset += row_height
         return l, t, r, b
 
     def render_block(self, b):
